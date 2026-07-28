@@ -1,0 +1,31 @@
+# Backend Framework
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+djangorestframework-simplejwt>=5.3.1
+python-decouple>=3.8
+
+# FastAPI Service
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.6
+
+# Background Jobs / Task Queue
+celery>=5.3.1
+redis>=4.6.0
+
+# Cryptography & Security
+cryptography>=41.0.0
+qrcode[pil]>=7.4.2
+
+# AI & Chatbot
+langchain>=0.0.260
+langchain-anthropic>=0.1.0
+pgvector>=0.2.0
+sentence-transformers>=2.2.2
+
+# Testing & Quality
+pytest>=7.4.0
+pytest-django>=4.5.2
+black>=23.7.0
+ruff>=0.0.280

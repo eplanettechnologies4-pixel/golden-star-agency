@@ -1,0 +1,16 @@
+[Unit]
+Description=Uvicorn daemon for FastAPI
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/golden-star/fast_api
+ExecStart=/var/www/golden-star/venv/bin/uvicorn \
+          main:app \
+          --host 127.0.0.1 \
+          --port 8001 \
+          --workers 4
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Gunicorn daemon for Django core_admin
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/golden-star/core_admin
+ExecStart=/var/www/golden-star/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind 127.0.0.1:8000 \
+          config.wsgi:application
+
+[Install]
+WantedBy=multi-user.target

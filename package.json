@@ -1,0 +1,12 @@
+{
+  "name": "golden-star-agency",
+  "version": "1.0.0",
+  "description": "Golden Star Agency Django & Tailwind project",
+  "scripts": {
+    "build:css": "tailwindcss -i ./core_admin/static/css/tailwind_src.css -o ./core_admin/static/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./core_admin/static/css/tailwind_src.css -o ./core_admin/static/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
