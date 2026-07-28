@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Privacy Policy | Golden Star Agency{% endblock %}
+{% block content %}
+
+<!-- Top Level Banner Section -->
+<section class="relative min-h-[35vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-16">
+    <div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('{% static 'images/contact_banner.png' %}');"></div>
+    <div class="absolute inset-0 bg-slate-950/85 z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
+
+    <div class="max-w-4xl mx-auto px-4 relative z-10 text-white">
+        <nav class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <span class="text-slate-350">Privacy Policy</span>
+        </nav>
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">Privacy Policy</h1>
+        <p class="text-slate-300 max-w-xl mx-auto text-xs sm:text-sm">
+            Last Updated: July 15, 2026. How we protect agent databases and traveler parameters.
+        </p>
+    </div>
+</section>
+
+<!-- Content Section -->
+<section class="py-20 bg-slate-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200/60 shadow-sm space-y-8 text-slate-655 text-slate-600 text-sm leading-relaxed">
+            
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 mb-3">1. Scope and Introduction</h2>
+                <p>
+                    Golden Star Agency ("we", "us", or "our") operates the Golden Star travel platform. We are dedicated to respecting and safeguarding the privacy of our partner travel agents, pilgrim candidates, flight passengers, and portal visitors in Pakistan. This policy governs how we collect, store, and share your personal files.
+                </p>
+            </div>
+            
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 mb-3">2. Information We Collect</h2>
+                <p class="mb-3">
+                    To process bookings, issue visa sticker advisories, and maintain agent wallets, we collect the following datasets:
+                </p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Agent Profile Data:</strong> Full name, CNIC number, business coordinates, bank deposit voucher details, and wallet balance receipts.</li>
+                    <li><strong>Traveler Parameters:</strong> Scanned copies of passports, bio registration states, vaccination alerts, and flight seat preferences.</li>
+                    <li><strong>Usage Records:</strong> IP addresses, browser specs, booking logs, and transaction timestamps.</li>
+                </ul>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 mb-3">3. How We Use Collected Data</h2>
+                <p class="mb-3">
+                    We process information strictly for valid booking objectives:
+                </p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>To verify B2B agent wallet credits and process deposits.</li>
+                    <li>To file electronic visa applications at destination embassies.</li>
+                    <li>To book GDS ticketing codes and lock hotel reservations in Makkah and Madinah.</li>
+                    <li>To analyze chart trend parameters on the admin dashboard.</li>
+                </ul>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 mb-3">4. Security Measures</h2>
+                <p>
+                    All credit ledgers and passport copies are encrypted using Secure Socket Layer (SSL) channels. We employ network firewalls and database access policies to protect against unverified viewing of agent data.
+                </p>
+            </div>
+
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 mb-3">5. Third-Party Sharing</h2>
+                <p>
+                    We only share traveler parameters with certified airline companies, tour operators, and Saudi Hajj/Umrah systems when necessary to issue tickets or Nusuk app permits. We do not sell or lease agent contact listings to third-party advertising companies.
+                </p>
+            </div>
+
+            <div class="border-t border-slate-100 pt-6">
+                <h2 class="text-xl font-bold text-slate-800 mb-3">6. Support and Inquiries</h2>
+                <p>
+                    If you have queries regarding details removal or database corrections, please trigger a message to our support line at <span class="font-mono text-xs text-brand-orange font-semibold">support@goldenstaragency.com</span>.
+                </p>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+{% endblock %}

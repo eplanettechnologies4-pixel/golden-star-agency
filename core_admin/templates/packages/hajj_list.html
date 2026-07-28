@@ -1,0 +1,668 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Hajj Packages 2026 | Golden Star Agency{% endblock %}
+{% block content %}
+<!-- Top Level Banner Image Slider -->
+<section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
+    <!-- Sliding Backgrounds -->
+    <div class="absolute inset-0 z-0">
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static 'images/hajj_banner.png' %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/hero_bg.png' %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/umrah_banner.png' %}');"></div>
+        <div class="absolute inset-0 bg-slate-950/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <nav class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <span class="text-slate-350">Hajj 2026</span>
+        </nav>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight">Exclusive Hajj Packages</h1>
+        <p class="text-slate-300 max-w-2xl mx-auto text-sm leading-relaxed">
+            Perform your sacred religious obligation with trusted ground partners. We offer complete assistance from visa filing and flights to premium shifting and non-shifting Maktab packages.
+        </p>
+    </div>
+
+    <!-- Controls -->
+    <button onclick="prevBanner()" class="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-left"></i></button>
+    <button onclick="nextBanner()" class="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-right"></i></button>
+
+    <!-- Indicators -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+        <button onclick="setBanner(0)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-100 transition-all"></button>
+        <button onclick="setBanner(1)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+        <button onclick="setBanner(2)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+    </div>
+</section>
+
+<!-- Premium Hajj Pilgrimage Gallery Section -->
+<section class="py-16 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-10">
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-camera-retro"></i> Sacred Journey Gallery
+            </span>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">Visual Highlights & Holy Sites</h2>
+            <p class="text-slate-500 mt-2 max-w-xl mx-auto text-sm leading-relaxed">
+                Take a visual tour of Hajj holy sites, accommodations, transit, and pilgrim experiences.
+            </p>
+        </div>
+
+        <!-- 12-Image Grid Gallery -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <!-- Item 1 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_kaaba.png' %}" alt="Holy Kaaba Makkah" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Holy Kaaba, Makkah</h4>
+                </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_mina.png' %}" alt="Mina Tent City" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Tent City, Mina</h4>
+                </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_arafat.png' %}" alt="Mount Arafat" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Mount Arafat</h4>
+                </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_muzdalifah.png' %}" alt="Muzdalifah Plain" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Muzdalifah Plains</h4>
+                </div>
+            </div>
+
+            <!-- Item 5 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_jamarat.png' %}" alt="Jamarat Bridge" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Jamarat Stoning Area</h4>
+                </div>
+            </div>
+
+            <!-- Item 6 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_madinah_mosque.png' %}" alt="Masjid an-Nabawi Madinah" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Prophet's Mosque, Madinah</h4>
+                </div>
+            </div>
+
+            <!-- Item 7 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_pilgrim_praying.png' %}" alt="Pilgrim Praying" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Devotion & Prayer</h4>
+                </div>
+            </div>
+
+            <!-- Item 8 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_hotel_makkah.png' %}" alt="Haram View Accommodation" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Haram View Hotels</h4>
+                </div>
+            </div>
+
+            <!-- Item 9 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_train.png' %}" alt="Haramain Train" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Haramain Express Train</h4>
+                </div>
+            </div>
+
+            <!-- Item 10 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_banner.png' %}" alt="Hajj Pilgrims Group" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Group Pilgrimages</h4>
+                </div>
+            </div>
+
+            <!-- Item 11 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hajj_card.png' %}" alt="Grand Mosque Courtyard" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Haram Courtyard</h4>
+                </div>
+            </div>
+
+            <!-- Item 12 -->
+            <div class="group relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100 h-48 sm:h-64">
+                <img src="{% static 'images/hero_bg.png' %}" alt="Sunset Pilgrimage" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-90"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">Sacred Horizons</h4>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Dynamic Hajj Packages Catalog Section -->
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Filter Bar: Duration Dropdown & Badges -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-filter text-brand-orange"></i> Duration Filter:</span>
+                <select id="duration-filter-select" onchange="filterPackagesByDays(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                    <option value="all" selected>All Durations</option>
+                    <option value="14">14 Days Packages</option>
+                    <option value="15">15 Days Packages</option>
+                    <option value="20">20 Days Packages</option>
+                    <option value="25">25 Days Packages</option>
+                    <option value="30">30 Days Packages</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
+                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200"><i class="fa-solid fa-bolt"></i> Real-Time Seat Availability</span>
+            </div>
+        </div>
+
+        <div id="packages-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for pkg in packages %}
+            <div class="package-card glass-card bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-200/60 shadow-sm transition-all hover:shadow-lg" data-days="{{ pkg.duration_days }}">
+                <div class="relative h-56 bg-slate-100 overflow-hidden group">
+                    <img src="{% if pkg.images %}{{ pkg.images.0 }}{% else %}{% static 'images/hajj_card.png' %}{% endif %}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    
+                    <!-- Top Badges: Category & Duration -->
+                    <div class="absolute top-4 left-4 flex flex-wrap gap-1.5">
+                        <span class="bg-brand-orange text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase shadow">{{ pkg.duration_days }} Days</span>
+                        <span class="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase border border-white/10">{{ pkg.category }}</span>
+                    </div>
+
+                    <!-- Live Seats Counter Badge -->
+                    <div class="absolute bottom-4 left-4">
+                        {% if pkg.available_seats > 0 %}
+                        <span class="bg-emerald-600/90 backdrop-blur-md text-white text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-400/30 shadow-lg flex items-center gap-1.5">
+                            <i class="fa-solid fa-ticket animate-pulse text-amber-300"></i>
+                            <span>{{ pkg.available_seats }} / {{ pkg.total_seats }} Seats Available</span>
+                        </span>
+                        {% else %}
+                        <span class="bg-rose-600/90 backdrop-blur-md text-white text-[11px] font-extrabold px-3 py-1 rounded-full shadow-lg">
+                            <i class="fa-solid fa-circle-xmark mr-1"></i> Sold Out
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="p-6 flex-grow flex flex-col bg-white">
+                    <h3 class="text-base font-extrabold text-slate-900 mb-2 leading-snug">{{ pkg.title }}</h3>
+                    <p class="text-xs text-slate-500 mb-4 line-clamp-2 leading-relaxed">{{ pkg.description }}</p>
+
+                    <div class="text-xs text-slate-600 space-y-2 mb-6 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <!-- Airline with Logo/Icon -->
+                        <div class="flex items-center gap-2">
+                            {% with logo_info=pkg.get_airline_info %}
+                            {% if logo_info.logo_url %}
+                            <img src="{{ logo_info.logo_url }}" alt="{{ logo_info.name }}" class="w-4 h-4 object-contain">
+                            {% else %}
+                            <i class="fa-solid {{ logo_info.icon_class }} text-brand-orange"></i>
+                            {% endif %}
+                            <span class="font-bold text-slate-800">{{ logo_info.name }}</span>
+                            {% endwith %}
+                        </div>
+
+                        <!-- Flight Route -->
+                        <p class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-route text-brand-orange mr-1.5"></i>Route: {{ pkg.flight_routes|default:"KHI - JED - MED - KHI" }}</p>
+
+                        <!-- Makkah Hotel Distance -->
+                        <p class="text-[11px]"><i class="fa-solid fa-hotel text-brand-orange mr-1.5"></i><strong>Makkah:</strong> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }} <span class="text-emerald-600 font-bold">({{ pkg.makkah_hotel_distance|default:"350m" }})</span></p>
+
+                        <!-- Madinah Hotel Distance -->
+                        <p class="text-[11px]"><i class="fa-solid fa-mosque text-brand-orange mr-1.5"></i><strong>Madinah:</strong> {{ pkg.madinah_hotel_name|default:"Hotel Near Markazia" }} <span class="text-emerald-600 font-bold">({{ pkg.madinah_hotel_distance|default:"150m" }})</span></p>
+
+                        <!-- Luggage Weight -->
+                        <p class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-suitcase-rolling text-brand-orange mr-1.5"></i>Luggage: {{ pkg.luggage_weight|default:"20 kg + 7 kg Hand Carry" }}</p>
+                    </div>
+
+                    <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Per Person Price</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR {{ pkg.price }}</span>
+                        </div>
+                        <a href="{% url 'package_detail' pk=pkg.pk %}" class="px-4 py-2.5 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1">
+                            Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-16 bg-white rounded-2xl border border-slate-200/60">
+                <i class="fa-solid fa-kaaba text-4xl text-slate-300 mb-3"></i>
+                <p class="text-sm font-bold text-slate-600">No active Hajj packages currently listed.</p>
+                <p class="text-xs text-slate-400 mt-1">Please check back soon or submit a custom inquiry below!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script>
+function filterPackagesByDays(selectedDays) {
+    const cards = document.querySelectorAll('.package-card');
+    cards.forEach(card => {
+        const cardDays = card.getAttribute('data-days');
+        if (selectedDays === 'all' || cardDays === selectedDays) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+
+<!-- Custom Pilgrimage Customizer Section -->
+<section class="relative py-24 bg-slate-950 text-white overflow-hidden border-t border-slate-900">
+    <!-- Glowing orange background radial accent -->
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_100%,rgba(234,88,12,0.06),transparent_50%)] z-0"></div>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-12">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-orange/10 border border-brand-orange/30 text-brand-orange text-xs font-bold uppercase tracking-widest mb-4">
+                <i class="fa-solid fa-sliders animate-pulse"></i> Tailor-Made Journey
+            </span>
+            <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">Custom Hajj Package Planner</h2>
+            <p class="text-slate-400 mt-3 max-w-xl mx-auto text-sm leading-relaxed">
+                Design your ideal pilgrimage with our customizable preferences. Submit your choice of days, hotel distances, and airline, and receive a tailored itinerary quote instantly.
+            </p>
+        </div>
+
+        <div id="customizer-card" class="bg-slate-900/60 backdrop-blur-md border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl relative hover:border-brand-orange/20 transition-all duration-300">
+            <form id="custom-pilgrimage-form" onsubmit="submitCustomPilgrimage(event)" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="package_type" value="hajj">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Target Duration -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-350 uppercase tracking-widest mb-2.5">Package Duration</label>
+                        <select name="days" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all shadow-inner font-semibold">
+                            <option value="7">7 Days Tour</option>
+                            <option value="10">10 Days Tour</option>
+                            <option value="21">21 Days Tour</option>
+                            <option value="30" selected>30 Days Tour</option>
+                        </select>
+                    </div>
+
+                    <!-- Preferred Airline -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-355 uppercase tracking-widest mb-2.5">Preferred Airline Partner</label>
+                        <select name="airline" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all shadow-inner font-semibold">
+                            <option value="PIA">PIA (Pak International Airlines)</option>
+                            <option value="Saudi Airlines" selected>Saudi Arabian Airlines (Saudia)</option>
+                            <option value="FlyDubai">FlyDubai Carrier</option>
+                            <option value="Air Arabia">Air Arabia</option>
+                            <option value="Salam Air">Salam Air</option>
+                        </select>
+                    </div>
+
+                    <!-- Makkah Hotel Distance -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] font-bold text-slate-355 uppercase tracking-widest">Makkah Hotel Distance</label>
+                            <span id="lbl-makkah-dist" class="text-xs font-bold text-brand-orange bg-brand-orange/10 px-2.5 py-0.5 rounded-full border border-brand-orange/20 shadow-sm">500m</span>
+                        </div>
+                        <input type="range" name="makkah_distance" min="0" max="2000" step="50" value="500" oninput="updateDistanceLabel('makkah', this.value)"
+                            class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-orange">
+                        <div class="flex justify-between text-[9px] text-slate-500 font-semibold mt-1">
+                            <span>0m (Front Row)</span>
+                            <span>1000m</span>
+                            <span>2000m (Max)</span>
+                        </div>
+                    </div>
+
+                    <!-- Madinah Hotel Distance -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] font-bold text-slate-355 uppercase tracking-widest">Madinah Hotel Distance</label>
+                            <span id="lbl-madinah-dist" class="text-xs font-bold text-brand-orange bg-brand-orange/10 px-2.5 py-0.5 rounded-full border border-brand-orange/20 shadow-sm">350m</span>
+                        </div>
+                        <input type="range" name="madinah_distance" min="0" max="2000" step="50" value="350" oninput="updateDistanceLabel('madinah', this.value)"
+                            class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-orange">
+                        <div class="flex justify-between text-[9px] text-slate-500 font-semibold mt-1">
+                            <span>0m (Front Row)</span>
+                            <span>1000m</span>
+                            <span>2000m (Max)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-white/5 my-6"></div>
+
+                <!-- User Details -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-355 uppercase tracking-widest mb-2.5">Your Name</label>
+                        <input type="text" name="name" required placeholder="e.g. Danish Khan"
+                            class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-655 focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-355 uppercase tracking-widest mb-2.5">Email Address</label>
+                        <input type="email" name="email" required placeholder="e.g. danish@gmail.com"
+                            class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-655 focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-355 uppercase tracking-widest mb-2.5">Phone / WhatsApp</label>
+                        <input type="text" name="phone" required placeholder="e.g. +92 300 1234567"
+                            class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-655 focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-355 uppercase tracking-widest mb-2.5">Additional Specifications</label>
+                    <textarea name="additional_notes" rows="3" placeholder="Specify shared/private rooms, wheelchair accessibility, shifting preferences, specific departure date..."
+                        class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-655 focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange transition-all"></textarea>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" id="btn-submit-custom"
+                        class="w-full sm:w-auto px-8 py-3.5 bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-lg hover:shadow-brand-orange/20 transition-all duration-200 flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
+                        <i class="fa-solid fa-paper-plane"></i> Send Custom Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Day-by-Day Hajj Journey Section -->
+<section class="py-20 bg-slate-50 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Day-by-Day Hajj Pilgrimage Timeline</h2>
+            <p class="text-slate-500 mt-2 text-sm">Understanding the essential phases of your sacred journey helps you prepare mentally and physically.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+            <!-- Phase 1 -->
+            <div class="relative bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+                <span class="absolute -top-4 left-6 bg-brand-orange text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Day 1</span>
+                <div class="text-brand-orange text-3xl mb-4"><i class="fa-solid fa-hotel"></i></div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Ihram & Mina</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Pilgrims wear Ihram, declare Niyyah, and travel to the tent city of Mina on the 8th of Dhul Hijjah, spending the day and night in prayer.</p>
+            </div>
+            
+            <!-- Phase 2 -->
+            <div class="relative bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+                <span class="absolute -top-4 left-6 bg-brand-orange text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Day 2</span>
+                <div class="text-brand-orange text-3xl mb-4"><i class="fa-solid fa-mountain"></i></div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Arafah & Muzdalifah</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">The pinnacle of Hajj on the 9th. Pilgrims stand in Arafat, then travel to Muzdalifah at sunset to collect pebbles and sleep under the open sky.</p>
+            </div>
+            
+            <!-- Phase 3 -->
+            <div class="relative bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+                <span class="absolute -top-4 left-6 bg-brand-orange text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Day 3</span>
+                <div class="text-brand-orange text-3xl mb-4"><i class="fa-solid fa-gem"></i></div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Ramy & Tawaf</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">On the 10th (Eid), pilgrims perform Jamarat stoning, sacrifice animals, shave/trim hair (Halq), and travel to Makkah for Tawaf al-Ifadah.</p>
+            </div>
+            
+            <!-- Phase 4 -->
+            <div class="relative bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md transition-shadow">
+                <span class="absolute -top-4 left-6 bg-brand-orange text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Days 4-5</span>
+                <div class="text-brand-orange text-3xl mb-4"><i class="fa-solid fa-mosque"></i></div>
+                <h3 class="text-lg font-bold text-slate-800 mb-2">Tashreeq & Farewell</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Return to Mina for 2-3 days of stoning the Jamarat, concluding the Hajj with Tawaf al-Wida (Farewell Tawaf) in Makkah before returning home.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pilgrim Preparation & Requirements Section -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-4">Mandatory Requirements & Prep Checklist</h2>
+                <p class="text-slate-500 text-sm leading-relaxed mb-6">
+                    A successful pilgrimage depends heavily on early preparation. The Saudi Ministry of Hajj enforces strict medical and documentary protocols for all Pakistani nationals.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold"><i class="fa-solid fa-check"></i></span>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Vaccination Cards & PCR</h4>
+                            <p class="text-[11px] text-slate-400">Valid Meningococcal Meningitis (ACYW-135), Influenza, and Polio vaccination certificates are required.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold"><i class="fa-solid fa-check"></i></span>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Saudi Bio App Registration</h4>
+                            <p class="text-[11px] text-slate-400">All Pakistani passport holders must enroll biometric details via the official app before visa issuance.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold"><i class="fa-solid fa-check"></i></span>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Physical Endurance Prep</h4>
+                            <p class="text-[11px] text-slate-400">We advise pilgrims to walk 4-5 kilometers daily for at least 4 weeks before their flight departure date.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-8 rounded-3xl border border-slate-200/60">
+                <h3 class="text-xl font-bold text-slate-800 mb-6">Hajj FAQs & Guidelines</h3>
+                <div class="space-y-4">
+                    <details class="group bg-white p-5 rounded-2xl border border-slate-200/50 shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex items-center justify-between font-bold text-slate-800 text-sm cursor-pointer select-none">
+                            <span>What is the difference between Shifting & Non-Shifting?</span>
+                            <span class="text-xs text-brand-orange group-open:rotate-180 transition-transform duration-200"><i class="fa-solid fa-chevron-down"></i></span>
+                        </summary>
+                        <p class="mt-3 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
+                            Shifting packages move you to building apartments away from the Haram during peak Hajj days (4-12 Dhul Hijjah) to save costs. Non-Shifting packages guarantee hotel stays next to the Haram for the entire trip duration.
+                        </p>
+                    </details>
+                    
+                    <details class="group bg-white p-5 rounded-2xl border border-slate-200/50 shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                        <summary class="flex items-center justify-between font-bold text-slate-800 text-sm cursor-pointer select-none">
+                            <span>What is included in the Maktab categories (A, B, C)?</span>
+                            <span class="text-xs text-brand-orange group-open:rotate-180 transition-transform duration-200"><i class="fa-solid fa-chevron-down"></i></span>
+                        </summary>
+                        <p class="mt-3 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-3">
+                            Maktab categories define your proximity to the Jamarat (stoning area) inside Mina, tent capacity, mattress types, and catering options. Category A is closest with gypsum-board private tents, while Category C is further away with basic carpets.
+                        </p>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banner Slider Script -->
+<script>
+    let currentBannerIdx = 0;
+    const bannerSlides = document.querySelectorAll('.banner-slide');
+    const bannerDots = document.querySelectorAll('.banner-dot');
+
+    function updateBanner() {
+        bannerSlides.forEach((slide, idx) => {
+            if (idx === currentBannerIdx) {
+                slide.classList.remove('opacity-0');
+                slide.classList.add('opacity-100');
+                bannerDots[idx].classList.remove('opacity-40');
+                bannerDots[idx].classList.add('opacity-100');
+            } else {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+                bannerDots[idx].classList.remove('opacity-100');
+                bannerDots[idx].classList.add('opacity-40');
+            }
+        });
+    }
+
+    function nextBanner() {
+        currentBannerIdx = (currentBannerIdx + 1) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function prevBanner() {
+        currentBannerIdx = (currentBannerIdx - 1 + bannerSlides.length) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function setBanner(idx) {
+        currentBannerIdx = idx;
+        updateBanner();
+    }
+
+    // Auto slide every 5 seconds
+    setInterval(nextBanner, 5000);
+
+    // Custom Pilgrimage Customizer handlers
+    function updateDistanceLabel(type, val) {
+        document.getElementById(`lbl-${type}-dist`).textContent = val + "m";
+    }
+
+    async function submitCustomPilgrimage(event) {
+        event.preventDefault();
+        const form = document.getElementById("custom-pilgrimage-form");
+        const btn = document.getElementById("btn-submit-custom");
+        
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> Submitting...`;
+
+        const payload = {
+            package_type: form.querySelector('[name="package_type"]').value,
+            days: form.querySelector('[name="days"]').value,
+            airline: form.querySelector('[name="airline"]').value,
+            makkah_distance: form.querySelector('[name="makkah_distance"]').value,
+            madinah_distance: form.querySelector('[name="madinah_distance"]').value,
+            name: form.querySelector('[name="name"]').value,
+            email: form.querySelector('[name="email"]').value,
+            phone: form.querySelector('[name="phone"]').value,
+            additional_notes: form.querySelector('[name="additional_notes"]').value,
+        };
+
+        try {
+            const res = await fetch("/api/packages/custom-inquiry/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": form.querySelector('[name="csrfmiddlewaretoken"]').value
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                document.getElementById("customizer-card").innerHTML = `
+                    <div class="text-center py-10 space-y-5">
+                        <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-400 text-4xl border border-emerald-500/25 shadow-lg shadow-emerald-500/5 animate-bounce">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-white">Inquiry Submitted Successfully!</h3>
+                        <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                            JazakAllah Khair! We have received your customization parameters. A confirmation email has been dispatched to <strong class="text-brand-orange">${escapeHTML(payload.email)}</strong>. Our team will review the requirements and contact you shortly.
+                        </p>
+                    </div>
+                `;
+            } else {
+                alert("Submission failed: " + (data.message || "Please check inputs."));
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Submit Inquiry`;
+            }
+        } catch (err) {
+            console.error(err);
+            alert("An error occurred: " + err.message);
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Submit Inquiry`;
+        }
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.toString()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+
+<!-- Explore More Services Section with Background Picture -->
+<section class="relative py-20 bg-slate-950 overflow-hidden border-t border-slate-900">
+    <div class="absolute inset-0 z-0 bg-cover bg-center bg-fixed" style="background-image: url('{% static 'images/hajj_banner.png' %}');"></div>
+    <div class="absolute inset-0 bg-slate-950/85 z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Explore Related Services</h2>
+        <p class="text-slate-300 mb-10 text-xs sm:text-sm">Complete your travel itinerary with our premium modules.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Card 1: Hajj -->
+            <a href="{% url 'hajj_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-mosque"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Hajj Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Premium shifting and non-shifting group catalogs.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+            
+            <!-- Card 2: Umrah -->
+            <a href="{% url 'umrah_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-kaaba"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Umrah Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Economy & custom VIP options near Haram Makkah.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 3: Visa -->
+            <a href="{% url 'visa_countries' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-passport"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Visa Services</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Fast-track eVisas and sticker support advice.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 4: Flights -->
+            <a href="{% url 'flights_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-plane"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Flights Ticket</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Discount airline group seat deals & quotes.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

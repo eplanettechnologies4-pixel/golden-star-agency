@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Become a B2B Agent Partner | REI GOLDEN STAR TRAVEL & TOURS{% endblock %}
+{% block content %}
+
+<!-- Hero Banner / Header -->
+<section class="relative py-24 bg-slate-950 overflow-hidden text-center text-white">
+    <div class="absolute inset-0 z-0 opacity-35">
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{% static 'images/about_banner.png' %}');"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/80 to-slate-950"></div>
+    </div>
+    
+    <!-- Glowing background radial blur -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-orange/15 rounded-full blur-3xl pointer-events-none z-0"></div>
+
+    <div class="max-w-4xl mx-auto px-4 relative z-10 space-y-4">
+        <nav class="flex justify-center items-center space-x-2 text-xs font-extrabold text-brand-orange uppercase tracking-widest mb-2">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <span class="text-slate-400">B2B Agent Network</span>
+        </nav>
+        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
+            Become a B2B Travel Agent Partner
+        </h1>
+        <p class="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-normal">
+            Grow your travel business in Pakistan with <strong>REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</strong> Access net agent rates for Hajj, Umrah, Visit Visas, and GDS flight ticketing with automated ledger commission credits.
+        </p>
+        
+        <div class="pt-4 flex flex-wrap justify-center items-center gap-4">
+            <a href="{% url 'signup' %}?role=agent" 
+               class="px-8 py-4 bg-gradient-to-r from-brand-orange to-orange-600 hover:from-orange-600 hover:to-brand-orange text-white font-extrabold rounded-2xl shadow-xl shadow-brand-orange/30 transition-all duration-300 text-sm uppercase tracking-wider flex items-center gap-2 group">
+                <i class="fa-solid fa-handshake text-base"></i>
+                <span>Register B2B Agent Account</span>
+                <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </a>
+            <a href="https://wa.me/923077233303?text=Assalamu%20Alaikum!%20I%20want%20to%20inquire%20about%20B2B%20Agent%20Partnership." 
+               target="_blank"
+               class="px-6 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-2xl backdrop-blur-md transition-all duration-300 text-sm flex items-center gap-2">
+                <i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i>
+                <span>Contact B2B Support Desk</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Real-time B2B Network Metrics -->
+<section class="py-10 bg-slate-900 border-y border-slate-800 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <span class="text-3xl sm:text-4xl font-black text-brand-orange block font-mono">500+</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 block">Active B2B Sub-Agents</span>
+            </div>
+            <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <span class="text-3xl sm:text-4xl font-black text-brand-orange block">Best Rates</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 block">Guaranteed B2B Net Rates</span>
+            </div>
+            <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <span class="text-3xl sm:text-4xl font-black text-brand-orange block font-mono">15 Mins</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 block">Bank Upload Approval SLA</span>
+            </div>
+            <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50 backdrop-blur-sm">
+                <span class="text-3xl sm:text-4xl font-black text-brand-orange block font-mono">24 / 7</span>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1 block">Agent Helpdesk Support</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- B2B Business Plan & Earning Models -->
+<section class="py-20 bg-slate-50 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <span class="text-xs font-extrabold text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-4 py-1.5 rounded-full uppercase tracking-widest inline-block">
+                B2B Business Model &amp; Payouts
+            </span>
+            <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Earn Transparent Commission Margins</h2>
+            <p class="text-slate-600 text-sm leading-relaxed">
+                Our agent portal automates B2B ledger deposits, net inventory pricing, and instant ticket emission.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Hajj Business Plan Card -->
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 relative group overflow-hidden">
+                <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-kaaba"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900 mb-2">Hajj Operations</h3>
+                <span class="text-xl font-extrabold text-brand-orange block mb-4">Direct Pilgrim Payout</span>
+                <p class="text-xs text-slate-500 leading-relaxed mb-6">
+                    Direct commission credited to your wallet per pilgrim for shifting/non-shifting packages. Full Nusuk permit coordination & Makkah/Madinah hotel allocations included.
+                </p>
+                <ul class="space-y-2.5 text-xs text-slate-700 font-semibold border-t border-slate-100 pt-4">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Direct Government Hajj Quota</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Mina & Arafat VIP Camp Support</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Group Leader Commission Credit</li>
+                </ul>
+            </div>
+
+            <!-- Umrah Business Plan Card -->
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 relative group overflow-hidden border-t-4 border-t-brand-orange">
+                <div class="w-14 h-14 rounded-2xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-star-and-crescent"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900 mb-2">Umrah Packages</h3>
+                <span class="text-xl font-extrabold text-brand-orange block mb-4">High B2B Margin</span>
+                <p class="text-xs text-slate-500 leading-relaxed mb-6">
+                    Earn reliable commission margins & direct ledger credits per pilgrim on economy, standard, and VIP custom Umrah packages.
+                </p>
+                <ul class="space-y-2.5 text-xs text-slate-700 font-semibold border-t border-slate-100 pt-4">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Saudi Umrah Visa Portal Access</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Hotel Voucher Net Rates</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Ground Transport & Ziyarat Included</li>
+                </ul>
+            </div>
+
+            <!-- Flight & Visas Business Plan Card -->
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 relative group overflow-hidden">
+                <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-plane-departure"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900 mb-2">Flight &amp; Visit Visas</h3>
+                <span class="text-2xl font-black text-brand-orange block mb-4 font-mono">Dynamic Agent Markup</span>
+                <p class="text-xs text-slate-500 leading-relaxed mb-6">
+                    Access net GDS airline fares (Saudia, PIA, Emirates, Qatar, Airblue) and international visit visas (Dubai, Saudi, Turkey, Malaysia, UK) with custom service markups.
+                </p>
+                <ul class="space-y-2.5 text-xs text-slate-700 font-semibold border-t border-slate-100 pt-4">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Real-time PNR Allotment</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> 100% Guaranteed Visa Uploads</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Instant Printable Ticket Receipts</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Step-by-Step B2B Agent Onboarding Process -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+            <span class="text-xs font-extrabold text-slate-500 uppercase tracking-widest">Simple Setup Roadmap</span>
+            <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">4 Steps to Activate Your Agent Console</h2>
+            <p class="text-slate-500 text-sm">Follow our straightforward onboarding workflow to start issuing tickets and earning commissions.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Step 1 -->
+            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200/80 shadow-sm relative space-y-3">
+                <span class="w-10 h-10 rounded-2xl bg-brand-orange text-white font-black flex items-center justify-center text-sm shadow-md">1</span>
+                <h4 class="font-extrabold text-slate-900 text-base">Online Registration</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">Fill out the B2B agent signup form with your company name, official email, and phone number.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200/80 shadow-sm relative space-y-3">
+                <span class="w-10 h-10 rounded-2xl bg-brand-orange text-white font-black flex items-center justify-center text-sm shadow-md">2</span>
+                <h4 class="font-extrabold text-slate-900 text-base">Email &amp; CNIC Verification</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">Verify your mailbox with a 6-digit OTP code and upload your CNIC/License documents for quick audit.</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200/80 shadow-sm relative space-y-3">
+                <span class="w-10 h-10 rounded-2xl bg-brand-orange text-white font-black flex items-center justify-center text-sm shadow-md">3</span>
+                <h4 class="font-extrabold text-slate-900 text-base">Bank Voucher Funding</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">Upload bank payment slips to load agent wallet credits. Fast approval SLA within 15 minutes.</p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200/80 shadow-sm relative space-y-3">
+                <span class="w-10 h-10 rounded-2xl bg-brand-orange text-white font-black flex items-center justify-center text-sm shadow-md">4</span>
+                <h4 class="font-extrabold text-slate-900 text-base">Book &amp; Earn Commissions</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">Issue GDS tickets, book Umrah packages, and track running ledger credits directly in your dashboard.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Official Office & Helpdesk Section -->
+<section class="py-16 bg-slate-900 text-white relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="bg-slate-800/80 border border-slate-700 p-8 sm:p-12 rounded-3xl shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="space-y-4 max-w-xl">
+                <span class="text-xs font-extrabold text-brand-orange uppercase tracking-widest">Official B2B Head Office</span>
+                <h3 class="text-2xl sm:text-3xl font-black text-white">REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD.</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    📍 <strong>Office Address:</strong> Office 7/8, New Civil Lines, Regency Road, Faisalabad, Pakistan
+                </p>
+                <div class="pt-2 flex flex-wrap gap-4 text-xs text-slate-300">
+                    <span>📞 <strong>Primary Line:</strong> +92 307 7233303</span>
+                    <span>📞 <strong>Secondary Line:</strong> +92 334 1114888</span>
+                </div>
+            </div>
+
+            <div class="shrink-0 space-y-3 text-center sm:text-right">
+                <a href="{% url 'signup' %}?role=agent" 
+                   class="px-8 py-4 bg-gradient-to-r from-brand-orange to-orange-600 hover:from-orange-600 hover:to-brand-orange text-white font-extrabold rounded-2xl shadow-xl shadow-brand-orange/30 transition-all duration-300 text-sm uppercase tracking-wider inline-flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Join Agent Network Now
+                </a>
+                <p class="text-[11px] text-slate-400">Chief Executive Officer: <strong>Mian Ejaz Aslam</strong></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ agent.company_name }} | Partner Agent Profile{% endblock %}
+
+{% block content %}
+<div class="bg-slate-50 min-h-screen py-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        
+        <!-- Back Link -->
+        <div>
+            <a href="{% url 'home' %}" class="inline-flex items-center text-xs font-bold text-brand-orange hover:underline">
+                <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Homepage
+            </a>
+        </div>
+
+        <!-- Header Card: Cover & Profile Photo -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm relative">
+            <!-- Cover Photo -->
+            <div class="h-48 sm:h-64 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500{% endif %}">
+                {% if agent.cover_photo %}
+                <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+                {% endif %}
+            </div>
+
+            <!-- Profile Photo & Meta -->
+            <div class="px-6 py-6 sm:px-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 -mt-10 sm:-mt-14 relative z-10">
+                <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
+                    <div class="h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-white bg-slate-200 overflow-hidden shadow-md">
+                        {% if agent.profile_photo %}
+                        <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name }}" class="h-full w-full object-cover">
+                        {% else %}
+                        <div class="h-full w-full flex items-center justify-center bg-brand-orange text-white font-extrabold text-2xl">
+                            {{ agent.company_name|slice:":1" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-2">
+                        <h1 class="text-2xl font-extrabold text-slate-900">{{ agent.company_name }}</h1>
+                        <p class="text-xs text-slate-500 font-semibold mt-1">Verified Local Agency Partner</p>
+                    </div>
+                </div>
+
+                <!-- Live Rating Badge -->
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200/50 px-4 py-2 rounded-2xl shadow-sm sm:mb-2">
+                    <i class="fa-solid fa-star text-amber-500 text-lg"></i>
+                    <div class="text-left">
+                        <span class="text-xl font-black text-slate-800 block leading-none">{{ agent.rating|stringformat:".2f" }}</span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Average Rating</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Info Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Info Panel -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Contact Details -->
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-100 pb-3">Contact Agency</h3>
+                    <div class="space-y-3.5 text-xs text-slate-600">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400"><i class="fa-solid fa-envelope"></i></span>
+                            <div>
+                                <span class="text-[9px] text-slate-400 block font-bold uppercase">Email Address</span>
+                                <a href="mailto:{{ agent.email }}" class="font-semibold text-slate-800 hover:underline">{{ agent.email }}</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400"><i class="fa-solid fa-phone"></i></span>
+                            <div>
+                                <span class="text-[9px] text-slate-400 block font-bold uppercase">Phone Number</span>
+                                <span class="font-semibold text-slate-800">{{ agent.phone|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400"><i class="fa-solid fa-building"></i></span>
+                            <div>
+                                <span class="text-[9px] text-slate-400 block font-bold uppercase">Office Status</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-100">Verified Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- About Agency -->
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-3">
+                    <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider border-b border-slate-100 pb-3">About Us</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        {% if agent.about %}
+                        {{ agent.about }}
+                        {% else %}
+                        Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Reviews Panel -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Submit a Review Form -->
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2"><i class="fa-regular fa-star text-brand-orange"></i> Leave a Rating & Review</h3>
+                    
+                    {% if messages %}
+                    <div class="space-y-2">
+                        {% for message in messages %}
+                        <div class="p-3 text-xs rounded-xl {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-100{% else %}bg-rose-50 text-rose-700 border border-rose-100{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" class="space-y-4">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Your Name</label>
+                                <input type="text" name="author_name" required placeholder="e.g. Ahmad Khan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-orange focus:bg-white transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Rating</label>
+                                <select name="rating" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-orange focus:bg-white transition-all">
+                                    <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                                    <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                                    <option value="3">⭐⭐⭐ (3/5)</option>
+                                    <option value="2">⭐⭐ (2/5)</option>
+                                    <option value="1">⭐ (1/5)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Review Comment</label>
+                            <textarea name="comment" rows="3" required placeholder="Describe your experience booking with this agent..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-brand-orange focus:bg-white transition-all"></textarea>
+                        </div>
+                        <button type="submit" class="px-4 py-2.5 bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-bold rounded-xl shadow-lg transition-all">
+                            Submit Live Review
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-regular fa-comment text-brand-orange"></i> Live Customer Feedback</h3>
+                        <span class="px-2 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">{{ reviews.count }} Reviews</span>
+                    </div>
+                    <div class="divide-y divide-slate-100">
+                        {% for r in reviews %}
+                        <div class="p-6 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="h-8 w-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs uppercase border border-slate-200/50">
+                                        {{ r.author_name|slice:":1" }}
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-slate-800 block">{{ r.author_name }}</span>
+                                        <span class="text-[9px] text-slate-400 block">{{ r.created_at|date:"Y-m-d H:i" }}</span>
+                                    </div>
+                                </div>
+                                <div class="text-amber-500 text-[10px] font-bold">
+                                    {% if r.rating == 5 %}⭐⭐⭐⭐⭐
+                                    {% elif r.rating == 4 %}⭐⭐⭐⭐
+                                    {% elif r.rating == 3 %}⭐⭐⭐
+                                    {% elif r.rating == 2 %}⭐⭐
+                                    {% else %}⭐
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed pl-10">
+                                {{ r.comment }}
+                            </p>
+                        </div>
+                        {% empty %}
+                        <div class="p-8 text-center text-slate-400 text-xs">
+                            No live reviews listed for this agency. Be the first to leave feedback!
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,774 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Flight Ticketing & Airline Deals | Golden Star Agency{% endblock %}
+{% block content %}
+<!-- Top Level Banner Image Slider -->
+<section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
+    <!-- Sliding Backgrounds -->
+    <div class="absolute inset-0 z-0">
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" data-bg="{% static 'images/flights_banner.png' %}"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" data-bg="{% static 'images/saudi_visa.png' %}"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" data-bg="{% static 'images/malaysia_visa.png' %}"></div>
+        <div class="absolute inset-0 bg-slate-950/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <!-- Breadcrumbs -->
+        <nav class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <span class="text-slate-355 text-slate-350">Flights Directory</span>
+        </nav>
+        <span class="px-3.5 py-1.5 rounded-full bg-brand-orange/15 border border-brand-orange/25 text-brand-orange text-xs font-semibold uppercase tracking-wider mb-4 inline-block">Partnered with 20+ Airlines</span>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight">Compare & Book Flights</h1>
+        <p class="text-slate-300 max-w-xl mx-auto text-sm leading-relaxed">
+            Secure discount rates, flexible refund policies, and group block seats for Hajj, Umrah, or global travel.
+        </p>
+    </div>
+
+    <!-- Controls -->
+    <button onclick="prevBanner()" class="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-left"></i></button>
+    <button onclick="nextBanner()" class="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-right"></i></button>
+
+    <!-- Indicators -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+        <button onclick="setBanner(0)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-100 transition-all"></button>
+        <button onclick="setBanner(1)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+        <button onclick="setBanner(2)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+    </div>
+</section>
+
+<!-- Featured Airline Partner Cards Section -->
+<section class="py-12 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-brand-orange bg-brand-orange/10 px-2.5 py-1 rounded-full border border-brand-orange/20">Featured Airline Partners</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-2">Official Airline Fleet & Fares</h2>
+            </div>
+            <p class="text-xs text-slate-500 max-w-sm mt-2 md:mt-0">Click any airline card to view detailed baggage policies, route network, and filter live ticket fares.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- PIA Card (White Theme) -->
+            <div onclick="filterByAirline('PIA')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-emerald-600/20">
+                        PIA
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                        🎟️ 38 Seats
+                    </span>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors">Pakistan Int. Airlines</h3>
+                    <p class="text-[11px] font-medium text-slate-500 mt-1">PK-731 • Direct Hajj & Umrah</p>
+                    <span class="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">🧳 30kg + 7kg Baggage</span>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-semibold block uppercase">Starting Fare</span>
+                        <span class="text-xs font-black text-brand-orange">PKR 145,000</span>
+                    </div>
+                    <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                </div>
+            </div>
+
+            <!-- Saudia Card (White Theme) -->
+            <div onclick="filterByAirline('Saudia')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-md shadow-amber-500/20">
+                        SV
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 shadow-xs">
+                        🎟️ 25 Seats
+                    </span>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors">Saudia Airlines</h3>
+                    <p class="text-[11px] font-medium text-slate-500 mt-1">SV-705 • 5-Star Direct Flight</p>
+                    <span class="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">🧳 2x 23kg + Zamzam</span>
+                </div>
+                <div class="mt-4 pt-3 border-slate-100 border-t flex items-center justify-between">
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-semibold block uppercase">Starting Fare</span>
+                        <span class="text-xs font-black text-brand-orange">PKR 165,000</span>
+                    </div>
+                    <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                </div>
+            </div>
+
+            <!-- FlyDubai Card (White Theme) -->
+            <div onclick="filterByAirline('FlyDubai')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-blue-600/20">
+                        FZ
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200 shadow-xs">
+                        🎟️ 42 Seats
+                    </span>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors">FlyDubai</h3>
+                    <p class="text-[11px] font-medium text-slate-500 mt-1">FZ-334 • Dubai DXB Hub</p>
+                    <span class="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">🧳 30kg + 7kg Baggage</span>
+                </div>
+                <div class="mt-4 pt-3 border-slate-100 border-t flex items-center justify-between">
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-semibold block uppercase">Starting Fare</span>
+                        <span class="text-xs font-black text-brand-orange">PKR 95,000</span>
+                    </div>
+                    <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                </div>
+            </div>
+
+            <!-- SalamAir Card (White Theme) -->
+            <div onclick="filterByAirline('SalamAir')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-emerald-600/20">
+                        OV
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                        🎟️ 30 Seats
+                    </span>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors">SalamAir</h3>
+                    <p class="text-[11px] font-medium text-slate-500 mt-1">OV-502 • Muscat Oman LCC</p>
+                    <span class="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">🧳 20kg + 7kg Baggage</span>
+                </div>
+                <div class="mt-4 pt-3 border-slate-100 border-t flex items-center justify-between">
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-semibold block uppercase">Starting Fare</span>
+                        <span class="text-xs font-black text-brand-orange">PKR 78,000</span>
+                    </div>
+                    <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                </div>
+            </div>
+
+            <!-- Air Arabia Card (White Theme) -->
+            <div onclick="filterByAirline('Air Arabia')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-black text-sm shadow-md shadow-rose-600/20">
+                        G9
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200 shadow-xs">
+                        🎟️ 19 Seats
+                    </span>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors">Air Arabia</h3>
+                    <p class="text-[11px] font-medium text-slate-500 mt-1">G9-541 • Sharjah Hub</p>
+                    <span class="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">🧳 30kg + 10kg Baggage</span>
+                </div>
+                <div class="mt-4 pt-3 border-slate-100 border-t flex items-center justify-between">
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-semibold block uppercase">Starting Fare</span>
+                        <span class="text-xs font-black text-brand-orange">PKR 88,000</span>
+                    </div>
+                    <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Real-time Flight Search & Catalog Section -->
+<section class="py-12 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Live Search & Interactive Filter Bar -->
+        <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 shadow-xl mb-8 -mt-8 relative z-20 backdrop-blur-md">
+            <div class="flex items-center justify-between mb-3 border-b border-white/10 pb-3">
+                <h3 class="text-white font-extrabold text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass text-brand-orange"></i> Live Flight Search & Filters
+                </h3>
+                <button onclick="resetFlightFilters()" class="text-[10px] font-semibold text-slate-400 hover:text-brand-orange transition-colors">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Reset
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <!-- Departure City -->
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Departure City</label>
+                    <select id="filter-dep-city" onchange="applyFlightFilters()" class="w-full bg-slate-950 border border-white/10 text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-brand-orange transition-all">
+                        <option value="">All Departure Cities</option>
+                        {% for city in departure_cities %}
+                            <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Destination City -->
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Destination City</label>
+                    <select id="filter-dest-city" onchange="applyFlightFilters()" class="w-full bg-slate-950 border border-white/10 text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-brand-orange transition-all">
+                        <option value="">All Destination Cities</option>
+                        {% for city in destination_cities %}
+                            <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Airline Filter -->
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Airline Partner</label>
+                    <select id="filter-airline" onchange="applyFlightFilters()" class="w-full bg-slate-950 border border-white/10 text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-brand-orange transition-all">
+                        <option value="">All Airlines</option>
+                        {% for airline in distinct_airlines %}
+                            <option value="{{ airline }}">{{ airline }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Stop Type -->
+                <div>
+                    <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Stop Type</label>
+                    <select id="filter-type" onchange="applyFlightFilters()" class="w-full bg-slate-950 border border-white/10 text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-brand-orange transition-all">
+                        <option value="">All Flight Types</option>
+                        <option value="direct">Non-Stop (Direct)</option>
+                        <option value="one_stop">1 Stop / Transit</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Available Ticket Offers</h2>
+                <p class="text-[11px] text-slate-500 mt-0.5">Real-time airline seats, fares, baggage limits, and instant booking codes.</p>
+            </div>
+            <span id="flight-results-count" class="text-[11px] font-bold text-slate-600 bg-slate-200/80 px-3 py-1 rounded-full">Showing {{ flight_tickets|length }} Offer(s)</span>
+        </div>
+
+        <!-- Stunning Landscape Boarding Pass Ticket Offers List -->
+        <div id="flight-tickets-grid" class="space-y-6">
+            {% for ticket in flight_tickets %}
+            <div class="ticket-card group bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-md hover:shadow-2xl hover:border-brand-orange/60 transition-all duration-300 relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+                 data-airline="{{ ticket.airline_name }}"
+                 data-dep="{{ ticket.departure_city }}"
+                 data-dest="{{ ticket.destination_city }}"
+                 data-type="{{ ticket.flight_type }}"
+                 data-price="{{ ticket.price }}">
+                
+                <!-- Left: Airline Brand Logo & Flight Metadata -->
+                <div class="flex items-center gap-4 lg:w-1/4">
+                    {% if ticket.airline_logo %}
+                        <div class="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-center p-2.5 shadow-sm group-hover:border-brand-orange/40 transition-colors">
+                            <img src="{{ ticket.airline_logo }}" alt="{{ ticket.airline_name }}" class="w-full h-full object-contain">
+                        </div>
+                    {% else %}
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 text-brand-orange border border-white/10 flex items-center justify-center font-bold text-xl shadow-md">
+                            <i class="fa-solid fa-plane-up"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-extrabold text-slate-900 text-base leading-tight group-hover:text-brand-orange transition-colors">{{ ticket.airline_name }}</h4>
+                            {% if ticket.flight_type == 'direct' %}
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wider">Direct</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase tracking-wider">1 Stop</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                            <span class="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]"><i class="fa-solid fa-hashtag text-[10px] text-brand-orange mr-1"></i>{{ ticket.flight_number }}</span>
+                            {% if ticket.available_seats > 0 %}
+                                <span class="text-emerald-600 font-bold text-[11px] flex items-center gap-1"><i class="fa-solid fa-couch text-xs"></i> {{ ticket.available_seats }} Seats Left</span>
+                            {% else %}
+                                <span class="text-rose-600 font-bold text-[11px] flex items-center gap-1"><i class="fa-solid fa-circle-xmark text-xs"></i> Sold Out</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle: High-Contrast Itinerary Route Box -->
+                <div class="lg:w-2/5 bg-slate-950 text-white rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-inner border border-white/10">
+                    <div class="flex items-center justify-between relative z-10">
+                        <!-- Departure Origin -->
+                        <div class="text-left">
+                            <span class="text-2xl font-black text-white tracking-tight block">{{ ticket.departure_airport_code }}</span>
+                            <span class="text-xs font-semibold text-slate-300 block max-w-[110px] truncate"><i class="fa-solid fa-location-dot text-brand-orange text-[10px] mr-1"></i>{{ ticket.departure_city }}</span>
+                            <span class="text-[11px] text-amber-400 font-bold block mt-1.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[10px]"></i> {{ ticket.departure_time_str }}</span>
+                        </div>
+
+                        <!-- Route Flight Path Vector (Perfectly Spaced & Justified Aero Icon) -->
+                        <div class="flex-1 text-center px-4 flex flex-col items-center justify-between min-h-[90px]">
+                            <!-- Duration Header Text -->
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">
+                                <i class="fa-solid fa-hourglass-half text-[9px] mr-1 text-brand-orange"></i>{{ ticket.duration_str }}
+                            </span>
+                            
+                            <!-- Justified Center Vector Line with Airplane Badge -->
+                            <div class="w-full relative flex items-center justify-center my-3 py-2">
+                                <div class="w-full h-0.5 bg-gradient-to-r from-brand-orange/40 via-amber-400/60 to-emerald-400/40 rounded-full"></div>
+                                <div class="w-7 h-7 rounded-full bg-slate-900 border border-brand-orange/60 flex items-center justify-center absolute shadow-lg z-10">
+                                    <i class="fa-solid fa-plane text-brand-orange text-xs"></i>
+                                </div>
+                            </div>
+
+                            <!-- Flight Type Subtitle Text -->
+                            <span class="text-[9px] font-bold text-emerald-400 block mt-2 uppercase tracking-widest">
+                                {% if ticket.flight_type == 'direct' %}Non-Stop Flight{% else %}1 Stop Transit{% endif %}
+                            </span>
+                        </div>
+
+                        <!-- Arrival Destination -->
+                        <div class="text-right">
+                            <span class="text-2xl font-black text-white tracking-tight block">{{ ticket.destination_airport_code }}</span>
+                            <span class="text-xs font-semibold text-slate-300 block max-w-[110px] truncate"><i class="fa-solid fa-location-dot text-emerald-400 text-[10px] mr-1"></i>{{ ticket.destination_city }}</span>
+                            <span class="text-[11px] text-amber-400 font-bold block mt-1.5 flex items-center gap-1 justify-end"><i class="fa-solid fa-clock text-[10px]"></i> {{ ticket.arrival_time_str }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specs & Baggage Badges with Modern Icons -->
+                <div class="lg:w-1/3 space-y-2">
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-0.5">Check-In Base</span>
+                            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5"><i class="fa-solid fa-suitcase-rolling text-blue-500"></i> {{ ticket.baggage_checkin }}</span>
+                        </div>
+
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-center">
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-0.5">Hand Carry</span>
+                            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-purple-500"></i> {{ ticket.baggage_hand }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Baggage Allowance Tiers (20kg, 30kg, 40kg) -->
+                    <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
+                        <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                            <i class="fa-solid fa-weight-hanging text-brand-orange"></i> Select Baggage Allowance Tier:
+                        </span>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', '20 kg', '{{ ticket.get_price_20kg }}', this)" 
+                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-brand-orange text-white border-brand-orange shadow-sm">
+                                20 KG
+                            </button>
+                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', '30 kg', '{{ ticket.get_price_30kg }}', this)" 
+                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100 shadow-sm">
+                                30 KG
+                            </button>
+                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', '40 kg', '{{ ticket.get_price_40kg }}', this)" 
+                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100 shadow-sm">
+                                40 KG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Action Section: Price & Instant Booking -->
+                <div class="lg:w-1/6 flex flex-col sm:flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                    <div class="text-left lg:text-right">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Seat Fare</span>
+                        <div class="flex items-baseline gap-1.5 mt-0.5">
+                            <span id="ticket-price-display-{{ ticket.id }}" class="text-2xl font-black text-brand-orange">PKR {{ ticket.price_20kg|default:ticket.price|floatformat:0 }}</span>
+                        </div>
+                        {% if ticket.original_price %}
+                            <span class="text-xs text-slate-400 line-through block font-medium">PKR {{ ticket.original_price|floatformat:0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <button onclick="openBookingModal('{{ ticket.id }}', '{{ ticket.airline_name }}', '{{ ticket.flight_number }}', '{{ ticket.departure_city }}', '{{ ticket.destination_city }}', '{{ ticket.price_20kg|default:ticket.price }}')"
+                            class="w-full sm:w-auto px-6 py-3 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-2xl text-xs font-extrabold transition-all duration-300 shadow-md shadow-brand-orange/20 hover:shadow-lg hover:scale-105 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-ticket text-sm"></i> Book Seat Now
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-plane-slash text-5xl text-slate-300 block mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-800">No Flight Ticket Offers Available</h3>
+                <p class="text-xs text-slate-500 mt-1">Admin will post live airline block seat offers shortly.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+    </div>
+</section>
+
+<!-- Flight Ticket Booking Modal Popup -->
+<div id="flight-booking-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden animate-fade-in py-10">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onclick="closeBookingModal()"></div>
+    <div class="relative max-w-lg w-full mx-4 bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-10">
+        <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/[0.01]">
+            <div>
+                <h4 class="font-extrabold text-white text-base">Book Flight Seat</h4>
+                <p id="modal-flight-route" class="text-xs text-brand-orange font-semibold mt-0.5">—</p>
+            </div>
+            <button onclick="closeBookingModal()" class="text-slate-400 hover:text-white text-lg focus:outline-none">&times;</button>
+        </div>
+
+        <form id="flight-ticket-booking-form" onsubmit="submitFlightTicketBooking(event)" class="p-6 space-y-4">
+            <input type="hidden" id="modal-ticket-id">
+            
+            <div class="bg-slate-950 p-4 rounded-2xl border border-white/5 text-xs text-slate-300 space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Airline & Flight:</span>
+                    <span id="modal-airline-flight" class="font-bold text-white">—</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Selected Baggage Tier:</span>
+                    <span id="modal-baggage-tier" class="font-bold text-amber-400">20 kg</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Price per Seat:</span>
+                    <span id="modal-price-per-seat" class="font-bold text-brand-orange">—</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Full Passenger Name *</label>
+                <input type="text" id="book-passenger-name" required placeholder="e.g. Muhammad Ali" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Phone / WhatsApp *</label>
+                    <input type="text" id="book-phone" required placeholder="e.g. 0300-1234567" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Passport Number *</label>
+                    <input type="text" id="book-passport" required placeholder="e.g. AA1234567" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Travel Date *</label>
+                    <input type="date" id="book-travel-date" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Number of Seats *</label>
+                    <input type="number" id="book-seats-count" min="1" max="10" value="1" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+                </div>
+            </div>
+
+            <div class="border-t border-white/5 pt-4 flex justify-end gap-2">
+                <button type="button" onclick="closeBookingModal()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl text-xs transition-all border border-white/10">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold rounded-xl text-xs transition-all shadow-lg">Confirm Ticket Booking</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const selectedFlightBaggage = {};
+    const selectedFlightPrices = {};
+
+    function selectBaggageTier(ticketId, tier, price, btn) {
+        selectedFlightBaggage[ticketId] = tier;
+        selectedFlightPrices[ticketId] = price;
+
+        const btns = document.querySelectorAll(`.baggage-btn-${ticketId}`);
+        btns.forEach(b => {
+            b.classList.remove('bg-brand-orange', 'text-white', 'border-brand-orange');
+            b.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+        });
+        btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+        btn.classList.add('bg-brand-orange', 'text-white', 'border-brand-orange');
+
+        const priceDisplay = document.getElementById(`ticket-price-display-${ticketId}`);
+        if (priceDisplay && price) {
+            priceDisplay.textContent = `PKR ${parseFloat(price).toLocaleString()}`;
+        }
+    }
+
+    function filterByAirline(airlineName) {
+        document.getElementById('filter-airline').value = airlineName;
+        applyFlightFilters();
+        document.getElementById('flight-tickets-grid').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function applyFlightFilters() {
+        const dep = document.getElementById('filter-dep-city').value.toLowerCase();
+        const dest = document.getElementById('filter-dest-city').value.toLowerCase();
+        const airline = document.getElementById('filter-airline').value.toLowerCase();
+        const type = document.getElementById('filter-type').value.toLowerCase();
+
+        const cards = document.querySelectorAll('#flight-tickets-grid .ticket-card');
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+            const cAirline = (card.getAttribute('data-airline') || '').toLowerCase();
+            const cDep = (card.getAttribute('data-dep') || '').toLowerCase();
+            const cDest = (card.getAttribute('data-dest') || '').toLowerCase();
+            const cType = (card.getAttribute('data-type') || '').toLowerCase();
+
+            let matches = true;
+            if (dep && !cDep.includes(dep)) matches = false;
+            if (dest && !cDest.includes(dest)) matches = false;
+            if (airline && !cAirline.includes(airline)) matches = false;
+            if (type && cType !== type) matches = false;
+
+            if (matches) {
+                card.classList.remove('hidden');
+                visibleCount++;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('flight-results-count').textContent = `Showing ${visibleCount} Ticket Offer(s)`;
+    }
+
+    function resetFlightFilters() {
+        document.getElementById('filter-dep-city').value = '';
+        document.getElementById('filter-dest-city').value = '';
+        document.getElementById('filter-airline').value = '';
+        document.getElementById('filter-type').value = '';
+        applyFlightFilters();
+    }
+
+    const IS_USER_LOGGED_IN = {% if user.is_authenticated %}true{% else %}false{% endif %};
+
+    function openBookingModal(id, airline, flightNum, dep, dest, defaultPrice) {
+        if (!IS_USER_LOGGED_IN) {
+            alert("🔒 Account Required!\n\nYou must log in or create an account before booking flight seats.\n\nClick OK to log in.");
+            window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
+            return;
+        }
+        const baggageTier = selectedFlightBaggage[id] || '20 kg';
+        const price = selectedFlightPrices[id] || defaultPrice;
+
+        document.getElementById('modal-ticket-id').value = id;
+        document.getElementById('modal-flight-route').textContent = `${dep} → ${dest}`;
+        document.getElementById('modal-airline-flight').textContent = `${airline} (${flightNum})`;
+        document.getElementById('modal-baggage-tier').textContent = baggageTier;
+        document.getElementById('modal-price-per-seat').textContent = `PKR ${parseFloat(price).toLocaleString()}`;
+        document.getElementById('flight-booking-modal').classList.remove('hidden');
+    }
+
+    function closeBookingModal() {
+        document.getElementById('flight-booking-modal').classList.add('hidden');
+    }
+
+    async function submitFlightTicketBooking(e) {
+        e.preventDefault();
+        if (!IS_USER_LOGGED_IN) {
+            alert("🔒 Account Required! Please log in to complete your booking.");
+            window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
+            return;
+        }
+
+        const ticket_id = document.getElementById('modal-ticket-id').value;
+        const passenger_name = document.getElementById('book-passenger-name').value;
+        const phone = document.getElementById('book-phone').value;
+        const passport_number = document.getElementById('book-passport').value;
+        const travel_date = document.getElementById('book-travel-date').value;
+        const seats_count = parseInt(document.getElementById('book-seats-count').value) || 1;
+        const baggage_tier = selectedFlightBaggage[ticket_id] || '20 kg';
+        const selected_price = selectedFlightPrices[ticket_id] || 0;
+
+        try {
+            const res = await fetch('/api/flights/book/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    ticket_id,
+                    passenger_name,
+                    phone,
+                    passport_number,
+                    travel_date,
+                    seats_count,
+                    baggage_tier,
+                    selected_price
+                })
+            });
+
+            if (res.ok && data.success) {
+                closeBookingModal();
+                showSubmissionSuccessModal({
+                    userName: data.passenger_name || 'Valued Passenger',
+                    title: 'Flight Ticket Reservation Submitted!',
+                    message: `Your flight reservation with ${data.airline_name} (${data.flight_number}) has been placed. Our ticketing specialist will contact you to issue your e-ticket itinerary.`,
+                    trackingId: data.tracking_id,
+                    details: [
+                        { label: 'Airline / Flight', value: `${data.airline_name} (${data.flight_number})` },
+                        { label: 'Passenger Name', value: data.passenger_name },
+                        { label: 'Total Fare', value: `PKR ${parseFloat(data.total_price).toLocaleString()}` }
+                    ]
+                });
+            } else {
+                alert(data.message || 'Flight booking failed.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Connection error occurred. Please try again.');
+        }
+    }
+</script>
+
+<!-- Aviation Showcase Gallery Section -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-images"></i> Aviation Showcase
+            </span>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">Our Flight Experience</h2>
+            <p class="text-slate-500 mt-3 max-w-xl mx-auto text-sm leading-relaxed">
+                Step inside our partnered executive liners, luxury airport lounges, and modern fleets.
+            </p>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Photo 1: Fleet -->
+            <div class="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/60 bg-slate-100 h-80">
+                <img src="{% static 'images/commercial_airplane.png' %}" alt="Commercial Airliner" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300"></div>
+                <div class="absolute bottom-6 left-6 right-6">
+                    <span class="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/15 px-2.5 py-1 rounded-full border border-brand-orange/25">Modern Fleet</span>
+                    <h3 class="text-lg font-bold text-white mt-3">Partnered Commercial Liners</h3>
+                    <p class="text-xs text-slate-350 mt-1 leading-relaxed">Flying you safely across global networks with premium state-of-the-art aircraft.</p>
+                </div>
+            </div>
+
+            <!-- Photo 2: Cabin -->
+            <div class="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/60 bg-slate-100 h-80">
+                <img src="{% static 'images/airplane_cabin.png' %}" alt="Luxury Cabin Interior" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300"></div>
+                <div class="absolute bottom-6 left-6 right-6">
+                    <span class="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/15 px-2.5 py-1 rounded-full border border-brand-orange/25">In-Flight Comfort</span>
+                    <h3 class="text-lg font-bold text-white mt-3">Executive Cabin Interiors</h3>
+                    <p class="text-xs text-slate-350 mt-1 leading-relaxed">Ergonomic flatbeds, premium catering, and high-fidelity entertainment displays.</p>
+                </div>
+            </div>
+
+            <!-- Photo 3: Airport Lounge -->
+            <div class="group relative rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200/60 bg-slate-100 h-80">
+                <img src="{% static 'images/airport_lounge.png' %}" alt="Airport Terminal Lounge" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-90 group-hover:opacity-95 transition-opacity duration-300"></div>
+                <div class="absolute bottom-6 left-6 right-6">
+                    <span class="text-[10px] uppercase font-bold text-brand-orange bg-brand-orange/15 px-2.5 py-1 rounded-full border border-brand-orange/25">Transit Lounges</span>
+                    <h3 class="text-lg font-bold text-white mt-3">International Airport Lounges</h3>
+                    <p class="text-xs text-slate-350 mt-1 leading-relaxed">Relax in curated environments with chef-curated dining and hot shower amenities before boarding.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA section -->
+<section class="py-16 bg-slate-900 relative overflow-hidden text-center text-white border-t border-slate-800">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.15),transparent_50%)]"></div>
+    <div class="max-w-3xl mx-auto px-4 relative z-10">
+        <h2 class="text-3xl font-extrabold mb-4">Request a Customized Ticket Quote</h2>
+        <p class="text-slate-450 mb-8 max-w-lg mx-auto text-sm leading-relaxed text-slate-400">
+            Need specific dates, multi-city routes, or booking for groups of more than 10 people? Submit a custom ticketing request now.
+        </p>
+        <a href="{% url 'flight_quote' %}" class="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3.5 px-8 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/20 inline-block text-sm">
+            Go to Quote Form
+        </a>
+    </div>
+</section>
+
+<!-- Banner Slider Script -->
+<script>
+    // Initialize backgrounds dynamically to prevent CSS parser / lint warnings
+    document.querySelectorAll('[data-bg]').forEach(el => {
+        el.style.backgroundImage = `url('${el.getAttribute('data-bg')}')`;
+    });
+
+    let currentBannerIdx = 0;
+    const bannerSlides = document.querySelectorAll('.banner-slide');
+    const bannerDots = document.querySelectorAll('.banner-dot');
+
+    function updateBanner() {
+        bannerSlides.forEach((slide, idx) => {
+            if (idx === currentBannerIdx) {
+                slide.classList.remove('opacity-0');
+                slide.classList.add('opacity-100');
+                bannerDots[idx].classList.remove('opacity-40');
+                bannerDots[idx].classList.add('opacity-100');
+            } else {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+                bannerDots[idx].classList.remove('opacity-100');
+                bannerDots[idx].classList.add('opacity-40');
+            }
+        });
+    }
+
+    function nextBanner() {
+        currentBannerIdx = (currentBannerIdx + 1) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function prevBanner() {
+        currentBannerIdx = (currentBannerIdx - 1 + bannerSlides.length) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function setBanner(idx) {
+        currentBannerIdx = idx;
+        updateBanner();
+    }
+
+    setInterval(nextBanner, 5000);
+</script>
+
+<!-- Explore More Services Section with Background Picture -->
+<section class="relative py-20 bg-slate-950 overflow-hidden border-t border-slate-900">
+    <div class="absolute inset-0 z-0 bg-cover bg-center bg-fixed" data-bg="{% static 'images/flights_banner.png' %}"></div>
+    <div class="absolute inset-0 bg-slate-950/85 z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Explore Related Services</h2>
+        <p class="text-slate-300 mb-10 text-xs sm:text-sm">Complete your travel itinerary with our premium modules.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Card 1: Hajj -->
+            <a href="{% url 'hajj_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-mosque"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Hajj Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Premium shifting and non-shifting group catalogs.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+            
+            <!-- Card 2: Umrah -->
+            <a href="{% url 'umrah_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-kaaba"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Umrah Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Economy & custom VIP options near Haram Makkah.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 3: Visa -->
+            <a href="{% url 'visa_countries' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-passport"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Visa Services</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Fast-track eVisas and sticker support advice.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 4: Flights -->
+            <a href="{% url 'flights_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-plane"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Flights Ticket</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Discount airline group seat deals & quotes.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

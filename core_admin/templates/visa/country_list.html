@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Visit Visa Services | Golden Star Agency{% endblock %}
+{% block content %}
+<!-- Top Level Banner Image Slider -->
+<section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
+    <!-- Sliding Backgrounds -->
+    <div class="absolute inset-0 z-0">
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" data-bg="{% static 'images/visa_banner.png' %}"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" data-bg="{% static 'images/saudi_visa.png' %}"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" data-bg="{% static 'images/dubai_visa.png' %}"></div>
+        <div class="absolute inset-0 bg-slate-950/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <nav class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <span class="text-slate-355 text-slate-350">Visa Services</span>
+        </nav>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight">Visit Visa Services</h1>
+        <p class="text-slate-300 max-w-2xl mx-auto text-sm leading-relaxed">
+            Get professional visa document preparation, filing assistance, and consultancy for major destinations globally. We specialize in fast-track tourist entry eVisas and sticker visas.
+        </p>
+    </div>
+
+    <!-- Controls -->
+    <button onclick="prevBanner()" class="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-left"></i></button>
+    <button onclick="nextBanner()" class="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-right"></i></button>
+
+    <!-- Indicators -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+        <button onclick="setBanner(0)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-100 transition-all"></button>
+        <button onclick="setBanner(1)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+        <button onclick="setBanner(2)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+    </div>
+</section>
+
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- 1. Saudi Arabia Card -->
+            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                <div class="relative h-48 bg-slate-100 overflow-hidden">
+                    <img src="{% static 'images/saudi_visa.png' %}" alt="Saudi Arabia" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">eVisa</span>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Saudi Arabia Tourist Visa</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Quick e-visa processing for leisure and tourism. Multi-entry valid for 1 year.</p>
+                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
+                            <p><strong>Processing Time:</strong> 2 - 3 Working Days</p>
+                            <p><strong>Required Bank Balance:</strong> None</p>
+                            <p><strong>Requirements:</strong> Passport scan & Photograph</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR 45,000</span>
+                        </div>
+                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Turkey Card -->
+            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                <div class="relative h-48 bg-slate-100 overflow-hidden">
+                    <img src="{% static 'images/turkey_visa.png' %}" alt="Turkey" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    <span class="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Sticker Visa</span>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Turkey Sticker Visa</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Advisory processing service. Includes appointment booking, form completion and file compilation.</p>
+                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
+                            <p><strong>Processing Time:</strong> 15 - 20 Working Days</p>
+                            <p><strong>Required Bank Balance:</strong> PKR 500,000+</p>
+                            <p><strong>Requirements:</strong> Bank Statement, FRC, Job Letter</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR 35,000</span>
+                        </div>
+                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Malaysia Card -->
+            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                <div class="relative h-48 bg-slate-100 overflow-hidden">
+                    <img src="{% static 'images/malaysia_visa.png' %}" alt="Malaysia" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">eVisa</span>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Malaysia eVisa</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Fast and secure visa processing. Requires original scans, returning flight reservation, and hotel voucher.</p>
+                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
+                            <p><strong>Processing Time:</strong> 3 - 5 Working Days</p>
+                            <p><strong>Required Bank Balance:</strong> None</p>
+                            <p><strong>Requirements:</strong> Scan, Ticket, Hotel</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR 15,000</span>
+                        </div>
+                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Dubai / UAE Card -->
+            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                <div class="relative h-48 bg-slate-100 overflow-hidden">
+                    <img src="{% static 'images/dubai_visa.png' %}" alt="UAE/Dubai" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">eVisa</span>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Dubai / UAE tourist Visa</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">30 days single entry visa for shopping, transit, and business travels inside UAE.</p>
+                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
+                            <p><strong>Processing Time:</strong> 24 - 48 Hours</p>
+                            <p><strong>Required Bank Balance:</strong> None</p>
+                            <p><strong>Requirements:</strong> Passport scan & CNIC</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR 35,000</span>
+                        </div>
+                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. United Kingdom Card -->
+            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                <div class="relative h-48 bg-slate-100 overflow-hidden">
+                    <img src="{% static 'images/uk_visa.png' %}" alt="United Kingdom" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    <span class="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Standard Visitor</span>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">UK Standard Visitor Visa</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">UK tourist visa support. Complete documentation alignment, bio-appointment setup, and cover letter drafts.</p>
+                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
+                            <p><strong>Processing Time:</strong> 3 - 4 Weeks</p>
+                            <p><strong>Required Bank Balance:</strong> PKR 1,500,000+</p>
+                            <p><strong>Requirements:</strong> Source of Income, Tax Returns</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">Advisory Fee</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR 65,000</span>
+                        </div>
+                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Thailand Card -->
+            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                <div class="relative h-48 bg-slate-100 overflow-hidden">
+                    <img src="{% static 'images/thailand_visa.png' %}" alt="Thailand" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    <span class="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Sticker Visa</span>
+                </div>
+                <div class="p-6 flex-grow flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Thailand Tourist Visa</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Sticker tourist visa processing for beaches and historical exploration inside Thailand.</p>
+                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
+                            <p><strong>Processing Time:</strong> 7 - 10 Working Days</p>
+                            <p><strong>Required Bank Balance:</strong> PKR 350,000+</p>
+                            <p><strong>Requirements:</strong> Bank statement & Original Passport</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR 25,000</span>
+                        </div>
+                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Visa Processing Timeline Section -->
+<section class="py-20 bg-slate-50 border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Our 4-Step Visa Filing Process</h2>
+            <p class="text-slate-500 mt-2 text-sm">We handle your application step-by-step to maximize your approval rates.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Step 1 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
+                <span class="w-8 h-8 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-sm font-bold mb-4">1</span>
+                <h3 class="font-bold text-slate-800 text-base mb-2">Initial Advisory</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Our experts review your travel history, passport validity, and financial standing to recommend the best strategy.</p>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
+                <span class="w-8 h-8 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-sm font-bold mb-4">2</span>
+                <h3 class="font-bold text-slate-800 text-base mb-2">Document Audit</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">We vet your bank statements, income proof, tax returns, and draft custom cover letters tailored to Embassy guidelines.</p>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
+                <span class="w-8 h-8 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-sm font-bold mb-4">3</span>
+                <h3 class="font-bold text-slate-800 text-base mb-2">Appointment Booking</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">We schedule your biometric appointments at VFS Global or Gerry's Centers and submit your digital eVisa applications.</p>
+            </div>
+            
+            <!-- Step 4 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
+                <span class="w-8 h-8 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-sm font-bold mb-4">4</span>
+                <h3 class="font-bold text-slate-800 text-base mb-2">Visa Processing</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">We track the application state from the embassy database and return your stamped passport securely to your doorstep.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Rejection Prevention Guidelines Section -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-4">How to Avoid Visa Rejections</h2>
+                <p class="text-slate-500 text-sm leading-relaxed mb-6">
+                    Embassies demand clear financial and personal ties to Pakistan. If a single document is inconsistent, it can lead to visa refusal. Follow these expert recommendations to secure approval.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4">
+                        <span class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold mt-0.5"><i class="fa-solid fa-check"></i></span>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Clear Source of Bank Deposits</h4>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">Large sudden cash deposits without supporting documentation (e.g. sale deed, salary slip) raise red flags. Maintain steady transaction flows.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <span class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold mt-0.5"><i class="fa-solid fa-check"></i></span>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">Precise Travel Itinerary</h4>
+                            <p class="text-[11px] text-slate-500 leading-relaxed">Your flight reserves, hotel bookings, and day-by-day travel plan must align perfectly. We provide verified reservations for this purpose.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-8 bg-slate-50 border border-slate-200/60 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-800 mb-6">Common Refusal Factors</h3>
+                <div class="space-y-4 text-xs">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/40">
+                        <strong class="text-slate-800 block mb-1">1. Insufficient Proof of Ties</strong>
+                        <p class="text-slate-500 leading-relaxed">Failure to submit property ownership documents, active employment letters, or immediate family certificates.</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/40">
+                        <strong class="text-slate-800 block mb-1">2. Incomplete Financial Records</strong>
+                        <p class="text-slate-500 leading-relaxed">Filing bank statements without bank maintenance letters signed and stamped by the branch manager.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Banner Slider Script -->
+<script>
+    // Initialize backgrounds dynamically to prevent CSS parser / lint warnings
+    document.querySelectorAll('[data-bg]').forEach(el => {
+        el.style.backgroundImage = `url('${el.getAttribute('data-bg')}')`;
+    });
+
+    let currentBannerIdx = 0;
+    const bannerSlides = document.querySelectorAll('.banner-slide');
+    const bannerDots = document.querySelectorAll('.banner-dot');
+
+    function updateBanner() {
+        bannerSlides.forEach((slide, idx) => {
+            if (idx === currentBannerIdx) {
+                slide.classList.remove('opacity-0');
+                slide.classList.add('opacity-100');
+                bannerDots[idx].classList.remove('opacity-40');
+                bannerDots[idx].classList.add('opacity-100');
+            } else {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+                bannerDots[idx].classList.remove('opacity-100');
+                bannerDots[idx].classList.add('opacity-40');
+            }
+        });
+    }
+
+    function nextBanner() {
+        currentBannerIdx = (currentBannerIdx + 1) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function prevBanner() {
+        currentBannerIdx = (currentBannerIdx - 1 + bannerSlides.length) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function setBanner(idx) {
+        currentBannerIdx = idx;
+        updateBanner();
+    }
+
+    setInterval(nextBanner, 5000);
+</script>
+
+<!-- Explore More Services Section with Background Picture -->
+<section class="relative py-20 bg-slate-950 overflow-hidden border-t border-slate-900">
+    <div class="absolute inset-0 z-0 bg-cover bg-center bg-fixed" data-bg="{% static 'images/visa_banner.png' %}"></div>
+    <div class="absolute inset-0 bg-slate-950/85 z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Explore Related Services</h2>
+        <p class="text-slate-300 mb-10 text-xs sm:text-sm">Complete your travel itinerary with our premium modules.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Card 1: Hajj -->
+            <a href="{% url 'hajj_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-mosque"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Hajj Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Premium shifting and non-shifting group catalogs.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+            
+            <!-- Card 2: Umrah -->
+            <a href="{% url 'umrah_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-kaaba"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Umrah Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Economy & custom VIP options near Haram Makkah.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 3: Visa -->
+            <a href="{% url 'visa_countries' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-passport"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Visa Services</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Fast-track eVisas and sticker support advice.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 4: Flights -->
+            <a href="{% url 'flights_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-plane"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Flights Ticket</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Discount airline group seat deals & quotes.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

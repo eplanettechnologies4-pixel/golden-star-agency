@@ -1,0 +1,1498 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Golden Star Agency | Premium Travel, Hajj & Umrah Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Slider Section (Interactive Auto-Playing Carousel with Top-Level Generated Backgrounds) -->
+<section id="hero-slider-container" class="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-slate-950 group">
+    <!-- Slider Slides Wrapper -->
+    <div id="hero-slides-wrapper" class="absolute inset-0">
+        
+        <!-- Slide 0: B2B Travel Network -->
+        <div class="hero-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-100 z-10" data-slide-index="0">
+            <div class="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[10000ms]" style="background-image: url('{% static 'images/hero_b2b.png' %}');"></div>
+            <div class="absolute inset-0 bg-slate-950/85"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(234,88,12,0.2),transparent_50%)]"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center relative z-20 pt-16 pb-24">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-orange/15 border border-brand-orange/30 text-brand-orange text-xs sm:text-sm font-bold shadow-lg backdrop-blur-md">
+                        <i class="fa-solid fa-handshake"></i> Pakistan's #1 B2B Travel Agent Network
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+                        Empowering Travel Agents With <br>
+                        <span class="text-gradient-orange">Wholesale B2B Platform</span>
+                    </h1>
+                    <p class="max-w-2xl mx-auto text-slate-300 text-sm sm:text-lg leading-relaxed font-medium">
+                        Access bulk flight block seats, direct Umrah contracts, instant visa processing, and real-time ledger accounting in one unified B2B dashboard.
+                    </p>
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 max-w-xl mx-auto">
+                        <a href="{% url 'signup' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-brand-orange/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-user-plus"></i> Join B2B Agent Network
+                        </a>
+                        <a href="{% url 'login' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-right-to-bracket"></i> Agent Portal Login
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 1: Visit Visa Services -->
+        <div class="hero-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0 z-0" data-slide-index="1">
+            <div class="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[10000ms]" style="background-image: url('{% static 'images/hero_visa.png' %}');"></div>
+            <div class="absolute inset-0 bg-slate-950/85"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(59,130,246,0.2),transparent_50%)]"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center relative z-20 pt-16 pb-24">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400 text-xs sm:text-sm font-bold shadow-lg backdrop-blur-md">
+                        <i class="fa-solid fa-passport"></i> Fast-Track Visit Visa Services
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+                        Saudi & Worldwide Visit Visas <br>
+                        <span class="text-gradient-orange">With 99.8% Approval Rate</span>
+                    </h1>
+                    <p class="max-w-2xl mx-auto text-slate-300 text-sm sm:text-lg leading-relaxed font-medium">
+                        Express e-Visa issuance for Tourist, Family, and Business visas with quick document attestation and automated status tracking.
+                    </p>
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 max-w-xl mx-auto">
+                        <a href="{% url 'visa_countries' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-brand-orange/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-globe"></i> Explore Visa Countries
+                        </a>
+                        <a href="{% url 'contact' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-headset"></i> Consult Visa Specialist
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Hajj 2026 Packages -->
+        <div class="hero-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0 z-0" data-slide-index="2">
+            <div class="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[10000ms]" style="background-image: url('{% static 'images/hero_hajj.png' %}');"></div>
+            <div class="absolute inset-0 bg-slate-950/85"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(234,88,12,0.25),transparent_60%)]"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center relative z-20 pt-16 pb-24">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold shadow-lg backdrop-blur-md">
+                        <i class="fa-solid fa-kaaba"></i> Exclusive Hajj 2026 Packages
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+                        Fulfil Your Sacred Calling <br>
+                        <span class="text-gradient-orange">Hajj 2026 VIP & Economy</span>
+                    </h1>
+                    <p class="max-w-2xl mx-auto text-slate-300 text-sm sm:text-lg leading-relaxed font-medium">
+                        Government and private Hajj schemes with 5-star Makkah & Madinah hotels close to Haram, guided Ziyarat, and experienced Moallim support.
+                    </p>
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 max-w-xl mx-auto">
+                        <a href="{% url 'hajj_list' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-brand-orange/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-kaaba"></i> View Hajj Packages
+                        </a>
+                        <a href="{% url 'contact' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-calendar-check"></i> Book Hajj Consultation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Umrah Packages -->
+        <div class="hero-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0 z-0" data-slide-index="3">
+            <div class="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[10000ms]" style="background-image: url('{% static 'images/hero_umrah.png' %}');"></div>
+            <div class="absolute inset-0 bg-slate-950/85"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,rgba(16,185,129,0.2),transparent_50%)]"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center relative z-20 pt-16 pb-24">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-bold shadow-lg backdrop-blur-md">
+                        <i class="fa-solid fa-star-and-crescent"></i> Special Umrah Packages
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+                        Spiritual Umrah Journeys <br>
+                        <span class="text-gradient-orange">15, 18 & 28 Days Special</span>
+                    </h1>
+                    <p class="max-w-2xl mx-auto text-slate-300 text-sm sm:text-lg leading-relaxed font-medium">
+                        Customized Quad, Triple & Double sharing Umrah deals with luxury Makkah-Madinah shuttle, ground transport, and complete visa issuance.
+                    </p>
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 max-w-xl mx-auto">
+                        <a href="{% url 'umrah_list' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-brand-orange/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-mosque"></i> Browse Umrah Deals
+                        </a>
+                        <a href="{% url 'flight_quote' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-sliders"></i> Custom Package Inquiry
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Flight Block Seats -->
+        <div class="hero-slide absolute inset-0 transition-opacity duration-1000 ease-in-out opacity-0 z-0" data-slide-index="4">
+            <div class="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[10000ms]" style="background-image: url('{% static 'images/hero_flight.png' %}');"></div>
+            <div class="absolute inset-0 bg-slate-950/85"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_40%,rgba(234,88,12,0.25),transparent_50%)]"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center text-center relative z-20 pt-16 pb-24">
+                <div class="max-w-4xl mx-auto space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs sm:text-sm font-bold shadow-lg backdrop-blur-md">
+                        <i class="fa-solid fa-plane-departure"></i> Wholesale Flight Quotations
+                    </div>
+                    <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
+                        B2B Group Flight Fares & <br>
+                        <span class="text-gradient-orange">Block Seats Reservations</span>
+                    </h1>
+                    <p class="max-w-2xl mx-auto text-slate-300 text-sm sm:text-lg leading-relaxed font-medium">
+                        Exclusive wholesale group tickets on PIA, Saudia, Flynas, Etihad & Emirates for Umrah groups and international travel agents.
+                    </p>
+                    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 max-w-xl mx-auto">
+                        <a href="{% url 'flight_quote' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-brand-orange/25 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-plane-circle-check"></i> Request Group Quote
+                        </a>
+                        <a href="{% url 'flights_list' %}" class="w-full sm:w-auto min-w-[240px] h-13 py-3.5 px-6 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs sm:text-sm border border-white/20 backdrop-blur-md transition-all flex items-center justify-center gap-2 text-center">
+                            <i class="fa-solid fa-list"></i> View Block Flights
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Arrow Controls -->
+    <button onclick="prevHeroSlide()" class="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-2xl bg-slate-900/60 hover:bg-brand-orange text-white border border-white/10 flex items-center justify-center transition-all duration-300 shadow-xl backdrop-blur-md focus:outline-none hover:scale-110">
+        <i class="fa-solid fa-chevron-left text-base"></i>
+    </button>
+    <button onclick="nextHeroSlide()" class="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 rounded-2xl bg-slate-900/60 hover:bg-brand-orange text-white border border-white/10 flex items-center justify-center transition-all duration-300 shadow-xl backdrop-blur-md focus:outline-none hover:scale-110">
+        <i class="fa-solid fa-chevron-right text-base"></i>
+    </button>
+
+    <!-- Pagination Dot Controls & Slide Counter -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3 bg-slate-900/70 border border-white/10 px-5 py-2.5 rounded-full backdrop-blur-md shadow-2xl">
+        <span id="hero-slide-counter" class="text-xs font-black text-brand-orange tracking-widest font-mono">01 / 05</span>
+        <div class="h-3 w-px bg-white/15"></div>
+        <div class="flex items-center gap-2">
+            <button onclick="goToHeroSlide(0)" class="hero-dot w-2.5 h-2.5 rounded-full bg-brand-orange transition-all duration-300 w-7"></button>
+            <button onclick="goToHeroSlide(1)" class="hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300"></button>
+            <button onclick="goToHeroSlide(2)" class="hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300"></button>
+            <button onclick="goToHeroSlide(3)" class="hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300"></button>
+            <button onclick="goToHeroSlide(4)" class="hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300"></button>
+        </div>
+    </div>
+</section>
+
+<script>
+    let currentHeroSlideIndex = 0;
+    const totalHeroSlides = 5;
+    let heroAutoPlayTimer = null;
+
+    function renderHeroSlide(index) {
+        currentHeroSlideIndex = (index + totalHeroSlides) % totalHeroSlides;
+        
+        const slides = document.querySelectorAll('.hero-slide');
+        slides.forEach((slide, idx) => {
+            if (idx === currentHeroSlideIndex) {
+                slide.classList.remove('opacity-0', 'z-0');
+                slide.classList.add('opacity-100', 'z-10');
+            } else {
+                slide.classList.remove('opacity-100', 'z-10');
+                slide.classList.add('opacity-0', 'z-0');
+            }
+        });
+
+        // Update counter text
+        const counterEl = document.getElementById('hero-slide-counter');
+        if (counterEl) {
+            counterEl.textContent = `0${currentHeroSlideIndex + 1} / 0${totalHeroSlides}`;
+        }
+
+        // Update dots styling
+        const dots = document.querySelectorAll('.hero-dot');
+        dots.forEach((dot, idx) => {
+            if (idx === currentHeroSlideIndex) {
+                dot.className = 'hero-dot h-2.5 rounded-full bg-brand-orange transition-all duration-300 w-7';
+            } else {
+                dot.className = 'hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300';
+            }
+        });
+    }
+
+    function nextHeroSlide() {
+        renderHeroSlide(currentHeroSlideIndex + 1);
+        resetHeroAutoPlay();
+    }
+
+    function prevHeroSlide() {
+        renderHeroSlide(currentHeroSlideIndex - 1);
+        resetHeroAutoPlay();
+    }
+
+    function goToHeroSlide(index) {
+        renderHeroSlide(index);
+        resetHeroAutoPlay();
+    }
+
+    function startHeroAutoPlay() {
+        stopHeroAutoPlay();
+        heroAutoPlayTimer = setInterval(() => {
+            renderHeroSlide(currentHeroSlideIndex + 1);
+        }, 5000);
+    }
+
+    function stopHeroAutoPlay() {
+        if (heroAutoPlayTimer) {
+            clearInterval(heroAutoPlayTimer);
+            heroAutoPlayTimer = null;
+        }
+    }
+
+    function resetHeroAutoPlay() {
+        startHeroAutoPlay();
+    }
+
+    // Initialize auto play & pause on hover
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.getElementById('hero-slider-container');
+        if (container) {
+            container.addEventListener('mouseenter', stopHeroAutoPlay);
+            container.addEventListener('mouseleave', startHeroAutoPlay);
+        }
+        startHeroAutoPlay();
+    });
+</script>
+
+<!-- Trust & Stats Section (Clean White Background) -->
+<section class="py-12 bg-white border-y border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div class="p-4 border-r border-slate-100 last:border-0">
+                <p class="text-3xl sm:text-4xl font-extrabold text-brand-orange">10k+</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">Pilgrims Served</p>
+            </div>
+            <div class="p-4 border-r border-slate-100 last:border-0">
+                <p class="text-3xl sm:text-4xl font-extrabold text-brand-orange">300+</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">Registered Agents</p>
+            </div>
+            <div class="p-4 border-r border-slate-100 last:border-0">
+                <p class="text-3xl sm:text-4xl font-extrabold text-brand-orange">99.4%</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">Visa Success Rate</p>
+            </div>
+            <div class="p-4">
+                <p class="text-3xl sm:text-4xl font-extrabold text-brand-orange">24/7</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1 uppercase tracking-wider font-semibold">AI & Ground Support</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Packages (Light Slate 50 background with white glass cards) -->
+<section class="py-20 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div>
+                <h2 class="text-3xl font-extrabold text-slate-900">Featured Packages</h2>
+                <p class="text-slate-500 mt-2">Curated luxury and economy packages directly from our central inventory.</p>
+            </div>
+            <a href="{% url 'umrah_list' %}" class="mt-4 md:mt-0 inline-flex items-center gap-2 text-brand-orange hover:text-brand-orange-dark text-sm font-semibold group">
+                View All Packages <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for pkg in featured_packages %}
+            <div class="glass-card bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-200/60 shadow-sm transition-all hover:shadow-lg">
+                <div class="relative h-56 bg-slate-100 overflow-hidden group">
+                    <img src="{% if pkg.images %}{{ pkg.images.0 }}{% else %}{% static 'images/umrah_card.png' %}{% endif %}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-xs font-bold px-2.5 py-1 rounded-md uppercase shadow">{{ pkg.category }}</span>
+                </div>
+                <div class="p-6 flex-grow flex flex-col bg-white">
+                    <div class="flex items-center justify-between text-xs text-slate-500 mb-2 font-semibold">
+                        <span><i class="fa-regular fa-clock mr-1"></i> {{ pkg.duration_days }} Days</span>
+                        <span class="truncate max-w-[140px]"><i class="fa-solid fa-hotel mr-1"></i> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }}</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2 line-clamp-1">{{ pkg.title }}</h3>
+                    <p class="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed">{{ pkg.description }}</p>
+                    <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs text-slate-400 block">Starting from</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR {{ pkg.price }}</span>
+                        </div>
+                        <a href="{% url 'package_detail' pk=pkg.pk %}" class="px-4 py-2 bg-slate-50 hover:bg-brand-orange hover:text-white text-slate-700 rounded-lg text-xs font-bold transition-all duration-200">Details</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-12 text-slate-500 font-semibold">
+                <p>No packages currently available.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Travel Verticals / Services Overview Section -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="text-xs font-bold text-brand-orange bg-brand-orange/10 px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Our Solutions</span>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">One Platform, Endless Destinations</h2>
+            <p class="text-slate-500 mt-2 text-sm">We provide completely integrated operations for individuals and travel partners alike.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Card 1 -->
+            <div class="group bg-slate-50 p-6 rounded-3xl border border-slate-200/50 hover:shadow-xl hover:bg-white hover:border-brand-orange/30 transition-all duration-300 flex flex-col justify-between">
+                <div>
+                    <span class="w-12 h-12 rounded-2xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl mb-6 group-hover:bg-brand-orange group-hover:text-white transition-all"><i class="fa-solid fa-mosque"></i></span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Hajj Services</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed mb-6">Explore shifts, non-shifting options, VIP Maktabs, and verified ground transportation catalogs.</p>
+                </div>
+                <a href="{% url 'hajj_list' %}" class="text-xs font-bold text-brand-orange hover:text-brand-orange-dark flex items-center gap-1.5 mt-auto">View Hajj Offers <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></a>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="group bg-slate-50 p-6 rounded-3xl border border-slate-200/50 hover:shadow-xl hover:bg-white hover:border-brand-orange/30 transition-all duration-300 flex flex-col justify-between">
+                <div>
+                    <span class="w-12 h-12 rounded-2xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl mb-6 group-hover:bg-brand-orange group-hover:text-white transition-all"><i class="fa-solid fa-kaaba"></i></span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Umrah Packages</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed mb-6">Compare economy, customized VIP hotels, shuttle buses, and rawdah prayer permits via Nusuk.</p>
+                </div>
+                <a href="{% url 'umrah_list' %}" class="text-xs font-bold text-brand-orange hover:text-brand-orange-dark flex items-center gap-1.5 mt-auto">View Umrah Offers <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></a>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="group bg-slate-50 p-6 rounded-3xl border border-slate-200/50 hover:shadow-xl hover:bg-white hover:border-brand-orange/30 transition-all duration-300 flex flex-col justify-between">
+                <div>
+                    <span class="w-12 h-12 rounded-2xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl mb-6 group-hover:bg-brand-orange group-hover:text-white transition-all"><i class="fa-solid fa-passport"></i></span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Visa Consultancy</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed mb-6">Fast-track e-Visas and sticker guidance support for UK, Schengen, Turkey, UAE, and Malaysia.</p>
+                </div>
+                <a href="{% url 'visa_countries' %}" class="text-xs font-bold text-brand-orange hover:text-brand-orange-dark flex items-center gap-1.5 mt-auto">Compare Visa Fees <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></a>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="group bg-slate-50 p-6 rounded-3xl border border-slate-200/50 hover:shadow-xl hover:bg-white hover:border-brand-orange/30 transition-all duration-300 flex flex-col justify-between">
+                <div>
+                    <span class="w-12 h-12 rounded-2xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl mb-6 group-hover:bg-brand-orange group-hover:text-white transition-all"><i class="fa-solid fa-plane"></i></span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Flights Ticketing</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed mb-6">Book live domestic/international direct routes at net rates with instant GDS codes printouts.</p>
+                </div>
+                <a href="{% url 'flights_list' %}" class="text-xs font-bold text-brand-orange hover:text-brand-orange-dark flex items-center gap-1.5 mt-auto">Compare Flight Seats <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Booking Tracker Teaser — Premium Redesign -->
+<section class="relative py-0 bg-slate-950 border-t border-slate-800 overflow-hidden">
+    <!-- Multi-layer ambient glows -->
+    <div class="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full bg-brand-orange/5 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-orange-500/5 blur-[100px] pointer-events-none"></div>
+    <!-- Subtle grid lines -->
+    <div class="absolute inset-0 opacity-[0.025]" style="background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:48px 48px;"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[520px]">
+
+            <!-- LEFT — Copywriting & Feature Chips -->
+            <div class="flex flex-col justify-center py-20 lg:pr-16 border-r border-white/5">
+                <!-- Live badge -->
+                <div class="inline-flex items-center gap-2 mb-6 w-fit">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-emerald-400 text-xs font-bold uppercase tracking-widest">Live Database • Real-Time</span>
+                </div>
+
+                <h2 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight mb-5">
+                    Track Your<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-amber-400">Booking Status</span>
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed max-w-md mb-10">
+                    Enter any Reference ID for instant, real-time status updates fetched directly from our secure database — no login required.
+                </p>
+
+                <!-- What you can track -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="flex items-center gap-2.5 bg-white/5 border border-white/8 rounded-xl px-3 py-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-brand-orange/15 text-brand-orange flex items-center justify-center text-sm flex-shrink-0"><i class="fa-solid fa-suitcase-rolling text-xs"></i></span>
+                        <div><p class="text-[11px] font-bold text-white">Bookings</p><p class="text-[10px] text-slate-500">GSA-B-###</p></div>
+                    </div>
+                    <div class="flex items-center gap-2.5 bg-white/5 border border-white/8 rounded-xl px-3 py-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center text-sm flex-shrink-0"><i class="fa-solid fa-passport text-xs"></i></span>
+                        <div><p class="text-[11px] font-bold text-white">Visas</p><p class="text-[10px] text-slate-500">GSA-V-###</p></div>
+                    </div>
+                    <div class="flex items-center gap-2.5 bg-white/5 border border-white/8 rounded-xl px-3 py-2.5">
+                        <span class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center text-sm flex-shrink-0"><i class="fa-solid fa-plane-departure text-xs"></i></span>
+                        <div><p class="text-[11px] font-bold text-white">Flights</p><p class="text-[10px] text-slate-500">GSA-F-###</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT — Search Panel -->
+            <div class="flex flex-col justify-center py-20 lg:pl-16">
+                <!-- Panel glass card -->
+                <div class="bg-white/4 backdrop-blur-sm border border-white/10 rounded-3xl p-8 shadow-2xl">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6">Enter Reference ID</p>
+
+                    <!-- Search Bar -->
+                    <div class="relative mb-4 group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass text-slate-500 group-focus-within:text-brand-orange transition-colors text-sm"></i>
+                        </div>
+                        <input
+                            type="text"
+                            id="tracking-id-input"
+                            placeholder="e.g. GSA-B-5, GSA-V-3, GSA-F-12"
+                            class="w-full bg-slate-900 border border-slate-700 focus:border-brand-orange text-white text-sm rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:ring-2 focus:ring-brand-orange/20 transition-all placeholder-slate-600"
+                        >
+                    </div>
+
+                    <button id="btn-track-status"
+                        class="w-full bg-gradient-to-r from-brand-orange to-orange-500 hover:from-orange-500 hover:to-brand-orange text-white font-bold py-4 rounded-2xl text-sm transition-all duration-300 shadow-lg shadow-brand-orange/25 flex items-center justify-center gap-2 hover:shadow-brand-orange/40 hover:scale-[1.02] active:scale-[0.98]">
+                        <i class="fa-solid fa-satellite-dish"></i> Track Status Now
+                    </button>
+
+                    <!-- Tracking Results Display (Dynamic) -->
+                    <div id="tracking-results-card" class="mt-6 hidden animate-fade-in">
+                        <div class="bg-slate-900 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                            <!-- Card header -->
+                            <div class="flex items-center justify-between bg-slate-800/60 px-5 py-3 border-b border-white/8">
+                                <div class="flex items-center gap-2">
+                                    <span id="track-result-type" class="text-[9px] font-bold uppercase tracking-wider text-slate-400 bg-slate-700 px-2 py-0.5 rounded-md">Booking</span>
+                                    <h3 id="track-result-id" class="text-sm font-extrabold text-white">—</h3>
+                                </div>
+                                <span id="track-result-status" class="text-xs font-bold px-3 py-1 rounded-full border"></span>
+                            </div>
+                            <!-- Card body -->
+                            <div class="p-5 space-y-4 text-xs">
+                                <div class="bg-slate-800/40 rounded-xl px-4 py-3">
+                                    <span class="text-slate-500 text-[10px] uppercase font-semibold flex items-center gap-1 mb-1"><i class="fa-solid fa-tag text-brand-orange/70"></i> Service Details</span>
+                                    <span id="track-result-title" class="text-white font-semibold">...</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-slate-800/40 rounded-xl px-4 py-3">
+                                        <span class="text-slate-500 text-[10px] uppercase font-semibold flex items-center gap-1 mb-1"><i class="fa-solid fa-user text-blue-400/70"></i> Customer</span>
+                                        <span id="track-result-customer" class="text-white font-semibold">...</span>
+                                    </div>
+                                    <div class="bg-slate-800/40 rounded-xl px-4 py-3">
+                                        <span class="text-slate-500 text-[10px] uppercase font-semibold flex items-center gap-1 mb-1"><i class="fa-solid fa-money-bill text-emerald-400/70"></i> Total Cost</span>
+                                        <span id="track-result-price" class="text-white font-semibold">...</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-slate-800/40 rounded-xl px-4 py-3">
+                                        <span class="text-slate-500 text-[10px] uppercase font-semibold flex items-center gap-1 mb-1"><i class="fa-solid fa-calendar text-purple-400/70"></i> Created</span>
+                                        <span id="track-result-date" class="text-slate-300">...</span>
+                                    </div>
+                                    <div id="track-result-extra-container" class="hidden bg-slate-800/40 rounded-xl px-4 py-3">
+                                        <span id="track-result-extra-label" class="text-slate-500 text-[10px] uppercase font-semibold flex items-center gap-1 mb-1"><i class="fa-solid fa-info-circle text-amber-400/70"></i> Extra Info</span>
+                                        <span id="track-result-extra-val" class="text-slate-300">N/A</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error state -->
+                    <div id="tracking-error-wrap" class="mt-4 hidden">
+                        <div class="bg-rose-950/50 border border-rose-500/30 rounded-xl px-4 py-3 flex items-center gap-3">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-400 text-sm"></i>
+                            <p id="tracking-error" class="text-xs font-semibold text-rose-400"></p>
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-slate-600 text-center mt-5">All data is fetched securely and read-only. No login required.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Premium Agent Partners Section (Clean White Background) -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-extrabold text-slate-900">Our Premium Agent Partners</h2>
+            <p class="text-slate-500 mt-2 max-w-xl mx-auto text-sm leading-relaxed">Book directly through our highly-rated, verified local travel operators for exceptional ground support.</p>
+        </div>
+
+        {% if best_agents %}
+        <!-- Agent Search Bar -->
+        <div class="max-w-md mx-auto mb-8 relative px-4">
+            <div class="relative">
+                <input type="text" id="agent-search-input" placeholder="Search premium agents by name, email, or services..." 
+                       class="w-full bg-slate-50 border border-slate-200 focus:border-brand-orange text-slate-800 text-sm rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-all duration-200 shadow-sm focus:ring-1 focus:ring-brand-orange">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                </div>
+                <!-- Clear Button -->
+                <button id="agent-search-clear" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 hidden">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </button>
+            </div>
+            <!-- Dynamic Results Count / Feedback -->
+            <p id="agent-search-status" class="text-center text-xs text-brand-orange font-semibold mt-2 hidden"></p>
+        </div>
+
+        <!-- Marquee Scrolling Container -->
+        <div id="agent-marquee-container" class="relative w-full overflow-hidden py-4">
+            <!-- Smooth Gradient Fading Edges -->
+            <div class="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
+            <div class="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
+
+            <!-- Left & Right Navigation Buttons -->
+            <button id="agent-nav-left" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-brand-orange text-slate-700 hover:text-white flex items-center justify-center shadow-lg transition-all duration-200 border border-slate-200 hover:border-brand-orange hover:scale-105 active:scale-95 focus:outline-none" aria-label="Scroll Left">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
+            <button id="agent-nav-right" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-brand-orange text-slate-700 hover:text-white flex items-center justify-center shadow-lg transition-all duration-200 border border-slate-200 hover:border-brand-orange hover:scale-105 active:scale-95 focus:outline-none" aria-label="Scroll Right">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
+
+            <div class="flex gap-8 w-max animate-marquee hover:[animation-play-state:paused] pointer-events-auto">
+                <!-- Track Part 1 -->
+                <div class="flex gap-8">
+                    {% for agent in best_agents %}
+                    <div class="agent-card w-[340px] flex-shrink-0 bg-slate-50 border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
+                         data-company-name="{{ agent.company_name }}"
+                         data-about="{{ agent.about|default:'Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.' }}"
+                         data-email="{{ agent.email }}">
+                        <!-- Cover Photo / Gradient banner -->
+                        <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-orange-500 to-amber-500{% endif %}">
+                            {% if agent.cover_photo %}
+                            <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+                            {% endif %}
+                            
+                            <!-- Profile Photo Overlapping -->
+                            <div class="absolute -bottom-6 left-6">
+                                <div class="h-16 w-16 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow">
+                                    {% if agent.profile_photo %}
+                                    <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name }}" class="h-full w-full object-cover">
+                                    {% else %}
+                                    <div class="h-full w-full flex items-center justify-center bg-brand-orange text-white font-extrabold text-lg">
+                                        {{ agent.company_name|slice:":1" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 pt-8 flex-grow flex flex-col">
+                            <div class="flex items-center justify-between mb-2">
+                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-brand-orange transition-colors">{{ agent.company_name }}</a>
+                                <div class="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-full">
+                                    <i class="fa-solid fa-star text-[10px]"></i>
+                                    <span>{{ agent.rating|stringformat:".1f" }}</span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-slate-500 line-clamp-3 mb-4 leading-relaxed flex-grow">
+                                {% if agent.about %}
+                                {{ agent.about }}
+                                {% else %}
+                                Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.
+                                {% endif %}
+                            </p>
+
+                            <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                                <div class="flex items-center justify-between text-[11px] text-slate-500 font-semibold gap-2">
+                                    <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-slate-400"></i>{{ agent.email }}</span>
+                                    <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-slate-400"></i>{{ agent.phone|default:"N/A" }}</span>
+                                </div>
+                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-brand-orange hover:text-white border border-slate-200/80 hover:border-brand-orange text-[11px] font-bold rounded-lg transition-all duration-200 text-slate-700">
+                                    <i class="fa-regular fa-comment mr-1"></i> View Profile & Reviews
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Track Part 2 (seamless duplication) -->
+                <div class="flex gap-8" aria-hidden="true">
+                    {% for agent in best_agents %}
+                    <div class="agent-card w-[340px] flex-shrink-0 bg-slate-50 border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
+                         data-company-name="{{ agent.company_name }}"
+                         data-about="{{ agent.about|default:'Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.' }}"
+                         data-email="{{ agent.email }}">
+                        <!-- Cover Photo / Gradient banner -->
+                        <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-orange-500 to-amber-500{% endif %}">
+                            {% if agent.cover_photo %}
+                            <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+                            {% endif %}
+                            
+                            <!-- Profile Photo Overlapping -->
+                            <div class="absolute -bottom-6 left-6">
+                                <div class="h-16 w-16 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow">
+                                    {% if agent.profile_photo %}
+                                    <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name }}" class="h-full w-full object-cover">
+                                    {% else %}
+                                    <div class="h-full w-full flex items-center justify-center bg-brand-orange text-white font-extrabold text-lg">
+                                        {{ agent.company_name|slice:":1" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 pt-8 flex-grow flex flex-col">
+                            <div class="flex items-center justify-between mb-2">
+                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-brand-orange transition-colors">{{ agent.company_name }}</a>
+                                <div class="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-full">
+                                    <i class="fa-solid fa-star text-[10px]"></i>
+                                    <span>{{ agent.rating|stringformat:".1f" }}</span>
+                                </div>
+                            </div>
+                            
+                            <p class="text-xs text-slate-500 line-clamp-3 mb-4 leading-relaxed flex-grow">
+                                {% if agent.about %}
+                                {{ agent.about }}
+                                {% else %}
+                                Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.
+                                {% endif %}
+                            </p>
+
+                            <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                                <div class="flex items-center justify-between text-[11px] text-slate-500 font-semibold gap-2">
+                                    <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-slate-400"></i>{{ agent.email }}</span>
+                                    <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-slate-400"></i>{{ agent.phone|default:"N/A" }}</span>
+                                </div>
+                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-brand-orange hover:text-white border border-slate-200/80 hover:border-brand-orange text-[11px] font-bold rounded-lg transition-all duration-200 text-slate-700">
+                                    <i class="fa-regular fa-comment mr-1"></i> View Profile & Reviews
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- No Results Empty State -->
+        <div id="agent-no-results" class="text-center py-12 hidden">
+            <span class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-lg mx-auto mb-3"><i class="fa-solid fa-user-slash text-slate-400"></i></span>
+            <p class="text-slate-500 text-sm font-semibold">No agent partners matched your search query.</p>
+        </div>
+        {% else %}
+        <div class="py-8 text-center text-slate-400 text-xs">
+            No active partner agencies registered yet.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Why Choose Us (Clean White Background) -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Why Golden Star Agency?</h2>
+        <p class="text-slate-500 mb-12 max-w-xl mx-auto text-sm leading-relaxed">Providing advanced automation, pricing engines, and AI guides for local operators.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-2xl hover:border-brand-orange/30 hover:bg-white transition-all duration-300">
+                <span class="w-12 h-12 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl mx-auto mb-6"><i class="fa-solid fa-cubes"></i></span>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">B2B2C Inventory Reselling</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Agents can plug in, set markups on central travel items, and sell packages without capital investments.</p>
+            </div>
+            
+            <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-2xl hover:border-brand-orange/30 hover:bg-white transition-all duration-300">
+                <span class="w-12 h-12 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl mx-auto mb-6"><i class="fa-solid fa-lock"></i></span>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">Encrypted Document Uploads</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Your passport and CNIC numbers are heavily encrypted using standard AES Fernet technology at rest.</p>
+            </div>
+
+            <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-2xl hover:border-brand-orange/30 hover:bg-white transition-all duration-300">
+                <span class="w-12 h-12 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl mx-auto mb-6"><i class="fa-solid fa-robot"></i></span>
+                <h3 class="text-lg font-semibold text-slate-800 mb-2">AI Retrieval Chatbot</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Get accurate answers about packages and visa requirements powered by pgvector similarity search.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Achievements & Milestones Section -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-trophy"></i> Achievements
+            </span>
+            <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl tracking-tight">Milestones & Moments</h2>
+            <p class="text-slate-500 mt-3 max-w-xl mx-auto text-sm leading-relaxed">
+                Explore our official awards, strategic airline partnership events, customer appreciation milestones, and travel vlogs.
+            </p>
+        </div>
+
+        <!-- Grid of Achievements -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {% for achievement in achievements %}
+            <div class="group bg-white rounded-3xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+                
+                <!-- Photo/Image Area -->
+                <div class="relative h-48 bg-slate-950 overflow-hidden shrink-0">
+                    {% if achievement.photo %}
+                        <img src="{{ achievement.photo.url }}" alt="{{ achievement.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    {% else %}
+                        <div class="w-full h-full bg-slate-900 flex items-center justify-center text-slate-700">
+                            <i class="fa-solid fa-image text-3xl"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Gradient overlay cover -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                    
+                    <!-- Video Play Icon overlay -->
+                    {% if achievement.category == 'video' and achievement.video_url %}
+                    <a href="{{ achievement.video_url }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/40 transition-colors">
+                        <span class="h-12 w-12 rounded-full bg-brand-orange text-white flex items-center justify-center text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <i class="fa-solid fa-play ml-0.5"></i>
+                        </span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Date Tag -->
+                    {% if achievement.date %}
+                    <span class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-1 rounded-lg border border-white/10 uppercase tracking-widest">
+                        {{ achievement.date|date:"M Y" }}
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Card Body content -->
+                <div class="p-6 flex-grow flex flex-col justify-between space-y-4">
+                    <div class="space-y-2">
+                        <!-- Category Tag -->
+                        <span class="inline-block text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md border
+                            {% if achievement.category == 'milestone' %}bg-purple-50 text-purple-700 border-purple-200
+                            {% elif achievement.category == 'meeting' %}bg-blue-50 text-blue-700 border-blue-200
+                            {% elif achievement.category == 'review' %}bg-emerald-50 text-emerald-700 border-emerald-200
+                            {% else %}bg-orange-50 text-orange-700 border-orange-200{% endif %}">
+                            {{ achievement.get_category_display }}
+                        </span>
+                        
+                        <h3 class="text-sm font-bold text-slate-800 leading-snug line-clamp-2">{{ achievement.title }}</h3>
+                        
+                        {% if achievement.description %}
+                        <p class="text-xs text-slate-500 leading-relaxed line-clamp-3">{{ achievement.description }}</p>
+                        {% endif %}
+                    </div>
+
+                    {% if achievement.category == 'video' and achievement.video_url %}
+                    <a href="{{ achievement.video_url }}" target="_blank" class="text-xs font-bold text-brand-orange hover:underline inline-flex items-center gap-1.5 self-start">
+                        <i class="fa-solid fa-circle-play"></i> Watch Video Highlights
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12 text-slate-400 text-xs">
+                <i class="fa-solid fa-folder-open text-2xl text-slate-300 block mb-2 mx-auto"></i>
+                No achievements posted yet.
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- Platform Ratings & Reviews Section -->
+<section class="py-20 bg-slate-50 border-t border-slate-200">
+    <style>
+        @keyframes marquee-scroll-left {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-50% - 12px)); }
+        }
+        .animate-reviews-carousel {
+            display: flex;
+            width: max-content;
+            animation: marquee-scroll-left 30s linear infinite;
+        }
+        .animate-reviews-carousel:hover {
+            animation-play-state: paused;
+        }
+    </style>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-semibold uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-star"></i> Testimonials
+            </span>
+            <h2 class="text-3xl font-extrabold text-slate-900 sm:text-4xl">Platform Ratings & Reviews</h2>
+            <p class="text-slate-500 mt-3 max-w-xl mx-auto text-sm">
+                Hear from pilgrims and agents across Pakistan, or submit your own real-time feedback below.
+            </p>
+        </div>
+
+        <!-- Top: Reviews Grid -->
+        <div class="relative w-full mb-12">
+            <div id="reviews-feed-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
+                <!-- Review cards loaded dynamically -->
+                <div id="reviews-feed-empty" class="py-12 text-center text-slate-400 text-xs col-span-full">
+                    <i class="fa-solid fa-comments text-2xl text-slate-300 block mb-2 mx-auto animate-pulse"></i>
+                    No reviews submitted yet. Be the first to share your experience!
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-3xl mx-auto space-y-8">
+            <!-- Stats Summary -->
+            <div class="relative z-20 bg-white border border-slate-200/60 p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <span class="text-4xl font-extrabold text-slate-800" id="platform-avg-rating">4.8</span>
+                    <div>
+                        <div class="flex items-center text-amber-500 text-sm gap-0.5" id="platform-avg-stars">
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star"></i>
+                            <i class="fa-solid fa-star-half-stroke"></i>
+                        </div>
+                        <span class="text-xs text-slate-500 mt-1 block">Based on <span id="platform-reviews-count" class="font-semibold">0</span> reviews</span>
+                    </div>
+                </div>
+                <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/50 rounded-full text-xs font-bold flex items-center gap-1 self-start sm:self-auto"><i class="fa-solid fa-circle-check"></i> 100% Verified Users</span>
+            </div>
+
+            <!-- Bottom: Form -->
+            <div class="relative z-20 bg-white border border-slate-200/60 p-6 sm:p-8 rounded-2xl shadow-sm space-y-6">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Share Your Experience</h3>
+                    <p class="text-xs text-slate-500 mt-1">Your feedback helps us improve the platform for everyone.</p>
+                </div>
+                
+                <form id="review-submit-form" class="space-y-4 text-left">
+                    <!-- Rating Stars Selection -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Your Rating</label>
+                        <div class="flex items-center gap-2" id="star-selector">
+                            <button type="button" data-value="1" class="star-btn text-2xl text-slate-300 hover:scale-110 active:scale-95 transition-transform"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" data-value="2" class="star-btn text-2xl text-slate-300 hover:scale-110 active:scale-95 transition-transform"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" data-value="3" class="star-btn text-2xl text-slate-300 hover:scale-110 active:scale-95 transition-transform"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" data-value="4" class="star-btn text-2xl text-slate-300 hover:scale-110 active:scale-95 transition-transform"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" data-value="5" class="star-btn text-2xl text-slate-300 hover:scale-110 active:scale-95 transition-transform"><i class="fa-solid fa-star"></i></button>
+                        </div>
+                        <input type="hidden" name="rating" id="rating-value" value="5">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Reviewer Name -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
+                            <input type="text" id="reviewer-name" name="name" required placeholder="e.g. Asim Raza" 
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-brand-orange focus:bg-white transition-all relative z-10">
+                        </div>
+                        
+                        <!-- Reviewer Email -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Email Address (Optional)</label>
+                            <input type="email" id="reviewer-email" name="email" placeholder="e.g. asim@example.com" 
+                                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-brand-orange focus:bg-white transition-all relative z-10">
+                        </div>
+                    </div>
+                    
+                    <!-- Comment Text -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Your Review</label>
+                        <textarea id="reviewer-comment" name="comment" required rows="3" placeholder="Tell us about the booking experience, packages, or support..."
+                                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 focus:outline-none focus:border-brand-orange focus:bg-white transition-all relative z-10"></textarea>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" id="btn-submit-review" 
+                            class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/15 flex items-center justify-center gap-2">
+                        Submit Review
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Platform Reviews Media Lightbox Modal -->
+<div id="reviews-media-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md transition-opacity duration-300 opacity-0">
+    <div class="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col">
+        <!-- Close Button -->
+        <button id="close-media-modal" class="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-slate-950/60 text-white hover:bg-brand-orange hover:scale-105 active:scale-95 transition-all flex items-center justify-center border border-white/10">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+        
+        <!-- Media Container -->
+        <div id="modal-media-content" class="w-full flex-grow flex items-center justify-center p-4 min-h-[300px]">
+            <!-- Injected image/video element -->
+        </div>
+
+        <!-- Meta Section -->
+        <div class="p-6 bg-slate-950/50 border-t border-slate-800/80 flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+                <h4 id="modal-reviewer-name" class="font-extrabold text-white text-base"></h4>
+                <div id="modal-reviewer-stars" class="flex text-amber-500 text-xs gap-0.5"></div>
+            </div>
+            <p id="modal-reviewer-title" class="text-xs font-semibold text-brand-orange"></p>
+            <p id="modal-reviewer-comment" class="text-slate-400 text-xs leading-relaxed max-h-[100px] overflow-y-auto pr-2 mt-1"></p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('agent-search-input');
+    const clearBtn = document.getElementById('agent-search-clear');
+    const statusText = document.getElementById('agent-search-status');
+    const marqueeContainer = document.getElementById('agent-marquee-container');
+    const innerTrack = document.querySelector('.animate-marquee');
+    const noResultsEl = document.getElementById('agent-no-results');
+    
+    // Manual Navigation Controls
+    const btnLeft = document.getElementById('agent-nav-left');
+    const btnRight = document.getElementById('agent-nav-right');
+    
+    let isManual = false;
+    let currentTranslate = 0;
+    const cardWidth = 372; // Card 340px + gap 32px
+    
+    function getMatrixTranslateX(element) {
+        if (!element) return 0;
+        const style = window.getComputedStyle(element);
+        const matrix = style.transform || style.webkitTransform;
+        if (matrix && matrix !== 'none') {
+            const values = matrix.split('(')[1].split(')')[0].split(',');
+            return parseFloat(values[4]);
+        }
+        return 0;
+    }
+    
+    function handleNavClick(direction) {
+        if (!innerTrack) return;
+        
+        if (!isManual) {
+            // Read matrix translation
+            const currentX = getMatrixTranslateX(innerTrack);
+            // Snap to currentX to prevent visual jump
+            innerTrack.style.transform = `translateX(${currentX}px)`;
+            innerTrack.classList.remove('animate-marquee');
+            // Trigger reflow
+            innerTrack.offsetHeight;
+            innerTrack.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            currentTranslate = currentX;
+            isManual = true;
+        }
+        
+        // Find visible agents
+        const cards = document.querySelectorAll('.agent-card');
+        let visibleCards = [];
+        cards.forEach(card => {
+            if (card.style.display !== 'none') {
+                visibleCards.push(card);
+            }
+        });
+        
+        const totalCards = visibleCards.length / 2;
+        if (totalCards <= 0) return;
+        
+        const maxScroll = -(totalCards * cardWidth);
+        
+        if (direction === 'left') {
+            currentTranslate += cardWidth;
+            if (currentTranslate > 0) {
+                currentTranslate = maxScroll + cardWidth;
+            }
+        } else {
+            currentTranslate -= cardWidth;
+            if (currentTranslate < maxScroll) {
+                currentTranslate = 0;
+            }
+        }
+        
+        innerTrack.style.transform = `translateX(${currentTranslate}px)`;
+    }
+    
+    if (btnLeft && btnRight) {
+        btnLeft.addEventListener('click', () => handleNavClick('left'));
+        btnRight.addEventListener('click', () => handleNavClick('right'));
+    }
+    
+    if (searchInput && clearBtn) {
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.agent-card');
+            
+            if (query) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            
+            let visibleCount = 0;
+            cards.forEach(card => {
+                const companyName = card.getAttribute('data-company-name').toLowerCase();
+                const aboutText = card.getAttribute('data-about').toLowerCase();
+                const emailText = card.getAttribute('data-email').toLowerCase();
+                
+                if (companyName.includes(query) || aboutText.includes(query) || emailText.includes(query)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            if (visibleCount === 0 && query !== '') {
+                if (noResultsEl) noResultsEl.classList.remove('hidden');
+                if (marqueeContainer) marqueeContainer.classList.add('hidden');
+            } else {
+                if (noResultsEl) noResultsEl.classList.add('hidden');
+                if (marqueeContainer) marqueeContainer.classList.remove('hidden');
+            }
+            
+            if (query !== '') {
+                // If searching, pause auto-scroll / snap manual if necessary
+                if (innerTrack) {
+                    innerTrack.style.animationPlayState = 'paused';
+                }
+                if (statusText) {
+                    statusText.classList.remove('hidden');
+                    const uniqueVisible = Math.ceil(visibleCount / 2);
+                    statusText.textContent = `Found ${uniqueVisible} matching agent partner(s).`;
+                }
+            } else {
+                // If search is cleared, resume marquee only if not manually overridden by arrows
+                if (!isManual && innerTrack) {
+                    innerTrack.style.animationPlayState = 'running';
+                }
+                if (statusText) statusText.classList.add('hidden');
+            }
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            // Restore marquee animation if we were in manual navigation mode
+            if (isManual && innerTrack) {
+                innerTrack.style.transition = '';
+                innerTrack.style.transform = '';
+                innerTrack.classList.add('animate-marquee');
+                isManual = false;
+            }
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input'));
+        });
+    }
+
+    // Real-time Booking status tracking
+    const trackInput = document.getElementById('tracking-id-input');
+    const trackBtn = document.getElementById('btn-track-status');
+    const resultsCard = document.getElementById('tracking-results-card');
+    const errorWrap = document.getElementById('tracking-error-wrap');
+    const errorEl = document.getElementById('tracking-error');
+    
+    // Result Card Elements
+    const resType = document.getElementById('track-result-type');
+    const resId = document.getElementById('track-result-id');
+    const resStatus = document.getElementById('track-result-status');
+    const resTitle = document.getElementById('track-result-title');
+    const resCustomer = document.getElementById('track-result-customer');
+    const resPrice = document.getElementById('track-result-price');
+    const resDate = document.getElementById('track-result-date');
+    const extraContainer = document.getElementById('track-result-extra-container');
+    const extraLabel = document.getElementById('track-result-extra-label');
+    const extraVal = document.getElementById('track-result-extra-val');
+    
+    if (trackBtn && trackInput && resultsCard) {
+        trackBtn.addEventListener('click', async () => {
+            const rawId = trackInput.value.trim();
+            if (!rawId) {
+                showError("Please enter a valid booking or application tracking reference ID.");
+                return;
+            }
+            
+            // Clear previous states
+            if (errorWrap) errorWrap.classList.add('hidden');
+            resultsCard.classList.add('hidden');
+            trackBtn.disabled = true;
+            trackBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-2"></i>Tracking...';
+            
+            try {
+                const response = await fetch(`/api/track/${encodeURIComponent(rawId)}/`);
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Populate UI
+                    if (resType) resType.textContent = data.type;
+                    if (resId) resId.textContent = data.id;
+                    if (resStatus) {
+                        resStatus.textContent = data.status;
+                        resStatus.className = "px-3 py-1 rounded-full text-xs font-bold shrink-0 uppercase tracking-wider";
+                        if (data.status === 'confirmed' || data.status === 'approved' || data.status === 'booked') {
+                            resStatus.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border', 'border-emerald-500/20');
+                        } else if (data.status === 'cancelled' || data.status === 'rejected') {
+                            resStatus.classList.add('bg-rose-500/10', 'text-rose-400', 'border', 'border-rose-500/20');
+                        } else if (data.status === 'submitted') {
+                            resStatus.classList.add('bg-blue-500/10', 'text-blue-400', 'border', 'border-blue-500/20');
+                        } else {
+                            resStatus.classList.add('bg-amber-500/10', 'text-amber-400', 'border', 'border-amber-500/20');
+                        }
+                    }
+                    if (resTitle) resTitle.textContent = data.title;
+                    if (resCustomer) resCustomer.textContent = data.customer;
+                    if (resPrice) resPrice.textContent = data.price;
+                    if (resDate) resDate.textContent = data.date;
+                    
+                    // Extra dynamic column details
+                    if (extraContainer) {
+                        if (data.extra_info) {
+                            if (extraLabel) extraLabel.textContent = "Extra Info";
+                            if (extraVal) extraVal.textContent = data.extra_info;
+                            extraContainer.classList.remove('hidden');
+                        } else {
+                            extraContainer.classList.add('hidden');
+                        }
+                    }
+                    
+                    resultsCard.classList.remove('hidden');
+                } else {
+                    showError(data.message || "Unable to trace reference ID. Please double check the format.");
+                }
+            } catch (err) {
+                console.error("Tracking request error:", err);
+                showError("A connection error occurred. Please verify your internet connection and try again.");
+            } finally {
+                trackBtn.disabled = false;
+                trackBtn.innerHTML = '<i class="fa-solid fa-satellite-dish mr-2"></i>Track Status Now';
+            }
+        });
+        
+        // Let enter key trigger track
+        trackInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                trackBtn.click();
+            }
+        });
+    }
+    
+    function showError(msg) {
+        if (errorEl) {
+            errorEl.textContent = msg;
+        }
+        if (errorWrap) errorWrap.classList.remove('hidden');
+        if (resultsCard) resultsCard.classList.add('hidden');
+    }
+});
+
+// --- Ratings & Reviews System JS ---
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const starBtns = document.querySelectorAll('.star-btn');
+        const ratingValueInput = document.getElementById('rating-value');
+        const reviewerNameInput = document.getElementById('reviewer-name');
+        const reviewerEmailInput = document.getElementById('reviewer-email');
+        const reviewerCommentInput = document.getElementById('reviewer-comment');
+        const reviewForm = document.getElementById('review-submit-form');
+        const submitBtn = document.getElementById('btn-submit-review');
+        
+        const avgRatingEl = document.getElementById('platform-avg-rating');
+        const avgStarsContainer = document.getElementById('platform-avg-stars');
+        const totalCountEl = document.getElementById('platform-reviews-count');
+        const feedContainer = document.getElementById('reviews-feed-container');
+        const emptyStateEl = document.getElementById('reviews-feed-empty');
+
+        // Interactive Star Selection
+        if (starBtns && starBtns.length > 0) {
+            starBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const val = parseInt(btn.getAttribute('data-value'));
+                    if (ratingValueInput) ratingValueInput.value = val;
+                    updateStarSelectorUI(val);
+                });
+
+                // Hover effect
+                btn.addEventListener('mouseover', () => {
+                    const val = parseInt(btn.getAttribute('data-value'));
+                    updateStarSelectorUI(val);
+                });
+
+                btn.addEventListener('mouseout', () => {
+                    const val = ratingValueInput ? parseInt(ratingValueInput.value) : 5;
+                    updateStarSelectorUI(val);
+                });
+            });
+        }
+
+        function updateStarSelectorUI(rating) {
+            if (starBtns) {
+                starBtns.forEach(btn => {
+                    const val = parseInt(btn.getAttribute('data-value'));
+                    if (val <= rating) {
+                        btn.classList.remove('text-slate-300');
+                        btn.classList.add('text-amber-500');
+                    } else {
+                        btn.classList.remove('text-amber-500');
+                        btn.classList.add('text-slate-300');
+                    }
+                });
+            }
+        }
+
+        // Load reviews
+        async function loadReviews() {
+            try {
+                const res = await fetch('/api/reviews/');
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    window.loadedReviews = data.reviews;
+                    renderReviewsList(data.reviews);
+                }
+            } catch (e) {
+                console.error('Failed to load reviews:', e);
+            }
+        }
+
+        function renderReviewsList(reviews) {
+            if (!feedContainer) return;
+            
+            if (!reviews || reviews.length === 0) {
+                if (emptyStateEl) emptyStateEl.classList.remove('hidden');
+                feedContainer.innerHTML = '';
+                feedContainer.className = 'flex gap-6 py-4 justify-center';
+                if (totalCountEl) totalCountEl.textContent = '0';
+                if (avgRatingEl) avgRatingEl.textContent = '0.0';
+                if (avgStarsContainer) avgStarsContainer.innerHTML = '<i class="fa-regular fa-star text-slate-300"></i>';
+                return;
+            }
+
+            if (emptyStateEl) emptyStateEl.classList.add('hidden');
+            
+            feedContainer.innerHTML = '';
+            
+            let sumRating = 0;
+            const cardElements = [];
+
+            reviews.forEach(r => {
+                sumRating += r.rating;
+                
+                // Build stars html
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= r.rating) {
+                        starsHtml += '<i class="fa-solid fa-star text-amber-500"></i>';
+                    } else {
+                        starsHtml += '<i class="fa-regular fa-star text-slate-300"></i>';
+                    }
+                }
+
+                // Get initials
+                const initials = (r.name || 'Anonymous').split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+                // Media Attachment UI
+                let mediaHtml = '';
+                if (r.photo_url) {
+                    mediaHtml = `
+                        <div class="relative mt-2.5 rounded-xl overflow-hidden cursor-pointer group/img max-h-32 border border-slate-200/40" onclick="window.openReviewMedia(${r.id})">
+                            <img src="${r.photo_url}" class="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-black/10 group-hover/img:bg-black/30 transition-colors flex items-center justify-center">
+                                <span class="bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-md opacity-0 group-hover/img:opacity-100 transition-opacity"><i class="fa-solid fa-expand mr-1"></i> View Photo</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'w-full bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm flex gap-4 hover:shadow-md transition-all duration-300';
+                card.innerHTML = `
+                    <div class="h-10 w-10 rounded-full bg-brand-orange/10 text-brand-orange font-extrabold flex items-center justify-center text-xs shrink-0 select-none">
+                        ${initials}
+                    </div>
+                    <div class="flex-grow space-y-1.5 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm leading-none truncate">${escapeHTML(r.name)}</h4>
+                                ${r.reviewer_title ? `<span class="text-[9px] font-semibold text-brand-orange block mt-0.5 leading-none">${escapeHTML(r.reviewer_title)}</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-0.5 text-[10px] shrink-0">
+                                ${starsHtml}
+                            </div>
+                        </div>
+                        <span class="text-[9px] text-slate-400 block">${r.created_at}</span>
+                        <p class="text-xs text-slate-600 leading-relaxed line-clamp-3 break-words" title="${escapeHTML(r.comment)}">${escapeHTML(r.comment)}</p>
+                        ${mediaHtml}
+                    </div>
+                `;
+                cardElements.push(card);
+            });
+
+            // Update top metrics
+            const total = reviews.length;
+            const avg = (sumRating / total).toFixed(1);
+            if (totalCountEl) totalCountEl.textContent = total;
+            if (avgRatingEl) avgRatingEl.textContent = avg;
+
+            // Render average stars
+            if (avgStarsContainer) {
+                let avgStarsHtml = '';
+                const fullStars = Math.floor(avg);
+                const hasHalf = avg - fullStars >= 0.3;
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= fullStars) {
+                        avgStarsHtml += '<i class="fa-solid fa-star"></i>';
+                    } else if (i === fullStars + 1 && hasHalf) {
+                        avgStarsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+                    } else {
+                        avgStarsHtml += '<i class="fa-regular fa-star"></i>';
+                    }
+                }
+                avgStarsContainer.innerHTML = avgStarsHtml;
+            }
+
+            feedContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4';
+            cardElements.forEach(card => {
+                feedContainer.appendChild(card);
+            });
+        }
+
+        // Modal triggers
+        window.openReviewMedia = function(id) {
+            const review = (window.loadedReviews || []).find(r => r.id == id);
+            if (!review) return;
+
+            const modal = document.getElementById('reviews-media-modal');
+            const content = document.getElementById('modal-media-content');
+            const nameEl = document.getElementById('modal-reviewer-name');
+            const starsEl = document.getElementById('modal-reviewer-stars');
+            const titleEl = document.getElementById('modal-reviewer-title');
+            const commentEl = document.getElementById('modal-reviewer-comment');
+
+            if (!modal || !content) return;
+
+            content.innerHTML = '';
+            nameEl.textContent = review.name;
+            titleEl.textContent = review.reviewer_title || '';
+            commentEl.textContent = review.comment;
+
+            let starsHtml = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= review.rating) {
+                    starsHtml += '<i class="fa-solid fa-star"></i>';
+                } else {
+                    starsHtml += '<i class="fa-regular fa-star text-slate-600"></i>';
+                }
+            }
+            starsEl.innerHTML = starsHtml;
+
+            if (review.photo_url) {
+                content.innerHTML = `<img src="${review.photo_url}" class="max-w-full max-h-[50vh] sm:max-h-[60vh] object-contain rounded-xl shadow-md">`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('.relative').classList.remove('scale-95');
+            }, 10);
+        };
+
+        window.closeReviewMedia = function() {
+            const modal = document.getElementById('reviews-media-modal');
+            const content = document.getElementById('modal-media-content');
+            if (!modal) return;
+
+            modal.classList.add('opacity-0');
+            if (modal.querySelector('.relative')) {
+                modal.querySelector('.relative').classList.add('scale-95');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                if (content) content.innerHTML = '';
+            }, 300);
+        };
+
+        const closeBtn = document.getElementById('close-media-modal');
+        const mediaModal = document.getElementById('reviews-media-modal');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', window.closeReviewMedia);
+        }
+        if (mediaModal) {
+            mediaModal.addEventListener('click', (e) => {
+                if (e.target === mediaModal) window.closeReviewMedia();
+            });
+        }
+
+        // Submit Review
+        if (reviewForm && reviewerNameInput && reviewerCommentInput && ratingValueInput && submitBtn) {
+            reviewForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-1"></i> Submitting...';
+
+                const payload = {
+                    name: reviewerNameInput.value.trim(),
+                    email: reviewerEmailInput ? reviewerEmailInput.value.trim() : '',
+                    rating: ratingValueInput.value,
+                    comment: reviewerCommentInput.value.trim()
+                };
+
+                try {
+                    const res = await fetch('/api/reviews/submit/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    
+                    if (res.ok && data.success) {
+                        showSubmissionSuccessModal({
+                            userName: reviewerNameInput.value.trim(),
+                            title: 'Review Submitted Successfully!',
+                            message: 'Thank you for sharing your feedback with Golden Star Agency. Your review has been submitted for verification.',
+                            trackingId: 'GS-REV-' + Math.floor(100000 + Math.random() * 900000),
+                            details: [
+                                { label: 'Reviewer Name', value: reviewerNameInput.value.trim() },
+                                { label: 'Rating', value: ratingValueInput.value + ' / 5 Stars' }
+                            ]
+                        });
+                        reviewForm.reset();
+                        ratingValueInput.value = '5';
+                        updateStarSelectorUI(5);
+                        loadReviews();
+                    } else {
+                        alert(data.message || 'Failed to submit review.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('A connection error occurred. Please try again.');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Review';
+                }
+            });
+        }
+
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str).replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
+        updateStarSelectorUI(5);
+        loadReviews();
+    } catch (err) {
+        console.error('Reviews setup error:', err);
+    }
+});
+</script>
+{% endblock %}

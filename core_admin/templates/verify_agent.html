@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Verification — REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</title>
+    <script>(function(){const w=console.warn;console.warn=function(...a){if(a[0]&&typeof a[0]==='string'&&a[0].includes('cdn.tailwindcss.com'))return;w.apply(console,a);};})();</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-[#F8FAF6] text-[#1F2E1A] antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Navbar -->
+    <header class="bg-[#1F2E1A] text-white border-b-4 border-[#E06A26] shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-3">
+                <div class="h-10 w-10 bg-[#E06A26] rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm md:text-base font-black tracking-tight text-white uppercase leading-none">
+                        REI GOLDEN <span class="text-[#E06A26]">STAR</span> TRAVEL
+                    </h1>
+                    <span class="text-[9px] text-[#90B576] font-bold uppercase tracking-widest block mt-0.5">
+                        &amp; TOURS (PVT) LTD. &bull; VERIFICATION PORTAL
+                    </span>
+                </div>
+            </a>
+            <a href="/" class="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-house text-[#E06A26]"></i> Main Site
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Verification Section -->
+    <main class="max-w-2xl mx-auto px-4 py-10 w-full my-auto">
+        <div class="bg-white border border-[#E7DCB9] rounded-3xl overflow-hidden shadow-xl">
+            
+            <!-- Header Banner -->
+            {% if agent.approval_status == 'approved' %}
+            <div class="bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#1F2E1A] text-white p-6 md:p-8 text-center relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-[#E06A26]/20 rounded-full blur-3xl"></div>
+                <div class="inline-flex items-center justify-center h-20 w-20 bg-emerald-500 text-white rounded-full text-4xl mb-4 shadow-lg ring-8 ring-emerald-500/20">
+                    <i class="fa-solid fa-shield-check"></i>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-white uppercase tracking-tight">VERIFIED PARTNER AGENT</h2>
+                <p class="text-xs text-[#90B576] font-bold mt-1 uppercase tracking-wider">Official Authentication Certificate</p>
+                <div class="mt-3 inline-block bg-[#E06A26] text-white text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow">
+                    Status: Active &amp; Verified
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-gradient-to-r from-amber-700 via-rose-800 to-amber-900 text-white p-6 md:p-8 text-center relative overflow-hidden">
+                <div class="inline-flex items-center justify-center h-20 w-20 bg-amber-500 text-white rounded-full text-4xl mb-4 shadow-lg ring-8 ring-amber-500/20">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-white uppercase tracking-tight">AGENT UNVERIFIED / SUSPENDED</h2>
+                <p class="text-xs text-amber-200 font-bold mt-1 uppercase tracking-wider">Authentication Alert</p>
+                <div class="mt-3 inline-block bg-amber-400 text-slate-900 text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow">
+                    Status: {{ agent.get_approval_status_display|default:agent.approval_status|upper }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Agent Details Table -->
+            <div class="p-6 md:p-8 space-y-6">
+                
+                <div class="flex items-center justify-between border-b border-[#E7DCB9] pb-4">
+                    <span class="text-xs font-bold uppercase text-[#567946] tracking-wider">Verification Reference</span>
+                    <span class="font-mono font-black text-[#E06A26] text-sm md:text-base">{{ agent.agent_id_number|default:"GSA-AGT-PENDING" }}</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-[#F8FAF6] border border-[#E7DCB9] p-4 rounded-2xl">
+                        <span class="text-[10px] font-extrabold uppercase text-[#567946] block mb-1">Company / Travel Agency</span>
+                        <span class="text-sm font-black text-[#2D4424] block">{{ agent.company_name|default:agent.username }}</span>
+                    </div>
+
+                    <div class="bg-[#F8FAF6] border border-[#E7DCB9] p-4 rounded-2xl">
+                        <span class="text-[10px] font-extrabold uppercase text-[#567946] block mb-1">Authorized Representative</span>
+                        <span class="text-sm font-black text-[#2D4424] block">{{ agent.get_full_name|default:agent.username }}</span>
+                    </div>
+
+                    <div class="bg-[#F8FAF6] border border-[#E7DCB9] p-4 rounded-2xl">
+                        <span class="text-[10px] font-extrabold uppercase text-[#567946] block mb-1">Registered Phone</span>
+                        <span class="text-sm font-bold text-[#2D4424] font-mono block">{{ agent.phone|default:"Verified Confidential" }}</span>
+                    </div>
+
+                    <div class="bg-[#F8FAF6] border border-[#E7DCB9] p-4 rounded-2xl">
+                        <span class="text-[10px] font-extrabold uppercase text-[#567946] block mb-1">Member Since / Issued Date</span>
+                        <span class="text-sm font-bold text-[#2D4424] block">
+                            {% if agent.id_card_issued_at %}
+                                {{ agent.id_card_issued_at|date:"F d, Y" }}
+                            {% else %}
+                                {{ agent.date_joined|date:"F d, Y" }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Verification Timestamp -->
+                <div class="bg-[#F0F6EC] border border-[#C6DCB4] rounded-2xl p-4 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2 text-[#38522D] font-bold">
+                        <i class="fa-solid fa-clock-rotate-left text-[#E06A26]"></i>
+                        <span>Live Verification Checked:</span>
+                    </div>
+                    <span class="font-mono font-bold text-[#2D4424]">{{ current_time|date:"Y-m-d H:i:s T" }}</span>
+                </div>
+
+                <!-- Official Note -->
+                <div class="text-center text-[11px] text-[#567946] space-y-1 pt-2 border-t border-[#E7DCB9]">
+                    <p class="font-semibold">
+                        This real-time verification confirms that the partner agency above is an officially registered B2B partner of REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD.
+                    </p>
+                    <p class="font-mono text-[10px] text-gray-400">
+                        System Security Hash: {{ security_hash }}
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#1F2E1A] text-white text-center py-6 text-xs border-t border-white/10 mt-8 space-y-1">
+        <p class="font-extrabold text-[#E06A26] uppercase">REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD.</p>
+        <p class="text-white/60 text-[11px]">Official B2B Agent Verification Portal &bull; All Rights Reserved</p>
+        <p class="text-[11px] text-white/80 pt-1">
+            Created by <a href="https://eplanettech.com" target="_blank" rel="noopener noreferrer" class="font-extrabold text-[#E06A26] hover:text-white underline">ePlanet Technologies</a>
+        </p>
+    </footer>
+
+</body>
+</html>

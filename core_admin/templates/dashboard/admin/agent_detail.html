@@ -1,0 +1,1057 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Inspection Details | Golden Star Admin</title>
+    <script>(function(){const w=console.warn;console.warn=function(...a){if(a[0]&&typeof a[0]==='string'&&a[0].includes('cdn.tailwindcss.com'))return;w.apply(console,a);};})();</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#EA580C',
+                            'orange-dark': '#C2410C',
+                            'orange-light': '#FFEDD5',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #F7F3E9;
+            --bg-card: #ffffff;
+            --text-main: #1F2E1A;
+            --text-muted: #567946;
+            --border-light: #E7DCB9;
+            --bg-active: #E06A26;
+        }
+        html, body {
+            background-color: var(--bg-page) !important;
+            color: var(--text-main) !important;
+            min-height: 100vh !important;
+            overflow-y: auto !important;
+        }
+        .bg-white {
+            background-color: var(--bg-card) !important;
+        }
+        .text-slate-900 {
+            color: var(--text-main) !important;
+        }
+        .text-slate-500 {
+            color: var(--text-muted) !important;
+        }
+        .border-slate-200 {
+            border-color: var(--border-light) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased bg-slate-50 p-4 sm:p-8 overflow-y-auto">
+
+    <div class="w-full max-w-full space-y-8 pb-16">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6 bg-white p-6 rounded-2xl shadow-sm">
+            <div>
+                <a href="{% url 'admin_dashboard' %}" class="inline-flex items-center text-xs font-bold text-brand-orange hover:underline mb-2">
+                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Back to Dashboard Overview
+                </a>
+                <h1 id="page-company-title" class="text-2xl font-extrabold text-slate-900">Loading Agency Details...</h1>
+                <p id="page-agent-subtitle" class="text-xs text-slate-500 mt-1">Fetching records...</p>
+            </div>
+            <!-- Dynamic Verification Badge & Action Buttons -->
+            <div class="flex flex-wrap items-center gap-3">
+                <span id="page-verify-badge" class="px-3 py-1 rounded-full text-xs font-bold border"></span>
+                <div class="flex gap-2" id="action-buttons-container">
+                    <!-- Dynamic Action Buttons -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Bookings</span>
+                <p id="metric-bookings" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Visa Applications</span>
+                <p id="metric-visas" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Flight Quotes</span>
+                <p id="metric-flights" class="text-2xl font-extrabold text-slate-900 mt-2">0</p>
+            </div>
+            <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Wallet Balance</span>
+                <p id="metric-wallet" class="text-2xl font-extrabold text-slate-900 mt-2">PKR {{ agent.wallet_balance }}</p>
+            </div>
+        </div>
+
+        <!-- Verification Documents & Identification Files -->
+        <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-id-card text-brand-orange"></i> Uploaded Onboarding Verification Documents</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Profile Image Card -->
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Profile Photo</span>
+                    <div class="h-40 w-full overflow-hidden rounded-lg bg-slate-200 border border-slate-300/60 flex items-center justify-center">
+                        <img id="doc-profile-photo" src="" alt="Not Provided" class="h-full w-full object-cover hidden">
+                        <span id="doc-profile-fallback" class="text-xs text-slate-400">Not Uploaded</span>
+                    </div>
+                    <a id="doc-profile-link" href="#" target="_blank" class="mt-3 text-xs font-semibold text-brand-orange hover:underline hidden"><i class="fa-solid fa-expand mr-1"></i> View Full Image</a>
+                </div>
+                <!-- ID Card Front -->
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">ID Card (Front)</span>
+                    <div class="h-40 w-full overflow-hidden rounded-lg bg-slate-200 border border-slate-300/60 flex items-center justify-center">
+                        <img id="doc-id-front" src="" alt="Not Provided" class="h-full w-full object-cover hidden">
+                        <span id="doc-id-front-fallback" class="text-xs text-slate-400">Not Uploaded</span>
+                    </div>
+                    <a id="doc-id-front-link" href="#" target="_blank" class="mt-3 text-xs font-semibold text-brand-orange hover:underline hidden"><i class="fa-solid fa-expand mr-1"></i> View Full Image</a>
+                </div>
+                <!-- ID Card Back -->
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">ID Card (Back)</span>
+                    <div class="h-40 w-full overflow-hidden rounded-lg bg-slate-200 border border-slate-300/60 flex items-center justify-center">
+                        <img id="doc-id-back" src="" alt="Not Provided" class="h-full w-full object-cover hidden">
+                        <span id="doc-id-back-fallback" class="text-xs text-slate-400">Not Uploaded</span>
+                    </div>
+                    <a id="doc-id-back-link" href="#" target="_blank" class="mt-3 text-xs font-semibold text-brand-orange hover:underline hidden"><i class="fa-solid fa-expand mr-1"></i> View Full Image</a>
+                </div>
+            </div>
+
+            <!-- Additional Contact & Address -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-5 flex flex-col justify-center space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Registered Agency Location</span>
+                    <p id="setup-address-text" class="text-xs font-bold text-slate-800">Address: Fetching...</p>
+                </div>
+                <!-- WhatsApp Channel -->
+                <div class="bg-slate-50 border border-slate-100 rounded-xl p-5 flex flex-col md:flex-row items-start gap-4">
+                    <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 border border-emerald-100">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <h4 class="font-bold text-xs text-slate-900 flex items-center gap-2">
+                            WhatsApp Notification Channel
+                            <span id="setup-whatsapp-badge" class="px-2 py-0.5 rounded-full text-[9px] font-bold">Checking...</span>
+                        </h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Updates and airline tickets will be sent to WhatsApp number <span id="setup-phone-text" class="font-semibold text-slate-700">...</span>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid Logs Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Bookings Logs -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col h-[400px]">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-receipt text-brand-orange"></i> Bookings Log</h3>
+                </div>
+                <div class="overflow-y-auto flex-grow">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Package</th>
+                                <th class="px-4 py-3">Type</th>
+                                <th class="px-4 py-3">Price</th>
+                                <th class="px-4 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-bookings" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Visa Logs -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col h-[400px]">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-passport text-blue-500"></i> Visa Submissions</h3>
+                </div>
+                <div class="overflow-y-auto flex-grow">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Country</th>
+                                <th class="px-4 py-3">Passport</th>
+                                <th class="px-4 py-3">Submitted</th>
+                                <th class="px-4 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-visas" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Flight Quote Requests -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col h-[400px]">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-plane-departure text-purple-500"></i> Flight Quote Requests</h3>
+                </div>
+                <div class="overflow-y-auto flex-grow">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                <th class="px-4 py-3">Route</th>
+                                <th class="px-4 py-3">Dates</th>
+                                <th class="px-4 py-3">Quote</th>
+                                <th class="px-4 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-flights" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="4" class="p-4 text-center text-slate-400">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Login History log with IP Address -->
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col h-[400px]">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-emerald-500"></i> Login Security Logs</h3>
+                </div>
+                <div class="overflow-y-auto flex-grow">
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-500">
+                                <th class="px-4 py-3">IP Address</th>
+                                <th class="px-4 py-3">Device / User Agent</th>
+                                <th class="px-4 py-3">Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-logins" class="divide-y divide-slate-100 text-slate-700">
+                            <tr><td colspan="3" class="p-4 text-center text-slate-400">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═════════════════════════════════════════════════════════════════════ -->
+        <!-- 💼 B2B WALLET FINANCIAL LEDGER — EXECUTIVE FULL-WIDTH DASHBOARD       -->
+        <!-- ═════════════════════════════════════════════════════════════════════ -->
+        <div class="w-full bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm flex flex-col my-8">
+            <!-- Section Header Banner -->
+            <div class="px-8 py-6 border-b border-slate-200/80 bg-slate-50/70 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-brand-orange/10 border border-brand-orange/20 flex items-center justify-center text-brand-orange">
+                            <i class="fa-solid fa-wallet text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-slate-900 text-xl tracking-tight">B2B Wallet Financial Ledger</h3>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">Real-time ledger accounting, automated commission credits, debit adjustments & refilling deposits</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Large KPI Metric Pills & Print Voucher Button -->
+                <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto">
+                    <div class="flex-1 lg:flex-initial px-5 py-3 bg-emerald-50/80 text-emerald-900 border border-emerald-200/80 rounded-2xl shadow-sm flex flex-col">
+                        <span class="text-[10px] font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-arrow-down-left"></i> Total Credits</span>
+                        <span id="ledger-summary-credit" class="text-base font-black text-emerald-700 mt-0.5">PKR 0.00</span>
+                    </div>
+                    <div class="flex-1 lg:flex-initial px-5 py-3 bg-rose-50/80 text-rose-900 border border-rose-200/80 rounded-2xl shadow-sm flex flex-col">
+                        <span class="text-[10px] font-black text-rose-700 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-arrow-up-right"></i> Total Debits</span>
+                        <span id="ledger-summary-debit" class="text-base font-black text-rose-700 mt-0.5">PKR 0.00</span>
+                    </div>
+                    <div class="flex-1 lg:flex-initial px-5 py-3 bg-slate-900 text-white border border-slate-800 rounded-2xl shadow-sm flex flex-col">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><i class="fa-solid fa-scale-balanced text-brand-orange"></i> Net Balance</span>
+                        <span id="metric-wallet" class="text-base font-black text-brand-orange mt-0.5">PKR 0.00</span>
+                    </div>
+                    <button onclick="printFullLedgerStatement()" class="px-4 py-3 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-2xl shadow-md text-xs font-black transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Print Official Voucher
+                    </button>
+                </div>
+            </div>
+
+            <!-- Spacious Add Ledger Entry Form -->
+            <div class="px-8 py-6 border-b border-slate-200/80 bg-slate-50/30">
+                <span class="block text-xs font-black text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-brand-orange"></i> Post New Financial Ledger Transaction
+                </span>
+                <form id="profile-ledger-add-form" onsubmit="submitProfileLedgerEntry(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1.5">Type</label>
+                        <select name="entry_type" class="w-full bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-3 focus:outline-none focus:border-brand-orange shadow-sm">
+                            <option value="credit">💚 CREDIT (Add)</option>
+                            <option value="debit">🔴 DEBIT (Deduct)</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1.5">Category</label>
+                        <select name="category" class="w-full bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-3 focus:outline-none focus:border-brand-orange shadow-sm">
+                            <option value="commission">Commission Earned</option>
+                            <option value="payment">Payment Received</option>
+                            <option value="refund">Refund Issued</option>
+                            <option value="adjustment">Manual Adjustment</option>
+                            <option value="penalty">Penalty / Deduction</option>
+                            <option value="advance">Advance Payment</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1.5">Amount (PKR)</label>
+                        <input type="number" name="amount" step="0.01" min="0.01" placeholder="e.g. 50000" required
+                            class="w-full bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-3 focus:outline-none focus:border-brand-orange shadow-sm">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1.5">Reference / ID</label>
+                        <input type="text" name="reference" placeholder="e.g. GSA-B-102"
+                            class="w-full bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-3 focus:outline-none focus:border-brand-orange shadow-sm">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-[11px] font-extrabold text-slate-600 uppercase mb-1.5">Description / Notes</label>
+                        <input type="text" name="description" placeholder="e.g. 5% B2B Commission Credit for Danish" required
+                            class="w-full bg-white border border-slate-300 text-xs font-bold text-slate-800 rounded-xl px-3.5 py-3 focus:outline-none focus:border-brand-orange shadow-sm">
+                    </div>
+                    <div class="md:col-span-1">
+                        <button type="submit" class="w-full py-3 bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-plus text-sm"></i> Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Full-Width Executive Ledger Statement Table -->
+            <div class="w-full overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100/90 border-b border-slate-200 text-[11px] uppercase font-black text-slate-700 tracking-wider">
+                            <th class="px-6 py-4">Date / Time</th>
+                            <th class="px-6 py-4">Type</th>
+                            <th class="px-6 py-4">Category</th>
+                            <th class="px-6 py-4">Reference</th>
+                            <th class="px-6 py-4">Description & Notes</th>
+                            <th class="px-6 py-4 text-right">Amount</th>
+                            <th class="px-6 py-4 text-right">Running Balance</th>
+                            <th class="px-6 py-4 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-ledger" class="divide-y divide-slate-200 text-slate-800">
+                        <tr><td colspan="8" class="p-8 text-center text-slate-500 font-semibold">Loading ledger entries...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const agentId = "{{ agent_id }}";
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        async function fetchAgentDetails() {
+            try {
+                const res = await fetch(`/dashboard/admin/api/agents/${agentId}/details/`);
+                if (!res.ok) throw new Error("Failed to load details");
+                const data = await res.json();
+
+                // Set headers details
+                let verifiedCheck = data.is_verified_partner 
+                    ? ` <span class="text-blue-500 text-lg ml-1.5 animate-pulse" title="Verified Badge"><i class="fa-solid fa-circle-check"></i></span>`
+                    : "";
+                const titleEl = document.getElementById("page-company-title");
+                if (titleEl) titleEl.innerHTML = escapeHTML(data.company_name) + verifiedCheck;
+                const subTitleEl = document.getElementById("page-agent-subtitle");
+                if (subTitleEl) subTitleEl.textContent = `Manager: ${data.agent_name} | Email: ${data.email} | Phone: ${data.phone} | Address: ${data.address} | Joined: ${data.date_joined}`;
+
+                // Update email / whatsapp setup indicators
+                const elEmailText = document.getElementById("setup-email-text");
+                if (elEmailText) elEmailText.textContent = data.email || 'N/A';
+
+                const emailBadge = document.getElementById("setup-email-badge");
+                if (emailBadge) {
+                    emailBadge.className = "px-2 py-0.5 rounded-full text-[9px] font-bold border";
+                    if (data.is_email_verified) {
+                        emailBadge.textContent = "VERIFIED / ACTIVE";
+                        emailBadge.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                    } else {
+                        emailBadge.textContent = "UNVERIFIED / INACTIVE";
+                        emailBadge.classList.add("bg-amber-50", "text-amber-700", "border-amber-200");
+                    }
+                }
+
+                const elPhoneText = document.getElementById("setup-phone-text");
+                if (elPhoneText) elPhoneText.textContent = data.phone || 'N/A';
+
+                const waBadge = document.getElementById("setup-whatsapp-badge");
+                if (waBadge) {
+                    waBadge.className = "px-2 py-0.5 rounded-full text-[9px] font-bold border";
+                    if (data.phone && data.phone !== 'N/A') {
+                        waBadge.textContent = "LINKED / ACTIVE";
+                        waBadge.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                    } else {
+                        waBadge.textContent = "MISSING / INACTIVE";
+                        waBadge.classList.add("bg-rose-50", "text-rose-700", "border-rose-200");
+                    }
+                }
+
+                const elAddressText = document.getElementById("setup-address-text");
+                if (elAddressText) elAddressText.textContent = `Address: ${data.address || 'N/A'}`;
+
+
+                // Set metrics
+                const mb = document.getElementById("metric-bookings");
+                if (mb) mb.textContent = (data.bookings || []).length;
+                const mv = document.getElementById("metric-visas");
+                if (mv) mv.textContent = (data.visas || []).length;
+                const mf = document.getElementById("metric-flights");
+                if (mf) mf.textContent = (data.flights || []).length;
+
+                // Populate documents
+                const imgProf = document.getElementById("doc-profile-photo");
+                const fallProf = document.getElementById("doc-profile-fallback");
+                const linkProf = document.getElementById("doc-profile-link");
+                if (data.profile_photo_url) {
+                    if (imgProf) { imgProf.src = data.profile_photo_url; imgProf.classList.remove("hidden"); }
+                    if (fallProf) fallProf.classList.add("hidden");
+                    if (linkProf) { linkProf.href = data.profile_photo_url; linkProf.classList.remove("hidden"); }
+                } else {
+                    if (imgProf) imgProf.classList.add("hidden");
+                    if (fallProf) fallProf.classList.remove("hidden");
+                    if (linkProf) linkProf.classList.add("hidden");
+                }
+
+                const imgFront = document.getElementById("doc-id-front");
+                const fallFront = document.getElementById("doc-id-front-fallback");
+                const linkFront = document.getElementById("doc-id-front-link");
+                if (data.id_card_front_url) {
+                    if (imgFront) { imgFront.src = data.id_card_front_url; imgFront.classList.remove("hidden"); }
+                    if (fallFront) fallFront.classList.add("hidden");
+                    if (linkFront) { linkFront.href = data.id_card_front_url; linkFront.classList.remove("hidden"); }
+                } else {
+                    if (imgFront) imgFront.classList.add("hidden");
+                    if (fallFront) fallFront.classList.remove("hidden");
+                    if (linkFront) linkFront.classList.add("hidden");
+                }
+
+                const imgBack = document.getElementById("doc-id-back");
+                const fallBack = document.getElementById("doc-id-back-fallback");
+                const linkBack = document.getElementById("doc-id-back-link");
+                if (data.id_card_back_url) {
+                    if (imgBack) { imgBack.src = data.id_card_back_url; imgBack.classList.remove("hidden"); }
+                    if (fallBack) fallBack.classList.add("hidden");
+                    if (linkBack) { linkBack.href = data.id_card_back_url; linkBack.classList.remove("hidden"); }
+                } else {
+                    if (imgBack) imgBack.classList.add("hidden");
+                    if (fallBack) fallBack.classList.remove("hidden");
+                    if (linkBack) linkBack.classList.add("hidden");
+                }
+
+                // Render Badge status
+                const badge = document.getElementById("page-verify-badge");
+                if (badge) {
+                    badge.className = "px-3 py-1 rounded-full text-xs font-bold border";
+                    if (data.approval_status === "approved") {
+                        badge.textContent = "ACTIVE";
+                        badge.classList.add("bg-emerald-50", "text-emerald-700", "border-emerald-200");
+                    } else if (data.approval_status === "suspended") {
+                        badge.textContent = "SUSPENDED";
+                        badge.classList.add("bg-amber-50", "text-amber-700", "border-amber-200");
+                    } else if (data.approval_status === "rejected") {
+                        badge.textContent = "REJECTED";
+                        badge.classList.add("bg-rose-50", "text-rose-700", "border-rose-200");
+                    } else {
+                        badge.textContent = "PENDING REVIEW";
+                        badge.classList.add("bg-slate-50", "text-slate-700", "border-slate-200");
+                    }
+                }
+
+                // Action buttons
+                const btnContainer = document.getElementById("action-buttons-container");
+                if (btnContainer) {
+                    let btnsHTML = "";
+                    const badgeBtnText = data.is_verified_partner ? "Unverify Partner" : "Grant Verified Badge";
+                    btnsHTML += `<button onclick="toggleVerificationBadge()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow transition-all">${badgeBtnText}</button>`;
+
+                    if (data.approval_status === "pending" || data.approval_status === "rejected") {
+                        btnsHTML += `<button onclick="changeStatus('approve')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow transition-all">Approve Account</button>`;
+                        btnsHTML += `<button onclick="changeStatus('reject')" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow transition-all">Reject Account</button>`;
+                    } else if (data.approval_status === "approved") {
+                        btnsHTML += `<button onclick="changeStatus('suspend')" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow transition-all">Suspend Account</button>`;
+                    } else if (data.approval_status === "suspended") {
+                        btnsHTML += `<button onclick="changeStatus('approve')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow transition-all">Re-activate Account</button>`;
+                    }
+
+                    if (data.agent_id_number) {
+                        btnsHTML += `<button onclick="openAdminDigitalIdCardModal()" class="px-3.5 py-1.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-1.5"><i class="fa-solid fa-id-card"></i> View Digital ID Card</button>`;
+                    }
+                    btnContainer.innerHTML = btnsHTML;
+                }
+
+                // Render Bookings Log
+                const bookingsTbody = document.getElementById("tbody-bookings");
+                bookingsTbody.innerHTML = data.bookings.length === 0
+                    ? `<tr><td colspan="5" class="p-6 text-center text-slate-400">No bookings logged for this agent.</td></tr>`
+                    : "";
+                data.bookings.forEach(b => {
+                    let statusColor = b.status === "confirmed" ? "text-emerald-600 font-bold" : "text-amber-600";
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-all";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-semibold text-slate-900">#${b.id}</td>
+                        <td class="px-4 py-3">${b.package_title}</td>
+                        <td class="px-4 py-3 font-medium uppercase">${b.booking_type}</td>
+                        <td class="px-4 py-3 font-bold">PKR ${b.total_price}</td>
+                        <td class="px-4 py-3 ${statusColor} uppercase">${b.status}</td>
+                    `;
+                    bookingsTbody.appendChild(tr);
+                });
+
+                // Render Visa Log
+                const visasTbody = document.getElementById("tbody-visas");
+                visasTbody.innerHTML = data.visas.length === 0
+                    ? `<tr><td colspan="5" class="p-6 text-center text-slate-400">No visa submissions logged.</td></tr>`
+                    : "";
+                data.visas.forEach(v => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-all";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-semibold text-slate-900">#${v.id}</td>
+                        <td class="px-4 py-3 font-bold">${v.country}</td>
+                        <td class="px-4 py-3">${v.passport_number}</td>
+                        <td class="px-4 py-3">${v.created_at}</td>
+                        <td class="px-4 py-3 uppercase font-semibold text-blue-600">${v.status}</td>
+                    `;
+                    visasTbody.appendChild(tr);
+                });
+
+                // Render Flights Log
+                const flightsTbody = document.getElementById("tbody-flights");
+                flightsTbody.innerHTML = data.flights.length === 0
+                    ? `<tr><td colspan="4" class="p-6 text-center text-slate-400">No flight quotes requested.</td></tr>`
+                    : "";
+                data.flights.forEach(f => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-all";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-bold">${f.departure_city} → ${f.destination_city}</td>
+                        <td class="px-4 py-3">Dep: ${f.departure_date} <br/> Ret: ${f.return_date}</td>
+                        <td class="px-4 py-3 font-bold text-slate-900">${f.price_quote}</td>
+                        <td class="px-4 py-3 uppercase font-semibold text-brand-orange">${f.status}</td>
+                    `;
+                    flightsTbody.appendChild(tr);
+                });
+
+                // Render Logins Log
+                const loginsTbody = document.getElementById("tbody-logins");
+                loginsTbody.innerHTML = data.login_history.length === 0
+                    ? `<tr><td colspan="3" class="p-6 text-center text-slate-400">No login security records found.</td></tr>`
+                    : "";
+                data.login_history.forEach(l => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-all";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-bold text-brand-orange">${l.ip_address}</td>
+                        <td class="px-4 py-3 text-[11px] truncate max-w-[240px] text-slate-500" title="${l.user_agent}">${l.user_agent}</td>
+                        <td class="px-4 py-3 text-slate-950">${l.timestamp}</td>
+                    `;
+                    loginsTbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert("Could not load agent details: " + err.message);
+            }
+
+            await fetchAgentLedger();
+        }
+
+        async function fetchAgentLedger() {
+            try {
+                const res = await fetch(`/dashboard/admin/api/agents/${agentId}/ledger/`);
+                if (!res.ok) throw new Error("Failed to load ledger");
+                const data = await res.json();
+
+                // Update summary metrics
+                document.getElementById("ledger-summary-credit").textContent = "PKR " + data.total_credit.toLocaleString('en-PK', {minimumFractionDigits: 2});
+                document.getElementById("ledger-summary-debit").textContent = "PKR " + data.total_debit.toLocaleString('en-PK', {minimumFractionDigits: 2});
+                
+                // Update main page wallet balance card metric
+                const balEl = document.getElementById("metric-wallet");
+                if (balEl) {
+                    balEl.textContent = "PKR " + data.balance.toLocaleString('en-PK', {minimumFractionDigits: 2});
+                }
+
+                // Populate Table
+                const tbody = document.getElementById("tbody-ledger");
+                if (data.entries.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400">No ledger entries logged for this agent yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                data.entries.forEach(e => {
+                    const sign = e.entry_type === "credit" ? "+" : "-";
+                    const badge = e.entry_type === "credit"
+                        ? `<span class="px-2.5 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">CREDIT</span>`
+                        : `<span class="px-2.5 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-300">DEBIT</span>`;
+                    
+                    const amountColor = e.entry_type === "credit" ? "text-emerald-700 font-extrabold text-sm" : "text-rose-700 font-extrabold text-sm";
+                    const runningBalColor = e.running_bal >= 0 ? "text-slate-900 font-black text-sm" : "text-rose-700 font-black text-sm";
+                    
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50 transition-all border-b border-slate-200/80";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-bold text-slate-700 whitespace-nowrap text-xs">${e.created_at}</td>
+                        <td class="px-6 py-4">${badge}</td>
+                        <td class="px-6 py-4 font-bold uppercase text-slate-800 text-xs">${e.category_display}</td>
+                        <td class="px-6 py-4 font-bold text-slate-800 text-xs">${e.reference || "—"}</td>
+                        <td class="px-6 py-4 text-slate-800 font-medium text-xs leading-relaxed max-w-md break-words" title="${escapeHTML(e.description)}">${escapeHTML(e.description) || "—"}</td>
+                        <td class="px-6 py-4 text-right ${amountColor}">${sign}PKR ${e.amount.toLocaleString('en-PK', {minimumFractionDigits: 2})}</td>
+                        <td class="px-6 py-4 text-right ${runningBalColor}">PKR ${e.running_bal.toLocaleString('en-PK', {minimumFractionDigits: 2})}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button onclick="deleteProfileLedgerEntry(${e.id})" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 mx-auto" title="Delete Entry">
+                                <i class="fa-solid fa-trash-can"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById("tbody-ledger").innerHTML = `<tr><td colspan="8" class="p-6 text-center text-rose-500">Error loading ledger: ${err.message}</td></tr>`;
+            }
+        }
+
+        async function submitProfileLedgerEntry(event) {
+            event.preventDefault();
+            const form = document.getElementById("profile-ledger-add-form");
+            const payload = {
+                entry_type: form.querySelector('[name="entry_type"]').value,
+                category: form.querySelector('[name="category"]').value,
+                amount: form.querySelector('[name="amount"]').value,
+                reference: form.querySelector('[name="reference"]').value,
+                description: form.querySelector('[name="description"]').value,
+            };
+
+            try {
+                const res = await fetch(`/dashboard/admin/api/agents/${agentId}/ledger/add/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    form.reset();
+                    await fetchAgentLedger();
+                } else {
+                    alert("Failed to add entry: " + (data.error || "Unknown error"));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error posting entry: " + err.message);
+            }
+        }
+
+        async function deleteProfileLedgerEntry(entryId) {
+            if (!confirm("Are you sure you want to delete this ledger entry?")) return;
+            try {
+                const res = await fetch(`/dashboard/admin/api/ledger/${entryId}/delete/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    await fetchAgentLedger();
+                } else {
+                    alert("Failed to delete entry: " + (data.error || "Unknown error"));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error deleting entry: " + err.message);
+            }
+        }
+
+
+        async function changeStatus(action) {
+            if (!confirm(`Are you sure you want to ${action} this account?`)) return;
+            try {
+                const res = await fetch(`/dashboard/admin/api/agents/${agentId}/${action}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Account has been successfully ${action}ed.`);
+                    fetchAgentDetails();
+                } else {
+                    alert("Operation failed. Try again.");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Operation error: " + err.message);
+            }
+        }
+
+        window.printSingleLedgerVoucher = function(id, dateStr, type, category, ref, desc, amount, runningBal) {
+            const agentName = document.getElementById("page-company-title")?.textContent || "Partner Agent";
+            const isCredit = (type || '').toLowerCase() === 'credit';
+            const badgeClass = isCredit ? 'badge-credit' : 'badge-debit';
+            const badgeLabel = isCredit ? '💚 CREDIT (PAYMENT / COMMISSION)' : '🔴 DEBIT (DEDUCTION / ADJUSTMENT)';
+            const formattedAmount = 'PKR ' + parseFloat(amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const formattedRunning = 'PKR ' + parseFloat(runningBal || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const win = window.open('', '_blank', 'width=850,height=900');
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Official Financial Voucher - ${escapeHTML(agentName)}</title>
+                    <style>
+                        body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; color: #0f172a; margin: 0; padding: 40px; background: #f8fafc; }
+                        .voucher-card { background: #ffffff; border: 2px solid #ea580c; border-radius: 20px; padding: 35px; max-width: 750px; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 24px; margin-bottom: 24px; }
+                        .logo { font-size: 22px; font-weight: 900; color: #ea580c; text-transform: uppercase; letter-spacing: 0.5px; }
+                        .tagline { font-size: 11px; color: #64748b; font-weight: 600; margin-top: 3px; }
+                        .voucher-title-box { text-align: right; }
+                        .voucher-title { font-size: 18px; font-weight: 900; color: #0f172a; text-transform: uppercase; }
+                        .voucher-no { font-size: 12px; color: #ea580c; font-weight: 800; margin-top: 4px; }
+                        .badge-credit { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; padding: 6px 16px; border-radius: 9999px; font-weight: 900; font-size: 11px; display: inline-block; }
+                        .badge-debit { background: #ffe4e6; color: #9f1239; border: 1px solid #fda4af; padding: 6px 16px; border-radius: 9999px; font-weight: 900; font-size: 11px; display: inline-block; }
+                        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #f8fafc; padding: 20px; border-radius: 16px; margin-bottom: 24px; border: 1px solid #e2e8f0; }
+                        .info-item label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 4px; }
+                        .info-item span { font-size: 13px; font-weight: 800; color: #0f172a; }
+                        .amount-box { background: #020617; color: #ffffff; padding: 24px; border-radius: 16px; text-align: center; margin-bottom: 24px; }
+                        .amount-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px; }
+                        .amount-val { font-size: 32px; font-weight: 900; color: #ea580c; margin-top: 4px; }
+                        .stamp-row { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px dashed #cbd5e1; padding-top: 24px; }
+                        .stamp { border: 2px dashed #ea580c; color: #ea580c; padding: 10px 20px; font-size: 11px; font-weight: 900; text-transform: uppercase; border-radius: 10px; transform: rotate(-3deg); }
+                        .sign-box { text-align: right; }
+                        .sign-line { width: 180px; border-top: 1px solid #0f172a; margin-left: auto; margin-bottom: 6px; }
+                        .sign-text { font-size: 11px; font-weight: 800; color: #0f172a; }
+                        .print-btn { background: #ea580c; color: #ffffff; border: none; padding: 12px 24px; font-weight: 800; font-size: 13px; border-radius: 12px; cursor: pointer; margin-bottom: 20px; }
+                        @media print { .no-print { display: none; } body { padding: 0; background: #fff; } .voucher-card { box-shadow: none; border-color: #0f172a; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print" style="text-align:center;">
+                        <button onclick="window.print()" class="print-btn">🖨️ Print Official Voucher</button>
+                    </div>
+                    <div class="voucher-card">
+                        <div class="header">
+                            <div>
+                                <div class="logo">Golden Star Agency</div>
+                                <div class="tagline">Licensed Hajj, Umrah & B2B Travel Services</div>
+                            </div>
+                            <div class="voucher-title-box">
+                                <div class="voucher-title">OFFICIAL LEDGER VOUCHER</div>
+                                <div class="voucher-no">Ref #: ${escapeHTML(ref || ('VOUCHER-' + id))}</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <span class="${badgeClass}">${badgeLabel}</span>
+                        </div>
+
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Agent / Account Name</label>
+                                <span>${escapeHTML(agentName)}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Transaction Date & Time</label>
+                                <span>${escapeHTML(dateStr)}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Category</label>
+                                <span>${escapeHTML(category)}</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Reference ID / Tracking</label>
+                                <span>${escapeHTML(ref || 'N/A')}</span>
+                            </div>
+                            <div class="info-item" style="grid-column: span 2;">
+                                <label>Description / Notes</label>
+                                <span>${escapeHTML(desc || 'Standard ledger transaction entry.')}</span>
+                            </div>
+                        </div>
+
+                        <div class="amount-box">
+                            <div class="amount-label">Transaction Amount</div>
+                            <div class="amount-val">${formattedAmount}</div>
+                            <div style="font-size:12px; color:#cbd5e1; margin-top:6px; font-weight:700;">Post-Transaction Running Account Balance: ${formattedRunning}</div>
+                        </div>
+
+                        <div class="stamp-row">
+                            <div class="stamp">Verified & Credited<br>Accounts & Finance Dept</div>
+                            <div class="sign-box">
+                                <div class="sign-line"></div>
+                                <div class="sign-text">Authorized Financial Manager</div>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        };
+
+        window.openAdminDigitalIdCardModal = function() {
+            if (!currentAgentData) return;
+            document.getElementById("admin-card-name").textContent = currentAgentData.agent_name || currentAgentData.email;
+            document.getElementById("admin-card-company").textContent = currentAgentData.company_name || currentAgentData.email;
+            document.getElementById("admin-card-id-number").textContent = currentAgentData.agent_id_number || "GSA-AGT-PENDING";
+            document.getElementById("admin-card-issued-date").textContent = currentAgentData.id_card_issued_at_str || currentAgentData.date_joined || "N/A";
+            
+            const photoEl = document.getElementById("admin-card-photo");
+            if (currentAgentData.profile_photo_url) {
+                photoEl.src = currentAgentData.profile_photo_url;
+            } else {
+                photoEl.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(currentAgentData.agent_name || "Agent") + "&background=E06A26&color=fff";
+            }
+            
+            const qrEl = document.getElementById("admin-card-qr");
+            if (currentAgentData.id_card_qr_url) {
+                qrEl.src = currentAgentData.id_card_qr_url;
+            }
+            
+            const modal = document.getElementById("modal-admin-digital-id-card");
+            if (modal) modal.classList.remove("hidden");
+        };
+
+        window.closeAdminDigitalIdCardModal = function() {
+            const modal = document.getElementById("modal-admin-digital-id-card");
+            if (modal) modal.classList.add("hidden");
+        };
+
+        window.printFullLedgerStatement = function() {
+            const agentName = document.getElementById("page-company-title")?.textContent || "Partner Agent";
+            const creditTotal = document.getElementById("ledger-summary-credit")?.textContent || "PKR 0.00";
+            const debitTotal = document.getElementById("ledger-summary-debit")?.textContent || "PKR 0.00";
+            const netBalance = document.getElementById("metric-wallet")?.textContent || "PKR 0.00";
+            const entries = window._agentLedgerEntries || [];
+
+            const rowsHtml = entries.map((e, idx) => `
+                <tr style="border-bottom:1px solid #e2e8f0; font-size:12px;">
+                    <td style="padding:10px;">${idx + 1}</td>
+                    <td style="padding:10px; font-weight:700;">${escapeHTML(e.created_at_str || e.created_at || 'N/A')}</td>
+                    <td style="padding:10px;"><span style="text-transform:uppercase; font-weight:800; color:${e.entry_type === 'credit' ? '#059669' : '#dc2626'};">${e.entry_type}</span></td>
+                    <td style="padding:10px;">${escapeHTML(e.category_display || e.category || '')}</td>
+                    <td style="padding:10px; font-family:monospace;">${escapeHTML(e.reference_number || '-')}</td>
+                    <td style="padding:10px;">${escapeHTML(e.description || '')}</td>
+                    <td style="padding:10px; font-weight:800; text-align:right;">PKR ${parseFloat(e.amount || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+            const win = window.open('', '_blank', 'width=900,height=900');
+            win.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Official Ledger Statement - ${escapeHTML(agentName)}</title>
+                    <style>
+                        body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #0f172a; margin: 0; padding: 30px; background: #fff; }
+                        .statement-box { border: 2px solid #2D4424; border-radius: 16px; padding: 25px; }
+                        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #2D4424; padding-bottom: 15px; margin-bottom: 20px; }
+                        .kpi-row { display: flex; gap: 15px; margin-bottom: 20px; }
+                        .kpi { flex: 1; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #cbd5e1; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                        th { background: #2D4424; color: #fff; text-align: left; padding: 10px; font-size: 11px; text-transform: uppercase; }
+                        .print-btn { background: #E06A26; color: #fff; border: none; padding: 10px 20px; font-weight: 800; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="no-print" style="text-align:center;">
+                        <button onclick="window.print()" class="print-btn">🖨️ Print Full Ledger Statement</button>
+                    </div>
+                    <div class="statement-box">
+                        <div class="header">
+                            <div>
+                                <h2 style="margin:0; color:#2D4424;">Golden Star Travel & Tours</h2>
+                                <p style="margin:4px 0 0 0; font-size:12px; color:#567946;">B2B Financial Ledger Account Statement</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <h3 style="margin:0;">${escapeHTML(agentName)}</h3>
+                                <p style="margin:4px 0 0 0; font-size:12px; color:#64748b;">Statement Date: ${new Date().toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <div class="kpi-row">
+                            <div class="kpi">
+                                <span style="font-size:10px; font-weight:800; color:#059669;">TOTAL CREDITS</span>
+                                <div style="font-size:16px; font-weight:900; color:#059669;">${creditTotal}</div>
+                            </div>
+                            <div class="kpi">
+                                <span style="font-size:10px; font-weight:800; color:#dc2626;">TOTAL DEBITS</span>
+                                <div style="font-size:16px; font-weight:900; color:#dc2626;">${debitTotal}</div>
+                            </div>
+                            <div class="kpi">
+                                <span style="font-size:10px; font-weight:800; color:#E06A26;">NET WALLET BALANCE</span>
+                                <div style="font-size:16px; font-weight:900; color:#E06A26;">${netBalance}</div>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Reference</th>
+                                    <th>Description</th>
+                                    <th style="text-align:right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rowsHtml || '<tr><td colspan="7" style="text-align:center; padding:20px;">No transaction entries found.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </body>
+                </html>
+            `);
+            win.document.close();
+        };
+
+        document.addEventListener("DOMContentLoaded", fetchAgentDetails);
+    </script>
+
+    <!-- Digital ID Card Modal (Admin View) -->
+    <div id="modal-admin-digital-id-card" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
+        <style>
+            .digital-card-perspective {
+                perspective: 1200px;
+            }
+            .digital-card-inner {
+                position: relative;
+                width: 320px;
+                height: 480px;
+                transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+                transform-style: preserve-3d;
+            }
+            .digital-card-inner.flipped {
+                transform: rotateY(180deg);
+            }
+            .digital-card-front, .digital-card-back {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                border-radius: 1.75rem;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            }
+            .digital-card-back {
+                transform: rotateY(180deg);
+            }
+        </style>
+        <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-md w-full relative shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
+                <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-id-card text-[#E06A26]"></i> Verified Agent Digital ID Card
+                </h3>
+                <button onclick="closeAdminDigitalIdCardModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+
+            <div class="digital-card-perspective mx-auto my-2 cursor-pointer select-none" onclick="toggleAdminCardFlip()">
+                <div class="digital-card-inner" id="admin-card-inner-element">
+                    
+                    <!-- FRONT SIDE -->
+                    <div class="digital-card-front bg-gradient-to-br from-[#1F2E1A] via-[#2D4424] to-[#38522D] text-white p-5 flex flex-col justify-between border-2 border-[#E7DCB9] relative">
+                        <div class="flex items-center justify-between border-b border-white/15 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <div class="h-8 w-8 bg-white rounded-xl flex items-center justify-center text-[#E06A26] font-black text-xs">
+                                    <i class="fa-solid fa-star text-[#E06A26]"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-[11px] font-black text-white leading-none uppercase">GOLDEN STAR</h4>
+                                    <span class="text-[7px] text-[#90B576] font-extrabold uppercase tracking-widest block">TRAVEL NETWORK</span>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-[#E06A26] text-white tracking-wider">VERIFIED AGENT</span>
+                        </div>
+
+                        <div class="my-auto flex flex-col items-center text-center">
+                            <div class="h-24 w-24 rounded-2xl border-2 border-[#E06A26] overflow-hidden bg-white/10 p-1 mb-2">
+                                <img id="admin-card-photo" src="" class="h-full w-full object-cover rounded-xl" alt="Profile">
+                            </div>
+                            <h2 id="admin-card-name" class="text-base font-black text-white tracking-tight leading-tight"></h2>
+                            <p id="admin-card-company" class="text-xs text-[#90B576] font-extrabold mt-0.5"></p>
+                            
+                            <div class="mt-3 bg-white/10 border border-white/20 rounded-2xl px-3 py-1.5 text-center w-full">
+                                <span class="text-[8px] font-black text-[#90B576] uppercase tracking-widest block">AGENT ID NUMBER</span>
+                                <span id="admin-card-id-number" class="text-sm font-black font-mono text-[#E06A26] tracking-widest block"></span>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-white/15 pt-2 flex justify-between items-center text-[8px]">
+                            <div>
+                                <span class="text-white/60 font-bold uppercase block">Member Since</span>
+                                <span id="admin-card-issued-date" class="font-extrabold text-white"></span>
+                            </div>
+                            <span class="font-bold text-[#90B576] bg-black/30 px-2 py-0.5 rounded flex items-center gap-1">
+                                <i class="fa-solid fa-rotate"></i> Tap to Flip
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- BACK SIDE -->
+                    <div class="digital-card-back bg-gradient-to-br from-[#1F2E1A] via-[#2D4424] to-[#1F2E1A] text-white p-5 flex flex-col justify-between border-2 border-[#E7DCB9] relative">
+                        <div class="text-center border-b border-white/15 pb-2">
+                            <span class="text-[9px] font-black text-[#90B576] uppercase tracking-widest">SECURITY CREDENTIAL</span>
+                        </div>
+
+                        <div class="my-auto flex flex-col items-center justify-center space-y-2">
+                            <div class="p-2.5 bg-white rounded-2xl shadow-xl border-2 border-[#E06A26]">
+                                <img id="admin-card-qr" src="" alt="QR Code" class="h-24 w-24 object-contain">
+                            </div>
+                            <span class="text-[8px] font-extrabold text-white bg-[#E06A26] px-2.5 py-0.5 rounded-full uppercase tracking-wider">Scan to Verify</span>
+                        </div>
+
+                        <div class="border-t border-white/15 pt-2 text-center space-y-1">
+                            <p class="text-[7.5px] text-white/70 font-semibold leading-relaxed">
+                                Official property of Golden Star Agency. Issued exclusively to the verified partner agent named on the front.
+                            </p>
+                            <div class="flex justify-between items-center pt-1 text-[7.5px] font-mono text-[#90B576]">
+                                <span>STATUS: ACTIVE VERIFIED</span>
+                                <span>Tap to Flip</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+                <button onclick="toggleAdminCardFlip()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl shadow">
+                    <i class="fa-solid fa-rotate mr-1"></i> Flip Card (Front / Back)
+                </button>
+                <button onclick="closeAdminDigitalIdCardModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} | Golden Star Agency Blog{% endblock %}
+
+{% block content %}
+
+<!-- Article Hero — Full-bleed cover image with gradient overlay -->
+<section class="relative min-h-[580px] flex items-end overflow-hidden bg-slate-950">
+
+    <!-- Cover Image as Background -->
+    {% if post.cover_image %}
+        <div class="absolute inset-0">
+            <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover">
+        </div>
+    {% elif post.static_cover %}
+        <div class="absolute inset-0">
+            <img src="{% static 'images/'|add:post.static_cover %}" alt="{{ post.title }}" class="w-full h-full object-cover">
+        </div>
+    {% else %}
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(234,88,12,0.15),transparent_60%)]"></div>
+        <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:48px 48px;"></div>
+    {% endif %}
+
+    <!-- Gradient overlays for legibility -->
+    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/25"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-slate-950/50 via-transparent to-slate-950/20"></div>
+    <!-- Orange accent glow at bottom -->
+    <div class="absolute bottom-0 left-1/4 w-[600px] h-[280px] bg-brand-orange/6 blur-[100px] rounded-full pointer-events-none"></div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 pt-32 relative z-10 w-full">
+
+        <!-- Breadcrumb -->
+        <nav class="flex items-center gap-2 text-xs text-slate-400 mb-6 flex-wrap">
+            <a href="{% url 'home' %}" class="hover:text-brand-orange transition-colors">Home</a>
+            <i class="fa-solid fa-chevron-right text-[9px] text-slate-600"></i>
+            <a href="{% url 'blog_list' %}" class="hover:text-brand-orange transition-colors">Blog</a>
+            {% if post.category %}
+            <i class="fa-solid fa-chevron-right text-[9px] text-slate-600"></i>
+            <a href="{% url 'blog_list' %}?category={{ post.category.slug }}" class="hover:text-brand-orange transition-colors">{{ post.category.name }}</a>
+            {% endif %}
+            <i class="fa-solid fa-chevron-right text-[9px] text-slate-600"></i>
+            <span class="text-slate-500 truncate max-w-[200px]">{{ post.title }}</span>
+        </nav>
+
+        <!-- Category pill -->
+        {% if post.category %}
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-orange/20 border border-brand-orange/35 text-brand-orange text-xs font-bold uppercase tracking-widest mb-5 backdrop-blur-sm">
+            <i class="fa-solid fa-tag text-[10px]"></i> {{ post.category.name }}
+        </span>
+        {% endif %}
+
+        <!-- Title -->
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight mb-5 max-w-3xl drop-shadow-lg">
+            {{ post.title }}
+        </h1>
+
+        <!-- Excerpt -->
+        {% if post.excerpt %}
+        <p class="text-slate-300 text-base leading-relaxed mb-8 max-w-2xl">{{ post.excerpt }}</p>
+        {% endif %}
+
+        <!-- Author + Meta bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-5 border-t border-white/15">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand-orange/25 border-2 border-brand-orange/50 flex items-center justify-center text-brand-orange font-extrabold text-base overflow-hidden shadow-lg flex-shrink-0">
+                    {% if post.author_avatar %}
+                    <img src="{% static 'images/'|add:post.author_avatar %}" alt="{{ post.author_name }}" class="w-full h-full object-cover">
+                    {% else %}
+                    {{ post.author_name|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+                <div>
+                    <p class="text-white text-sm font-bold">{{ post.author_name }}</p>
+                    <p class="text-slate-400 text-xs">
+                        {% if post.published_at %}{{ post.published_at|date:"F d, Y" }}{% else %}{{ post.created_at|date:"F d, Y" }}{% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="flex items-center gap-1.5 text-xs text-slate-200 font-semibold bg-black/35 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+                    <i class="fa-regular fa-clock text-brand-orange/90"></i> {{ post.read_time }} min read
+                </span>
+                <span class="flex items-center gap-1.5 text-xs text-slate-200 font-semibold bg-black/35 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+                    <i class="fa-regular fa-eye text-blue-400/90"></i> {{ post.views }} views
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Article Body + Sidebar -->
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12">
+
+            <!-- Main Content -->
+            <article class="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-8 sm:p-12">
+                <div class="prose prose-slate max-w-none text-slate-700 leading-relaxed text-sm
+                    prose-headings:font-extrabold prose-headings:text-slate-900
+                    prose-h2:text-2xl prose-h3:text-xl
+                    prose-a:text-brand-orange prose-a:no-underline hover:prose-a:underline
+                    prose-strong:text-slate-900
+                    prose-blockquote:border-l-brand-orange prose-blockquote:bg-brand-orange/5 prose-blockquote:rounded-r-xl prose-blockquote:py-2 prose-blockquote:pr-4
+                    prose-li:marker:text-brand-orange
+                    prose-img:rounded-xl prose-img:shadow-md">
+                    {{ post.body|safe }}
+                </div>
+
+                <!-- Share / Tags footer -->
+                <div class="mt-12 pt-8 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        {% if post.category %}
+                        <span class="px-3 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-[11px] font-bold uppercase tracking-wider">{{ post.category.name }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-semibold">Share:</span>
+                        <a href="https://twitter.com/intent/tweet?text={{ post.title|urlencode }}&url={{ request.build_absolute_uri }}"
+                           target="_blank" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-sky-500 hover:text-white text-slate-500 flex items-center justify-center text-sm transition-all">
+                            <i class="fa-brands fa-twitter"></i>
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}"
+                           target="_blank" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-500 flex items-center justify-center text-sm transition-all">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="https://wa.me/?text={{ post.title|urlencode }}%20{{ request.build_absolute_uri }}"
+                           target="_blank" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-500 hover:text-white text-slate-500 flex items-center justify-center text-sm transition-all">
+                            <i class="fa-brands fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Sidebar -->
+            <aside class="space-y-8">
+                <!-- Author Card -->
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">About the Author</p>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-brand-orange/15 border border-brand-orange/25 flex items-center justify-center text-brand-orange font-extrabold text-xl overflow-hidden flex-shrink-0">
+                            {% if post.author_avatar %}
+                            <img src="{% static 'images/'|add:post.author_avatar %}" alt="{{ post.author_name }}" class="w-full h-full object-cover">
+                            {% else %}
+                            {{ post.author_name|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 text-sm">{{ post.author_name }}</p>
+                            <p class="text-xs text-slate-500">Golden Star Editorial Team</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">Our editorial team specialises in Hajj & Umrah planning, international visa guidance, and flight booking strategies for Pakistani travellers.</p>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Article Stats</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-500 flex items-center gap-2"><i class="fa-regular fa-eye w-4 text-brand-orange/70"></i> Total Views</span>
+                            <span class="text-sm font-bold text-slate-800">{{ post.views }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-500 flex items-center gap-2"><i class="fa-regular fa-clock w-4 text-blue-400/70"></i> Read Time</span>
+                            <span class="text-sm font-bold text-slate-800">{{ post.read_time }} min</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-500 flex items-center gap-2"><i class="fa-regular fa-calendar w-4 text-emerald-400/70"></i> Published</span>
+                            <span class="text-sm font-bold text-slate-800">{% if post.published_at %}{{ post.published_at|date:"M d, Y" }}{% else %}{{ post.created_at|date:"M d, Y" }}{% endif %}</span>
+                        </div>
+                        {% if post.category %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-slate-500 flex items-center gap-2"><i class="fa-solid fa-tag w-4 text-purple-400/70"></i> Category</span>
+                            <a href="{% url 'blog_list' %}?category={{ post.category.slug }}" class="text-sm font-bold text-brand-orange hover:underline">{{ post.category.name }}</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- CTA Sidebar -->
+                <div class="bg-gradient-to-br from-brand-orange to-orange-500 rounded-3xl p-6 text-white shadow-xl shadow-brand-orange/20">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl mb-4">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <h3 class="font-extrabold text-lg mb-2">Ready to Book?</h3>
+                    <p class="text-orange-100 text-xs leading-relaxed mb-5">Talk to our travel experts and get a personalised package tailored to your needs and budget.</p>
+                    <a href="{% url 'contact' %}" class="w-full flex items-center justify-center gap-2 py-2.5 bg-white text-brand-orange font-bold text-sm rounded-xl hover:bg-orange-50 transition-all">
+                        Contact Us <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <!-- All Categories -->
+                {% if categories %}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Browse Categories</p>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{% url 'blog_list' %}" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-brand-orange hover:text-white text-slate-600 text-xs font-bold transition-all">All Articles</a>
+                        {% for cat in categories %}
+                        <a href="{% url 'blog_list' %}?category={{ cat.slug }}"
+                           class="px-3 py-1.5 rounded-full text-xs font-bold transition-all {% if post.category.slug == cat.slug %}bg-brand-orange text-white{% else %}bg-slate-100 hover:bg-brand-orange hover:text-white text-slate-600{% endif %}">
+                            {{ cat.name }} ({{ cat.post_count }})
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </aside>
+        </div>
+
+        <!-- Related Posts -->
+        {% if related_posts %}
+        <div class="mt-16">
+            <div class="flex items-center gap-3 mb-8">
+                <div class="h-px flex-grow bg-slate-200"></div>
+                <h2 class="text-xl font-extrabold text-slate-800 px-4">Related Articles</h2>
+                <div class="h-px flex-grow bg-slate-200"></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {% for rpost in related_posts %}
+                <article class="group bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-md hover:border-brand-orange/20 transition-all duration-300">
+                    <a href="{% url 'blog_detail' slug=rpost.slug %}" class="block h-44 bg-slate-100 overflow-hidden">
+                        {% if rpost.cover_image %}
+                            <img src="{{ rpost.cover_image.url }}" alt="{{ rpost.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        {% elif rpost.static_cover %}
+                            <img src="{% static 'images/'|add:rpost.static_cover %}" alt="{{ rpost.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                                <i class="fa-solid fa-newspaper text-2xl text-slate-400"></i>
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div class="p-5">
+                        {% if rpost.category %}
+                        <span class="text-[9px] font-bold text-brand-orange uppercase tracking-wider">{{ rpost.category.name }}</span>
+                        {% endif %}
+                        <h3 class="text-sm font-bold text-slate-800 mt-1 mb-3 leading-snug line-clamp-2 group-hover:text-brand-orange transition-colors">
+                            <a href="{% url 'blog_detail' slug=rpost.slug %}">{{ rpost.title }}</a>
+                        </h3>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400">
+                            <span><i class="fa-regular fa-clock mr-0.5"></i>{{ rpost.read_time }}m read</span>
+                            <span><i class="fa-regular fa-eye mr-0.5"></i>{{ rpost.views }}</span>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,519 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Contact Support | Golden Star Agency{% endblock %}
+{% block content %}
+<!-- Top Level Banner Image Slider -->
+<section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
+    <!-- Sliding Backgrounds -->
+    <div class="absolute inset-0 z-0">
+        <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-100">
+            <img src="{% static 'images/contact_banner.png' %}" alt="Contact Banner"
+                class="w-full h-full object-cover object-center">
+        </div>
+        <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-0">
+            <img src="{% static 'images/about_banner.png' %}" alt="About Banner"
+                class="w-full h-full object-cover object-center">
+        </div>
+        <div class="banner-slide absolute inset-0 transition-opacity duration-1000 opacity-0">
+            <img src="{% static 'images/flights_banner.png' %}" alt="Flights Banner"
+                class="w-full h-full object-cover object-center">
+        </div>
+        <div class="absolute inset-0 bg-slate-950/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <!-- Breadcrumbs -->
+        <nav
+            class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <span class="text-slate-350">Contact Us</span>
+        </nav>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight">Contact Support</h1>
+        <p class="text-slate-300 max-w-2xl mx-auto text-sm leading-relaxed">
+            Need support regarding agent wallets, document uploads, or booking states? Get in touch with our
+            representative or trigger a query with our AI widget helper.
+        </p>
+    </div>
+
+    <!-- Controls -->
+    <button onclick="prevBanner()"
+        class="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i
+            class="fa-solid fa-chevron-left"></i></button>
+    <button onclick="nextBanner()"
+        class="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i
+            class="fa-solid fa-chevron-right"></i></button>
+
+    <!-- Indicators -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+        <button onclick="setBanner(0)"
+            class="banner-dot w-2 h-2 rounded-full bg-white opacity-100 transition-all"></button>
+        <button onclick="setBanner(1)"
+            class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+    </div>
+</section>
+
+<!-- Support Resolution Statistics / SLA Section -->
+<section class="py-12 bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+            <!-- Stat 1 -->
+            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/40 hover:shadow-md transition-all">
+                <span class="text-3xl font-extrabold text-brand-orange block">15 Min</span>
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider mt-1 block">Voucher
+                    Validation</span>
+                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Fastest bank upload approval for active
+                    travel agents.</p>
+            </div>
+            <!-- Stat 2 -->
+            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/40 hover:shadow-md transition-all">
+                <span class="text-3xl font-extrabold text-brand-orange block">99.8%</span>
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider mt-1 block">First Call
+                    Resolution</span>
+                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Direct queries resolved by our agents on
+                    first email.</p>
+            </div>
+            <!-- Stat 3 -->
+            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/40 hover:shadow-md transition-all">
+                <span class="text-3xl font-extrabold text-brand-orange block">24/7</span>
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider mt-1 block">Urgent Flight
+                    Desk</span>
+                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Around the clock support for critical
+                    schedule issues.</p>
+            </div>
+            <!-- Stat 4 -->
+            <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/40 hover:shadow-md transition-all">
+                <span class="text-3xl font-extrabold text-brand-orange block">&lt; 2 Hours</span>
+                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider mt-1 block">Email Response
+                    SLA</span>
+                <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">Guaranteed responses to all support ticketing
+                    requests.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Premium Contact Split Section with Background Picture -->
+<section class="relative py-24 bg-slate-950 overflow-hidden">
+    <img src="{% static 'images/contact_banner.png' %}" alt="Contact Banner Background"
+        class="absolute inset-0 z-0 w-full h-full object-cover object-center">
+    <div class="absolute inset-0 bg-slate-950/85 z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(234,88,12,0.15),transparent_50%)] z-0">
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <!-- Info Panel -->
+            <div class="text-white space-y-6">
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">Let's Connect and Map Your Next Journey
+                </h2>
+                <p class="text-slate-300 leading-relaxed text-sm sm:text-base">
+                    Whether you're an independent travel agent searching for robust APIs, a pilgrim setting out for holy
+                    sanctuaries, or a traveler exploring global visas, our teams are ready to assist.
+                </p>
+
+                <div class="space-y-4 pt-4">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-brand-orange/15 border border-brand-orange/20 text-brand-orange flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-location-dot"></i></div>
+                        <div>
+                            <h4 class="font-bold text-sm">Main Office</h4>
+                            <p class="text-xs text-slate-400 mt-1">Office 7/8, New Civil Lines, Regency Road,
+                                Faisalabad, Pakistan</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-brand-orange/15 border border-brand-orange/20 text-brand-orange flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-phone"></i></div>
+                        <div>
+                            <h4 class="font-bold text-sm">Call / WhatsApp Support</h4>
+                            <p class="text-xs text-slate-400 mt-1 font-semibold">+92 307 7233303 | +92 334 1114888</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-brand-orange/15 border border-brand-orange/20 text-brand-orange flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-envelope"></i></div>
+                        <div>
+                            <h4 class="font-bold text-sm">Email Support</h4>
+                            <p class="text-xs text-slate-400 mt-1 font-mono break-all">
+                                goldenstartraveltours@gmail.com<br>goldenstaroofficial70@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Glassmorphic Form Card -->
+            <div id="contact-card-container"
+                class="glass-panel bg-slate-900/60 backdrop-blur-xl border border-white/10 p-8 sm:p-10 rounded-3xl shadow-2xl">
+                <h3 class="text-xl font-bold text-white mb-6">Send Us a Direct Message</h3>
+                <form id="contact-us-form" onsubmit="submitContactUsForm(event)" class="space-y-4 text-left">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Full Name *</label>
+                        <input type="text" id="contact-name" required placeholder="Your Full Name"
+                            class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Email Address *</label>
+                            <input type="email" id="contact-email" required placeholder="name@example.com"
+                                class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Phone / WhatsApp *</label>
+                            <input type="text" id="contact-phone" required placeholder="+92 300 1234567"
+                                class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Your Message *</label>
+                        <textarea id="contact-message" rows="4" required placeholder="Write your inquiry or message details here..."
+                            class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"></textarea>
+                    </div>
+
+                    <div id="contact-form-status"></div>
+
+                    <button type="submit" id="btn-send-contact"
+                        class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3.5 px-6 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/20">Send
+                        Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Office Departments Cards Section -->
+<section class="py-20 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span
+                class="text-xs font-bold text-brand-orange bg-brand-orange/10 px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Direct
+                Lines</span>
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Our Specialized Helpdesks</h2>
+            <p class="text-slate-500 mt-2 text-sm">Reach out to the exact division to accelerate your query processing.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Box 1 -->
+            <div
+                class="bg-slate-50 p-8 rounded-3xl border border-slate-200/50 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                <div>
+                    <span
+                        class="w-12 h-12 rounded-2xl bg-brand-orange/15 text-brand-orange flex items-center justify-center text-xl mb-6"><i
+                            class="fa-solid fa-kaaba"></i></span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Hajj & Umrah Operations</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">Direct support for visa applications, hotel
+                        distance queries, group bookings, and Nusuk permit coordination.</p>
+                </div>
+                <div class="mt-8 pt-4 border-t border-slate-200/60 text-xs font-mono text-slate-700 space-y-2">
+                    <p class="break-all"><i
+                            class="fa-solid fa-envelope mr-1.5 text-brand-orange"></i>goldenstartraveltours@gmail.com
+                    </p>
+                    <p class="font-semibold"><i class="fa-brands fa-whatsapp mr-1.5 text-emerald-600"></i>+92 307
+                        7233303</p>
+                </div>
+            </div>
+
+            <!-- Box 2 -->
+            <div
+                class="bg-slate-50 p-8 rounded-3xl border border-slate-200/50 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                <div>
+                    <span
+                        class="w-12 h-12 rounded-2xl bg-brand-orange/15 text-brand-orange flex items-center justify-center text-xl mb-6"><i
+                            class="fa-solid fa-plane-departure"></i></span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Ticketing & GDS Support</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">Real-time GDS ticket printing, refunds, baggage
+                        amendments, multi-city itineraries, and group block allocations.</p>
+                </div>
+                <div class="mt-8 pt-4 border-t border-slate-200/60 text-xs font-mono text-slate-700 space-y-2">
+                    <p class="break-all"><i
+                            class="fa-solid fa-envelope mr-1.5 text-brand-orange"></i>goldenstaroofficial70@gmail.com
+                    </p>
+                    <p class="font-semibold"><i class="fa-solid fa-phone mr-1.5 text-slate-500"></i>+92 334 1114888</p>
+                </div>
+            </div>
+
+            <!-- Box 3 -->
+            <div
+                class="bg-slate-50 p-8 rounded-3xl border border-slate-200/50 shadow-sm flex flex-col justify-between hover:shadow-md transition-all duration-300">
+                <div>
+                    <span
+                        class="w-12 h-12 rounded-2xl bg-brand-orange/15 text-brand-orange flex items-center justify-center text-xl mb-6"><i
+                            class="fa-solid fa-wallet"></i></span>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Agent Accounts & Billing</h3>
+                    <p class="text-xs text-slate-500 leading-relaxed">Assistance regarding wallet balance top-ups, bank
+                        voucher verification, commission structures, and payout processing.</p>
+                </div>
+                <div class="mt-8 pt-4 border-t border-slate-200/60 text-xs font-mono text-slate-700 space-y-2">
+                    <p class="break-all"><i
+                            class="fa-solid fa-envelope mr-1.5 text-brand-orange"></i>goldenstartraveltours@gmail.com
+                    </p>
+                    <p class="font-semibold"><i class="fa-solid fa-phone mr-1.5 text-slate-500"></i>+92 307 7233303 |
+                        +92 334 1114888</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-20 bg-slate-50 border-t border-slate-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Support FAQs</h2>
+            <p class="text-slate-500 mt-2 text-sm">Quick answers to common questions about our platform and response
+                times.</p>
+        </div>
+
+        <div class="space-y-4">
+            <details
+                class="group bg-white p-6 rounded-2xl border border-slate-200/65 shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                <summary class="flex justify-between items-center font-bold text-slate-800 text-sm cursor-pointer">
+                    <span>What is the average response time for support queries?</span>
+                    <span class="transition group-open:rotate-180 text-brand-orange"><i
+                            class="fa-solid fa-chevron-down"></i></span>
+                </summary>
+                <p class="text-xs text-slate-500 leading-relaxed mt-3 pt-3 border-t border-slate-100">
+                    We aim to answer all direct messages and emails within 2 to 4 hours during operational timing (9:00
+                    AM to 6:00 PM, Monday to Saturday). Emergency ticketing queries are processed 24/7.
+                </p>
+            </details>
+
+            <details
+                class="group bg-white p-6 rounded-2xl border border-slate-200/65 shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                <summary class="flex justify-between items-center font-bold text-slate-800 text-sm cursor-pointer">
+                    <span>How can travel agents verify their bank vouchers?</span>
+                    <span class="transition group-open:rotate-180 text-brand-orange"><i
+                            class="fa-solid fa-chevron-down"></i></span>
+                </summary>
+                <p class="text-xs text-slate-500 leading-relaxed mt-3 pt-3 border-t border-slate-100">
+                    Agents can upload digital copies of bank deposit vouchers directly through the dashboard interface
+                    under the "Billing" section. Our financial department validates vouchers within 30 minutes.
+                </p>
+            </details>
+
+            <details
+                class="group bg-white p-6 rounded-2xl border border-slate-200/65 shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                <summary class="flex justify-between items-center font-bold text-slate-800 text-sm cursor-pointer">
+                    <span>Do you offer API support for external developers?</span>
+                    <span class="transition group-open:rotate-180 text-brand-orange"><i
+                            class="fa-solid fa-chevron-down"></i></span>
+                </summary>
+                <p class="text-xs text-slate-500 leading-relaxed mt-3 pt-3 border-t border-slate-100">
+                    Yes, we provide custom JSON API integrations for partner agency systems to search flight schedules
+                    and ticket prices. Please drop an inquiry email to our ticketing desk for keys.
+                </p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<!-- Banner Slider Script -->
+<script>
+    let currentBannerIdx = 0;
+    const bannerSlides = document.querySelectorAll('.banner-slide');
+    const bannerDots = document.querySelectorAll('.banner-dot');
+
+    function updateBanner() {
+        bannerSlides.forEach((slide, idx) => {
+            if (idx === currentBannerIdx) {
+                slide.classList.remove('opacity-0');
+                slide.classList.add('opacity-100');
+                bannerDots[idx].classList.remove('opacity-40');
+                bannerDots[idx].classList.add('opacity-100');
+            } else {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+                bannerDots[idx].classList.remove('opacity-100');
+                bannerDots[idx].classList.add('opacity-40');
+            }
+        });
+    }
+
+    function nextBanner() {
+        currentBannerIdx = (currentBannerIdx + 1) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function prevBanner() {
+        currentBannerIdx = (currentBannerIdx - 1 + bannerSlides.length) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function setBanner(idx) {
+        currentBannerIdx = idx;
+        updateBanner();
+    }
+
+    setInterval(nextBanner, 5000);
+</script>
+
+<!-- Explore More Services Section -->
+<section class="py-16 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Explore Related Services</h2>
+        <p class="text-slate-500 mb-10 text-xs sm:text-sm">Complete your travel itinerary with our premium modules.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Card 1: Hajj -->
+            <a href="{% url 'hajj_list' %}"
+                class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span
+                        class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i
+                            class="fa-solid fa-mosque"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Hajj Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Premium shifting and non-shifting group
+                        catalogs.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i
+                        class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 2: Umrah -->
+            <a href="{% url 'umrah_list' %}"
+                class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span
+                        class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i
+                            class="fa-solid fa-kaaba"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Umrah Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Economy & custom VIP options near Haram
+                        Makkah.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i
+                        class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 3: Visa -->
+            <a href="{% url 'visa_countries' %}"
+                class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span
+                        class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i
+                            class="fa-solid fa-passport"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Visa Services</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Fast-track eVisas and sticker support advice.
+                    </p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i
+                        class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 4: Flights -->
+            <a href="{% url 'flights_list' %}"
+                class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span
+                        class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i
+                            class="fa-solid fa-plane"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Flights Ticket</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Discount airline group seat deals & quotes.
+                    </p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i
+                        class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+    async function submitContactUsForm(event) {
+        event.preventDefault();
+        const container = document.getElementById("contact-card-container");
+        const btn = document.getElementById("btn-send-contact");
+        const msgEl = document.getElementById("contact-form-status");
+        
+        const name = document.getElementById("contact-name").value.trim();
+        const email = document.getElementById("contact-email").value.trim();
+        const phone = document.getElementById("contact-phone").value.trim();
+        const message = document.getElementById("contact-message").value.trim();
+
+        if (!name || !email || !phone || !message) {
+            msgEl.textContent = 'Please fill in all required fields.';
+            msgEl.className = 'p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold mt-2';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-2"></i> Submitting Request...`;
+
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const res = await fetch('/api/packages/custom-inquiry/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    package_type: 'contact',
+                    additional_notes: message
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                const inquiryId = data.id ? `#INQ-${1000 + data.id}` : '#INQ-REGULAR';
+                container.innerHTML = `
+                    <div class="text-center py-10 space-y-6 animate-fadeIn">
+                        <div class="relative inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-500/15 text-emerald-400 border-2 border-emerald-500/30 shadow-2xl shadow-emerald-500/20 mx-auto animate-bounce">
+                            <i class="fa-solid fa-circle-check text-5xl"></i>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <span class="inline-block px-3.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-extrabold text-[11px] uppercase tracking-widest rounded-full">
+                                Request Received • Ticket ${inquiryId}
+                            </span>
+                            <h3 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Thank You, ${escapeHTML(name)}!</h3>
+                            <p class="text-slate-300 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                                JazakAllah Khair! Your message has been routed to our active support desk. Our team will contact you at <strong class="text-brand-orange">${escapeHTML(email)}</strong> or <strong class="text-brand-orange">${escapeHTML(phone)}</strong> within 2 hours.
+                            </p>
+                        </div>
+
+                        <div class="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <button onclick="location.reload()" class="w-full sm:w-auto px-6 py-3 bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all">
+                                <i class="fa-solid fa-rotate-left mr-1.5"></i> Send Another Message
+                            </button>
+                            <a href="https://wa.me/923077233303" target="_blank" class="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> Live WhatsApp Chat
+                            </a>
+                        </div>
+                    </div>
+                `;
+            } else {
+                msgEl.textContent = data.message || 'Failed to submit inquiry.';
+                msgEl.className = 'p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold mt-2';
+                btn.disabled = false;
+                btn.innerHTML = 'Send Message';
+            }
+        } catch (err) {
+            console.error(err);
+            msgEl.textContent = 'Server error processing request. Please try again.';
+            msgEl.className = 'p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold mt-2';
+            btn.disabled = false;
+            btn.innerHTML = 'Send Message';
+        }
+    }
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.toString()
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+</script>
+{% endblock %}

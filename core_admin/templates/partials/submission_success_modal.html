@@ -1,0 +1,220 @@
+<!-- ========================================== -->
+<!-- MODERN SUBMISSION SUCCESS POPUP MODAL       -->
+<!-- ========================================== -->
+<div id="submission-success-modal" class="fixed inset-0 z-[100] flex items-center justify-center hidden p-4 bg-slate-900/60 backdrop-blur-md">
+    <div class="relative max-w-lg w-full bg-white border border-slate-100 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-5 animate-in fade-in zoom-in-95 duration-200 my-auto">
+        
+        <!-- Close button -->
+        <button onclick="closeSubmissionSuccessModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-all focus:outline-none">
+            &times;
+        </button>
+
+        <!-- Success Animated Icon -->
+        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center mx-auto text-3xl shadow-lg shadow-emerald-500/30 transform hover:scale-105 transition-transform">
+            <i class="fa-solid fa-check"></i>
+        </div>
+
+        <!-- Greeting & Title -->
+        <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-circle-check text-[10px]"></i> Application Received
+            </span>
+            <h2 id="app-modal-user-name" class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                Thank You!
+            </h2>
+            <h3 id="app-modal-title" class="text-sm font-bold text-brand-orange mt-1">
+                Submitted Successfully
+            </h3>
+            <p id="app-modal-message" class="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed mt-2">
+                Your request has been logged into our system and dispatched to our specialized consultants.
+            </p>
+        </div>
+
+        <!-- Highlighted Tracking ID Card -->
+        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center gap-1.5 shadow-inner">
+            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Your Unique Reference Tracking ID</span>
+            <div class="flex items-center gap-2">
+                <code id="app-modal-tracking-id" class="text-base sm:text-lg font-black text-slate-900 tracking-wider font-mono bg-white px-4 py-1.5 rounded-xl border border-slate-200 shadow-sm">GS-TRK-000000</code>
+                <button onclick="copyTrackingIdFromModal(event)" title="Copy Tracking ID" class="p-2 rounded-xl bg-slate-200 hover:bg-brand-orange hover:text-white text-slate-700 transition-all text-xs shadow-sm">
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium">Use this ID to track your live application status anytime</span>
+        </div>
+
+        <!-- Optional Extra Details Box -->
+        <div id="app-modal-details-box" class="bg-slate-50/60 rounded-2xl p-3.5 border border-slate-100 hidden space-y-1.5 text-left">
+            <!-- Populated dynamically -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            <button id="app-modal-download-btn" onclick="downloadSubmissionReceipt()" class="w-full sm:flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-file-pdf text-sm"></i> Download Receipt
+            </button>
+            <a id="app-modal-track-btn" href="javascript:void(0)" onclick="trackModalStatusNow()" class="w-full sm:flex-1 py-3 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all shadow-md shadow-brand-orange/20 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-magnifying-glass-location"></i> Track Status
+            </a>
+            <a id="app-modal-dash-btn" href="{% url 'customer_dashboard' %}" class="w-full sm:flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-200">
+                <i class="fa-solid fa-gauge"></i> My Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+window._currentSubmissionData = null;
+
+function showSubmissionSuccessModal(options) {
+    const {
+        userName = '',
+        title = 'Application Submitted Successfully!',
+        message = 'Your application has been received and is being processed.',
+        trackingId = '',
+        details = [],
+        downloadUrl = '',
+        dashboardUrl = "{% url 'customer_dashboard' %}"
+    } = options || {};
+
+    window._currentSubmissionData = { userName, title, message, trackingId, details, downloadUrl, dashboardUrl };
+
+    const userEl = document.getElementById('app-modal-user-name');
+    if (userEl) {
+        userEl.textContent = userName ? `Thank You, ${userName}!` : 'Thank You!';
+    }
+    
+    const titleEl = document.getElementById('app-modal-title');
+    if (titleEl) titleEl.textContent = title;
+    
+    const msgEl = document.getElementById('app-modal-message');
+    if (msgEl) msgEl.textContent = message;
+    
+    const trkEl = document.getElementById('app-modal-tracking-id');
+    if (trkEl) trkEl.textContent = trackingId || 'N/A';
+
+    // Populate extra details if available
+    const detailsBox = document.getElementById('app-modal-details-box');
+    if (detailsBox) {
+        if (details && details.length > 0) {
+            detailsBox.innerHTML = details.map(d => `
+                <div class="flex justify-between items-center text-xs py-1 border-b border-slate-100 last:border-0">
+                    <span class="text-slate-500 font-medium">${d.label}:</span>
+                    <span class="text-slate-900 font-bold truncate max-w-[200px]">${d.value}</span>
+                </div>
+            `).join('');
+            detailsBox.classList.remove('hidden');
+        } else {
+            detailsBox.classList.add('hidden');
+        }
+    }
+
+    const dashBtn = document.getElementById('app-modal-dash-btn');
+    if (dashBtn) {
+        dashBtn.href = dashboardUrl;
+    }
+
+    const modal = document.getElementById('submission-success-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+window.showSubmissionSuccessModal = showSubmissionSuccessModal;
+
+window.closeSubmissionSuccessModal = function() {
+    const modal = document.getElementById('submission-success-modal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.copyTrackingIdFromModal = function(evt) {
+    const trkEl = document.getElementById('app-modal-tracking-id');
+    if (trkEl && trkEl.textContent) {
+        const code = trkEl.textContent.trim();
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = evt ? evt.currentTarget : event.currentTarget;
+            if (btn) {
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i>';
+                setTimeout(() => { btn.innerHTML = originalIcon; }, 2000);
+            }
+        });
+    }
+};
+
+window.trackModalStatusNow = function() {
+    const trkEl = document.getElementById('app-modal-tracking-id');
+    const trackingId = trkEl ? trkEl.textContent.trim() : '';
+    closeSubmissionSuccessModal();
+    window.location.href = `/?track=${encodeURIComponent(trackingId)}#track-section`;
+};
+
+window.downloadSubmissionReceipt = function() {
+    if (window._currentSubmissionData && window._currentSubmissionData.downloadUrl) {
+        window.open(window._currentSubmissionData.downloadUrl, '_blank');
+        return;
+    }
+
+    const userName = (document.getElementById('app-modal-user-name').textContent || '').replace('Thank You, ', '').replace('!', '');
+    const title = document.getElementById('app-modal-title').textContent || 'Application Confirmation Receipt';
+    const trackingId = document.getElementById('app-modal-tracking-id').textContent || '';
+    const detailsBox = document.getElementById('app-modal-details-box').innerHTML || '';
+    const dateStr = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+        alert('Please allow popups to download your receipt.');
+        return;
+    }
+
+    printWin.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Official Receipt - ${trackingId}</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #0f172a; line-height: 1.6; max-w: 800px; margin: 0 auto; }
+                .header { text-align: center; border-bottom: 2px solid #f97316; padding-bottom: 20px; margin-bottom: 25px; }
+                .logo { font-size: 26px; font-weight: 800; color: #0f172a; }
+                .logo span { color: #f97316; }
+                .receipt-title { font-size: 18px; font-weight: 700; color: #ea580c; margin-top: 6px; }
+                .tracking-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 25px; }
+                .tracking-code { font-family: monospace; font-size: 22px; font-weight: 900; color: #0f172a; letter-spacing: 2px; }
+                .details-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                .details-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+                .details-table td:first-child { font-weight: 600; color: #64748b; width: 40%; }
+                .details-table td:last-child { font-weight: 700; color: #0f172a; }
+                .footer { border-top: 1px solid #e2e8f0; padding-top: 20px; text-align: center; font-size: 12px; color: #94a3b8; }
+                @media print { .no-print { display: none; } }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div class="logo">Golden Star <span>Agency</span></div>
+                <div class="receipt-title">${title}</div>
+                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Official Receipt — Issued on ${dateStr}</div>
+            </div>
+
+            <div class="tracking-card">
+                <div style="font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">Unique Reference Tracking ID</div>
+                <div class="tracking-code">${trackingId}</div>
+                <div style="font-size: 13px; color: #334155; margin-top: 8px;">Applicant / Customer: <strong>${userName}</strong></div>
+            </div>
+
+            <table class="details-table">
+                ${detailsBox}
+            </table>
+
+            <div style="text-align: center; margin-bottom: 30px;" class="no-print">
+                <button onclick="window.print()" style="background: #f97316; color: white; border: none; padding: 12px 28px; font-size: 14px; font-weight: 700; border-radius: 10px; cursor: pointer; box-shadow: 0 4px 12px rgba(249,115,22,0.3);">Print / Save as PDF</button>
+            </div>
+
+            <div class="footer">
+                Thank you for choosing Golden Star Agency Pakistan. For 24/7 assistance, visit our website or contact our support team.
+            </div>
+
+            <script>window.onload = function() { setTimeout(() => window.print(), 400); }<\/script>
+        </body>
+        </html>
+    `);
+    printWin.document.close();
+};
+</script>

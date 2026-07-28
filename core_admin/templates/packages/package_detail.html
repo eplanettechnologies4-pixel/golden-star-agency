@@ -1,0 +1,636 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Comfort Star Umrah Package | Golden Star Agency{% endblock %}
+{% block content %}
+<!-- Top Level Banner Image Slider -->
+<section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
+    <!-- Sliding Backgrounds -->
+    <div class="absolute inset-0 z-0">
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static 'images/umrah_banner.png' %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/hajj_banner.png' %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/flights_banner.png' %}');"></div>
+        <div class="absolute inset-0 bg-slate-950/80"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <nav class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            {% if package.category|lower == 'hajj' %}
+            <a href="{% url 'hajj_list' %}" class="hover:underline">Hajj Packages</a>
+            {% else %}
+            <a href="{% url 'umrah_list' %}" class="hover:underline">Umrah Packages</a>
+            {% endif %}
+            <span>/</span>
+            <span class="text-slate-350 line-clamp-1 max-w-[200px] inline-block align-bottom">{{ package.title }}</span>
+        </nav>
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-white mb-4">{{ package.title }}</h1>
+        <p class="text-slate-300 max-w-2xl mx-auto text-sm leading-relaxed">
+            {{ package.description }}
+        </p>
+    </div>
+
+    <!-- Controls -->
+    <button onclick="prevBanner()" class="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-left"></i></button>
+    <button onclick="nextBanner()" class="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-right"></i></button>
+
+    <!-- Indicators -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+        <button onclick="setBanner(0)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-100 transition-all"></button>
+        <button onclick="setBanner(1)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+        <button onclick="setBanner(2)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+    </div>
+</section>
+
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left 2 Cols: Main Info -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Dynamic Image Slider Showcase -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
+                        <span>Hotel & Package Photo Gallery</span>
+                        <span class="text-xs text-brand-orange font-semibold"><i class="fa-solid fa-images mr-1"></i>Makkah, Madinah & Package Photos</span>
+                    </h3>
+                    <div class="relative h-96 rounded-2xl overflow-hidden shadow-md group">
+                        <div class="slider-container flex transition-transform duration-500 ease-out h-full">
+                            {% for img in package.get_all_hotel_and_package_images %}
+                            <div class="w-full h-full flex-shrink-0 relative bg-slate-900">
+                                <img src="{{ img }}" alt="{{ package.title }}" class="w-full h-full object-cover">
+                                <div class="absolute bottom-4 left-4 bg-slate-950/75 backdrop-blur-sm px-4 py-1.5 rounded-lg text-xs text-white font-semibold flex items-center gap-2 border border-white/10">
+                                    <i class="fa-solid fa-camera text-brand-orange"></i> {{ package.title }} - Photo {{ forloop.counter }}
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="w-full h-full flex-shrink-0 relative">
+                                <img src="{% static 'images/umrah_card.png' %}" alt="Umrah Hotel" class="w-full h-full object-cover">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <!-- Controls -->
+                        <button onclick="prevSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="nextSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <span class="bg-brand-orange/10 text-brand-orange text-xs font-bold px-3 py-1 rounded-full uppercase">{{ package.category|default:"Umrah" }} Package</span>
+                        
+                        {% if package.available_seats > 0 %}
+                        <span class="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+                            <i class="fa-solid fa-ticket text-brand-orange animate-pulse"></i> {{ package.available_seats }} / {{ package.total_seats }} Seats Remaining
+                        </span>
+                        {% else %}
+                        <span class="bg-rose-500/10 text-rose-600 border border-rose-500/20 text-xs font-bold px-3 py-1 rounded-full">Sold Out</span>
+                        {% endif %}
+                    </div>
+
+                    <h1 class="text-3xl font-extrabold text-slate-900 mt-4 mb-2">{{ package.title }}</h1>
+                    <p class="text-slate-500 text-sm leading-relaxed mb-6">{{ package.description }}</p>
+                    
+                    <!-- Full Specs Matrix Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-slate-100 text-center">
+                        <div class="p-3 bg-slate-50 rounded-xl">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Duration</span>
+                            <span class="block text-sm font-extrabold text-slate-800 mt-1">{{ package.duration_days }} Days</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Makkah Hotel</span>
+                            <span class="block text-xs font-extrabold text-slate-800 mt-1 truncate" title="{{ package.makkah_hotel_name }}">{{ package.makkah_hotel_name }}</span>
+                            <span class="text-[10px] font-bold text-emerald-600">({{ package.makkah_hotel_distance }})</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Madinah Hotel</span>
+                            <span class="block text-xs font-extrabold text-slate-800 mt-1 truncate" title="{{ package.madinah_hotel_name }}">{{ package.madinah_hotel_name }}</span>
+                            <span class="text-[10px] font-bold text-emerald-600">({{ package.madinah_hotel_distance }})</span>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Airline Partner</span>
+                            <span class="block text-xs font-extrabold text-slate-800 mt-1 truncate">{{ package.airline }}</span>
+                            <span class="text-[10px] font-bold text-brand-orange">{{ package.flight_routes }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Makkah & Madinah Hotel Showcase Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Makkah Hotel Card -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase flex items-center gap-1.5">
+                                    <i class="fa-solid fa-kaaba text-amber-500"></i> Makkah Hotel
+                                </span>
+                                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                                    <i class="fa-solid fa-location-dot mr-1"></i> {{ package.makkah_hotel_distance }}
+                                </span>
+                            </div>
+                            <h3 class="text-xl font-extrabold text-slate-900 mb-1">{{ package.makkah_hotel_name }}</h3>
+                            <p class="text-xs text-slate-500 mb-4">Luxury accommodation near Al-Masjid Al-Haram</p>
+                            
+                            <!-- Makkah Hotel Image Grid -->
+                            <div class="grid grid-cols-2 gap-2 rounded-xl overflow-hidden mb-3">
+                                {% if package.makkah_hotel_images %}
+                                    {% for img in package.makkah_hotel_images %}
+                                    <div class="h-28 bg-slate-900 rounded-lg overflow-hidden relative group">
+                                        <img src="{{ img }}" alt="Makkah Hotel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="h-28 bg-slate-900 rounded-lg overflow-hidden relative col-span-2">
+                                        <img src="{% static 'images/hajj_hotel_makkah.png' %}" alt="Makkah Hotel" class="w-full h-full object-cover">
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Madinah Hotel Card -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase flex items-center gap-1.5">
+                                    <i class="fa-solid fa-mosque text-emerald-500"></i> Madinah Hotel
+                                </span>
+                                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                                    <i class="fa-solid fa-location-dot mr-1"></i> {{ package.madinah_hotel_distance }}
+                                </span>
+                            </div>
+                            <h3 class="text-xl font-extrabold text-slate-900 mb-1">{{ package.madinah_hotel_name }}</h3>
+                            <p class="text-xs text-slate-500 mb-4">Peaceful stay steps away from Al-Masjid An-Nabawi</p>
+                            
+                            <!-- Madinah Hotel Image Grid -->
+                            <div class="grid grid-cols-2 gap-2 rounded-xl overflow-hidden mb-3">
+                                {% if package.madinah_hotel_images %}
+                                    {% for img in package.madinah_hotel_images %}
+                                    <div class="h-28 bg-slate-900 rounded-lg overflow-hidden relative group">
+                                        <img src="{{ img }}" alt="Madinah Hotel" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="h-28 bg-slate-900 rounded-lg overflow-hidden relative col-span-2">
+                                        <img src="{% static 'images/hajj_madinah_mosque.png' %}" alt="Madinah Hotel" class="w-full h-full object-cover">
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center justify-between">
+                        <span>What's Included & Specifications</span>
+                        {% if package.airline_logo %}
+                        <img src="{{ package.airline_logo }}" alt="{{ package.airline }}" class="h-7 object-contain">
+                        {% endif %}
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-650">
+                        <p><i class="fa-solid fa-plane text-brand-orange mr-2"></i>Airline: <strong>{{ package.airline }}</strong></p>
+                        <p><i class="fa-solid fa-route text-emerald-500 mr-2"></i>Flight Route: <strong>{{ package.flight_routes }}</strong></p>
+                        <p><i class="fa-solid fa-suitcase-rolling text-emerald-500 mr-2"></i>Luggage: <strong>{{ package.luggage_weight }}</strong></p>
+                        <p><i class="fa-solid fa-hotel text-emerald-500 mr-2"></i>Makkah Hotel: <strong>{{ package.makkah_hotel_name }}</strong> ({{ package.makkah_hotel_distance }})</p>
+                        <p><i class="fa-solid fa-mosque text-emerald-500 mr-2"></i>Madinah Hotel: <strong>{{ package.madinah_hotel_name }}</strong> ({{ package.madinah_hotel_distance }})</p>
+                        <p><i class="fa-solid fa-passport text-emerald-500 mr-2"></i>Saudi Tourist / Umrah Visa Processing</p>
+                        <p><i class="fa-solid fa-bus text-emerald-500 mr-2"></i>Luxury AC Transportation Included</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Col: Dynamic Pricing & Real-time Calculator Widget -->
+            <div>
+                <div class="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-md sticky top-24">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Estimated Total Price</span>
+                            <div class="flex items-baseline gap-2">
+                                <span id="calc-total-display" class="text-3xl font-extrabold text-brand-orange">PKR {{ package.price_quad|default:package.price }}</span>
+                                {% if package.original_price %}
+                                <span class="text-xs text-slate-400 line-through font-semibold">PKR {{ package.original_price }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if package.discount_percentage > 0 %}
+                        <span class="bg-rose-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md shadow">{{ package.discount_percentage }}% OFF</span>
+                        {% elif package.discount_amount > 0 %}
+                        <span class="bg-rose-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md shadow">SAVE PKR {{ package.discount_amount }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if package.available_seats > 0 %}
+                    <div class="mt-2 mb-6 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-brand-orange"></i> Available Stock: {{ package.available_seats }} / {{ package.total_seats }} Seats Remaining
+                    </div>
+                    {% else %}
+                    <div class="mt-2 mb-6 text-xs font-bold text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200">
+                        <i class="fa-solid fa-ban mr-1"></i> Sold Out - Contact for Next Batch
+                    </div>
+                    {% endif %}
+
+                    <form id="package-booking-form" class="border-t border-slate-100 pt-6 space-y-4">
+                        <!-- Room Sharing Choice -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Room Sharing Category</label>
+                            <select id="booking-sharing" onchange="recalculatePackagePrice()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                <option value="Sharing" data-rate="{{ package.price_sharing|default:package.price }}" selected>Sharing Room (PKR {{ package.price_sharing|default:package.price }} / person)</option>
+                                <option value="Quad" data-rate="{{ package.price_quad|default:package.price }}">Quad Sharing (PKR {{ package.price_quad|default:package.price }} / person)</option>
+                                <option value="Triple" data-rate="{{ package.price_triple|default:package.price }}">Triple Sharing (PKR {{ package.price_triple|default:package.price }} / person)</option>
+                                <option value="Double" data-rate="{{ package.price_double|default:package.price }}">Double / Twin Sharing (PKR {{ package.price_double|default:package.price }} / person)</option>
+                            </select>
+                        </div>
+
+                        <!-- Adults, Children & Infants Quantity Controls -->
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Adults (12+)</label>
+                                    <input id="booking-adults" type="number" value="1" min="1" max="{{ package.available_seats|default:30 }}" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Child (2-11)</label>
+                                    <input id="booking-children" type="number" value="0" min="0" max="10" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Infant (0-2)</label>
+                                    <input id="booking-infants" type="number" value="0" min="0" max="5" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Optional Add-ons Checkboxes Configured by Admin -->
+                        <div class="pt-2 border-t border-slate-100">
+                            <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center justify-between">
+                                <span><i class="fa-solid fa-sliders text-brand-orange mr-1"></i> Optional Add-ons</span>
+                                <span class="text-[10px] text-slate-400 font-normal lowercase">(adds to total)</span>
+                            </label>
+                            
+                            <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200/60" id="addons-container">
+                                {% if package.addons %}
+                                    {% for addon in package.addons %}
+                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="{{ addon.name }}" data-price="{{ addon.price }}" onchange="recalculatePackagePrice()">
+                                            <span class="font-medium">{{ addon.name }}</span>
+                                        </div>
+                                        <span class="font-bold text-brand-orange text-[11px]">+PKR {{ addon.price }}</span>
+                                    </label>
+                                    {% endfor %}
+                                {% else %}
+                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="VIP Haramain High-Speed Train" data-price="25000" onchange="recalculatePackagePrice()">
+                                            <span class="font-medium">VIP High-Speed Train</span>
+                                        </div>
+                                        <span class="font-bold text-brand-orange text-[11px]">+PKR 25,000</span>
+                                    </label>
+                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="Full Board Buffet Meals" data-price="15000" onchange="recalculatePackagePrice()">
+                                            <span class="font-medium">Full Board Buffet Meals</span>
+                                        </div>
+                                        <span class="font-bold text-brand-orange text-[11px]">+PKR 15,000</span>
+                                    </label>
+                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
+                                        <div class="flex items-center gap-2">
+                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="Guided Historical Ziyarat" data-price="10000" onchange="recalculatePackagePrice()">
+                                            <span class="font-medium">Guided Historical Ziyarat</span>
+                                        </div>
+                                        <span class="font-bold text-brand-orange text-[11px]">+PKR 10,000</span>
+                                    </label>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[11px] text-slate-500 space-y-1">
+                            <p><i class="fa-solid fa-child text-brand-orange mr-1"></i>Child (2-11 Yrs): <strong>PKR {{ package.price_child|default:180000 }}</strong> | Infant (0-2 Yrs): <strong>PKR {{ package.price_infant|default:65000 }}</strong></p>
+                            <p id="calc-breakdown-text" class="text-slate-700 font-semibold mt-1 pt-1 border-t border-slate-200/60"></p>
+                        </div>
+                        
+                        <button type="submit" id="btn-book-package" {% if package.available_seats == 0 %}disabled{% endif %} class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/15 disabled:opacity-50 disabled:cursor-not-allowed">
+                            {% if package.available_seats > 0 %}Confirm Package Booking{% else %}Seats Fully Booked{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Booking Success Confirmation Modal -->
+            <div id="booking-success-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden animate-fade-in">
+                <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onclick="closeBookingSuccessModal()"></div>
+                <div class="relative max-w-lg w-full mx-4 bg-white rounded-3xl overflow-hidden shadow-2xl z-10 p-8 text-center">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner animate-bounce">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+
+                    <h3 class="text-2xl font-extrabold text-slate-900 mb-1">Booking Confirmed!</h3>
+                    <p class="text-xs text-slate-500 mb-6">JazakAllah Khair! Your pilgrimage request has been successfully registered.</p>
+
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 text-left space-y-2.5 mb-6 text-xs">
+                        <div class="flex justify-between border-b border-slate-200/60 pb-2">
+                            <span class="text-slate-400 font-semibold">Booking Reference:</span>
+                            <span id="pop-tracking-id" class="font-extrabold text-brand-orange font-mono"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500 font-semibold">Package:</span>
+                            <span id="pop-pkg-title" class="font-bold text-slate-800 truncate max-w-[200px]"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500 font-semibold">Room Sharing:</span>
+                            <span id="pop-sharing" class="font-bold text-slate-800"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500 font-semibold">Passengers:</span>
+                            <span id="pop-passengers" class="font-bold text-slate-800"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500 font-semibold">Add-ons:</span>
+                            <span id="pop-addons" class="font-bold text-slate-800 truncate max-w-[180px]">None</span>
+                        </div>
+                        <div class="flex justify-between border-t border-slate-200/60 pt-2 text-sm font-extrabold">
+                            <span class="text-slate-700">Total Price:</span>
+                            <span id="pop-total-price" class="text-brand-orange"></span>
+                        </div>
+                    </div>
+
+                    <p class="text-[11px] text-slate-500 bg-blue-50 p-3 rounded-xl border border-blue-200/60 mb-6 leading-relaxed">
+                        <i class="fa-solid fa-envelope-circle-check text-blue-600 mr-1"></i> A confirmation email with full details has been sent to your registered email address. Our pilgrimage consultant will contact you shortly.
+                    </p>
+
+                    <div class="flex gap-3">
+                        <a href="{% url 'customer_dashboard' %}" class="flex-1 py-3 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-bold transition-all shadow">
+                            View My Dashboard
+                        </a>
+                        <button onclick="closeBookingSuccessModal()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            const pkgData = {
+                priceSharing: parseFloat("{{ package.price_sharing|default:package.price }}") || 210000,
+                priceQuad: parseFloat("{{ package.price_quad|default:package.price }}") || 245000,
+                priceTriple: parseFloat("{{ package.price_triple|default:package.price }}") || 275000,
+                priceDouble: parseFloat("{{ package.price_double|default:package.price }}") || 320000,
+                priceChild: parseFloat("{{ package.price_child|default:180000 }}") || 180000,
+                priceInfant: parseFloat("{{ package.price_infant|default:65000 }}") || 65000,
+                discPercent: parseFloat("{{ package.discount_percentage|default:0 }}") || 0,
+                discFlat: parseFloat("{{ package.discount_amount|default:0 }}") || 0,
+            };
+
+            function recalculatePackagePrice() {
+                const sharingSelect = document.getElementById('booking-sharing');
+                const sharingType = sharingSelect ? sharingSelect.value.toLowerCase() : 'sharing';
+                
+                let rate = pkgData.priceSharing;
+                if (sharingType.includes('quad')) rate = pkgData.priceQuad;
+                else if (sharingType.includes('triple')) rate = pkgData.priceTriple;
+                else if (sharingType.includes('double')) rate = pkgData.priceDouble;
+
+                const adults = parseInt(document.getElementById('booking-adults').value) || 1;
+                const children = parseInt(document.getElementById('booking-children').value) || 0;
+                const infants = parseInt(document.getElementById('booking-infants').value) || 0;
+
+                const adultsCost = adults * rate;
+                const childrenCost = children * pkgData.priceChild;
+                const infantsCost = infants * pkgData.priceInfant;
+
+                // Addons cost
+                let addonsCost = 0;
+                const checkboxes = document.querySelectorAll('.addon-checkbox:checked');
+                checkboxes.forEach(cb => {
+                    addonsCost += parseFloat(cb.dataset.price || 0);
+                });
+
+                const subtotal = adultsCost + childrenCost + infantsCost + addonsCost;
+
+                const discount = (subtotal * pkgData.discPercent / 100) + pkgData.discFlat;
+                const finalTotal = Math.max(0, subtotal - discount);
+
+                document.getElementById('calc-total-display').textContent = `PKR ${finalTotal.toLocaleString()}`;
+                
+                const breakdownEl = document.getElementById('calc-breakdown-text');
+                if (breakdownEl) {
+                    let desc = `${adults} Adult(s) @ PKR ${rate.toLocaleString()}`;
+                    if (children > 0) desc += ` + ${children} Child(ren)`;
+                    if (infants > 0) desc += ` + ${infants} Infant(s)`;
+                    if (addonsCost > 0) desc += ` + Add-ons PKR ${addonsCost.toLocaleString()}`;
+                    if (discount > 0) desc += ` (Disc: -PKR ${discount.toLocaleString()})`;
+                    breakdownEl.textContent = desc;
+                }
+            }
+
+            function closeBookingSuccessModal() {
+                document.getElementById('booking-success-modal').classList.add('hidden');
+                window.location.href = "{% url 'customer_dashboard' %}";
+            }
+
+            const IS_USER_LOGGED_IN = {{ user.is_authenticated|yesno:"true,false" }};
+
+            document.addEventListener('DOMContentLoaded', () => {
+                recalculatePackagePrice();
+
+                const bookingForm = document.getElementById('package-booking-form');
+                if (bookingForm) {
+                    bookingForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+
+                        if (!IS_USER_LOGGED_IN) {
+                            alert("🔒 Account Required!\n\nYou must log in or create an account before booking pilgrimage packages.\n\nClick OK to log in.");
+                            window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
+                            return;
+                        }
+
+                        const btn = document.getElementById('btn-book-package');
+                        
+                        const packageId = parseInt("{{ package.id }}") || 0;
+                        
+                        const sharingCategory = document.getElementById('booking-sharing').value;
+                        const adultsCount = parseInt(document.getElementById('booking-adults').value) || 1;
+                        const childrenCount = parseInt(document.getElementById('booking-children').value) || 0;
+                        const infantsCount = parseInt(document.getElementById('booking-infants').value) || 0;
+
+                        const selectedAddons = [];
+                        document.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
+                            selectedAddons.push({
+                                name: cb.dataset.name,
+                                price: parseFloat(cb.dataset.price || 0)
+                            });
+                        });
+
+                        btn.disabled = true;
+                        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Processing Booking...`;
+
+                        try {
+                            const res = await fetch('/api/packages/book/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify({
+                                    package_id: packageId,
+                                    sharing_category: sharingCategory,
+                                    adults_count: adultsCount,
+                                    children_count: childrenCount,
+                                    infants_count: infantsCount,
+                                    selected_addons: selectedAddons
+                                })
+                            });
+                            
+                            const data = await res.json();
+                            if (res.ok && data.success) {
+                                let paxStr = `${data.adults_count} Adult(s)`;
+                                if (data.children_count > 0) paxStr += `, ${data.children_count} Child(ren)`;
+                                if (infantsCount > 0) paxStr += `, ${infantsCount} Infant(s)`;
+                                
+                                const fullName = "{{ user.get_full_name|default:user.username }}";
+                                showSubmissionSuccessModal({
+                                    userName: fullName || 'Valued Pilgrim',
+                                    title: 'Package Booking Submitted!',
+                                    message: `Your booking for ${data.package_title} has been logged. Our pilgrimage consultant will contact you shortly.`,
+                                    trackingId: data.tracking_id,
+                                    details: [
+                                        { label: 'Package Title', value: data.package_title },
+                                        { label: 'Sharing Option', value: `${data.sharing_category} Sharing` },
+                                        { label: 'Passengers', value: paxStr },
+                                        { label: 'Total Fare', value: `PKR ${parseFloat(data.total_price).toLocaleString()}` }
+                                    ]
+                                });
+                            } else if (res.status === 401) {
+                                alert("🔒 Account Login Required!\n\n" + (data.message || "Please log in to book pilgrimage packages."));
+                                window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
+                            } else {
+                                alert(data.message || 'Failed to register booking. Please try again.');
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            alert('Booking error: ' + (err.message || 'Please check your inputs and try again.'));
+                        } finally {
+                            btn.disabled = false;
+                            btn.innerHTML = 'Confirm Package Booking';
+                        }
+                    });
+                }
+            });
+            </script>
+
+        </div>
+    </div>
+</section>
+
+<!-- Gallery Slider JavaScript -->
+<script>
+    let currentIdx = 0;
+    const slidesCount = 3;
+    function updateSlider() {
+        const container = document.querySelector('.slider-container');
+        if (container) {
+            container.style.transform = `translateX(-${currentIdx * 100}%)`;
+        }
+    }
+    function nextSlide() {
+        currentIdx = (currentIdx + 1) % slidesCount;
+        updateSlider();
+    }
+    function prevSlide() {
+        currentIdx = (currentIdx - 1 + slidesCount) % slidesCount;
+        updateSlider();
+    }
+</script>
+
+<!-- Banner Slider Script -->
+<script>
+    let currentBannerIdx = 0;
+    const bannerSlides = document.querySelectorAll('.banner-slide');
+    const bannerDots = document.querySelectorAll('.banner-dot');
+
+    function updateBanner() {
+        bannerSlides.forEach((slide, idx) => {
+            if (idx === currentBannerIdx) {
+                slide.classList.remove('opacity-0');
+                slide.classList.add('opacity-100');
+                bannerDots[idx].classList.remove('opacity-40');
+                bannerDots[idx].classList.add('opacity-100');
+            } else {
+                slide.classList.remove('opacity-100');
+                slide.classList.add('opacity-0');
+                bannerDots[idx].classList.remove('opacity-100');
+                bannerDots[idx].classList.add('opacity-40');
+            }
+        });
+    }
+
+    function nextBanner() {
+        currentBannerIdx = (currentBannerIdx + 1) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function prevBanner() {
+        currentBannerIdx = (currentBannerIdx - 1 + bannerSlides.length) % bannerSlides.length;
+        updateBanner();
+    }
+
+    function setBanner(idx) {
+        currentBannerIdx = idx;
+        updateBanner();
+    }
+
+    // Auto slide every 5 seconds
+    setInterval(nextBanner, 5000);
+</script>
+
+<!-- Explore More Services Section -->
+<section class="py-16 bg-white border-t border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Explore Related Services</h2>
+        <p class="text-slate-500 mb-10 text-xs sm:text-sm">Complete your travel itinerary with our premium modules.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Card 1: Hajj -->
+            <a href="{% url 'hajj_list' %}" class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-mosque"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Hajj Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Premium shifting and non-shifting group catalogs.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+            
+            <!-- Card 2: Umrah -->
+            <a href="{% url 'umrah_list' %}" class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-kaaba"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Umrah Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Economy & custom VIP options near Haram Makkah.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 3: Visa -->
+            <a href="{% url 'visa_countries' %}" class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-passport"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Visa Services</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Fast-track eVisas and sticker support advice.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 4: Flights -->
+            <a href="{% url 'flights_list' %}" class="group p-6 bg-slate-50 rounded-2xl border border-slate-200/60 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-plane"></i></span>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">Flights Ticket</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Discount airline group seat deals & quotes.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

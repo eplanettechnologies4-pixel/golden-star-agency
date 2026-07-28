@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Verify Account | Golden Star Agency{% endblock %}
+{% block content %}
+
+<section class="py-20 bg-slate-50 flex items-center justify-center min-h-[75vh] px-4">
+    <div class="max-w-md w-full relative">
+        <!-- Premium Light Mode Card -->
+        <div class="bg-white border border-slate-200/80 p-8 rounded-3xl shadow-xl space-y-6">
+            
+            <div class="text-center">
+                <!-- Glowing Shield Icon -->
+                <div class="w-16 h-16 rounded-full bg-brand-orange/10 border border-brand-orange/20 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <i class="fa-solid fa-shield-halved text-brand-orange text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Security Verification</h1>
+                <p class="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                    We have sent a 6-digit verification code to your email. Enter it below to unlock your customer account.
+                </p>
+            </div>
+
+            <!-- Dynamic Messages banner -->
+            <div id="alert-banner" class="space-y-2 hidden"></div>
+            {% if messages %}
+            <div class="space-y-2" id="django-messages">
+                {% for message in messages %}
+                <div class="p-4 rounded-xl text-xs {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-600{% else %}bg-green-50 border border-green-200 text-green-600{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- OTP Input Form -->
+            <form method="POST" id="otp-form" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- 6 Individual Digit Inputs -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest text-center mb-3">Verification Code</label>
+                    <div class="flex justify-between gap-2" id="otp-inputs-wrapper">
+                        <input type="text" maxlength="1" class="otp-digit w-12 h-14 bg-slate-50 border border-slate-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange rounded-xl text-center text-xl font-bold text-slate-800 transition-all focus:outline-none" required pattern="\d">
+                        <input type="text" maxlength="1" class="otp-digit w-12 h-14 bg-slate-50 border border-slate-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange rounded-xl text-center text-xl font-bold text-slate-800 transition-all focus:outline-none" required pattern="\d">
+                        <input type="text" maxlength="1" class="otp-digit w-12 h-14 bg-slate-50 border border-slate-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange rounded-xl text-center text-xl font-bold text-slate-800 transition-all focus:outline-none" required pattern="\d">
+                        <input type="text" maxlength="1" class="otp-digit w-12 h-14 bg-slate-50 border border-slate-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange rounded-xl text-center text-xl font-bold text-slate-800 transition-all focus:outline-none" required pattern="\d">
+                        <input type="text" maxlength="1" class="otp-digit w-12 h-14 bg-slate-50 border border-slate-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange rounded-xl text-center text-xl font-bold text-slate-800 transition-all focus:outline-none" required pattern="\d">
+                        <input type="text" maxlength="1" class="otp-digit w-12 h-14 bg-slate-50 border border-slate-200 focus:border-brand-orange focus:ring-1 focus:ring-brand-orange rounded-xl text-center text-xl font-bold text-slate-800 transition-all focus:outline-none" required pattern="\d">
+                    </div>
+                    <!-- Combined hidden input sent to the Django view -->
+                    <input type="hidden" name="code" id="combined-code">
+                </div>
+
+                <!-- Expiration Countdown -->
+                <div class="text-center">
+                    <p class="text-xs text-slate-500 flex items-center justify-center gap-1.5 font-medium">
+                        <i class="fa-regular fa-clock text-brand-orange"></i>
+                        <span id="countdown-wrapper">
+                            Code expires in <span id="timer" class="font-bold text-slate-800">05:00</span>
+                        </span>
+                        <span id="expired-label" class="text-red-600 font-bold hidden">Code expired</span>
+                    </p>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-4 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> Verify &amp; Unlock
+                </button>
+            </form>
+
+            <!-- Resend Section -->
+            <div class="text-center pt-6 border-t border-slate-200 flex flex-col items-center gap-2">
+                <span class="text-xs text-slate-550">Didn't receive the code?</span>
+                <button type="button" id="btn-resend-otp" disabled 
+                        class="text-xs text-slate-400 hover:text-brand-orange font-bold transition-colors cursor-not-allowed opacity-50 flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-rotate-right"></i> Resend Verification Code
+                </button>
+            </div>
+
+            <div class="text-center">
+                <a href="{% url 'login' %}" class="text-xs text-slate-500 hover:text-brand-orange transition-colors"><i class="fa-solid fa-arrow-left mr-1"></i> Return to Sign In</a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Front-end OTP Controller Script -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const inputs = document.querySelectorAll('.otp-digit');
+    const combinedInput = document.getElementById('combined-code');
+    const otpForm = document.getElementById('otp-form');
+    const alertBanner = document.getElementById('alert-banner');
+    const djangoMessages = document.getElementById('django-messages');
+    
+    // Countdown Timer logic
+    let timeLeft = parseInt("{{ time_left_seconds|default:0 }}");
+    const timerEl = document.getElementById('timer');
+    const countdownWrapper = document.getElementById('countdown-wrapper');
+    const expiredLabel = document.getElementById('expired-label');
+    const resendBtn = document.getElementById('btn-resend-otp');
+    let intervalId = null;
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+        if (intervalId) clearInterval(intervalId);
+        
+        if (timeLeft <= 0) {
+            handleExpire();
+            return;
+        }
+
+        resendBtn.disabled = true;
+        resendBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        resendBtn.classList.remove('hover:text-brand-orange', 'cursor-pointer');
+        expiredLabel.classList.add('hidden');
+        countdownWrapper.classList.remove('hidden');
+        timerEl.textContent = formatTime(timeLeft);
+
+        intervalId = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(intervalId);
+                handleExpire();
+            } else {
+                timerEl.textContent = formatTime(timeLeft);
+            }
+        }, 1000);
+    }
+
+    function handleExpire() {
+        countdownWrapper.classList.add('hidden');
+        expiredLabel.classList.remove('hidden');
+        resendBtn.disabled = false;
+        resendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        resendBtn.classList.add('hover:text-brand-orange', 'cursor-pointer');
+    }
+
+    // Initialize inputs focusing behaviour
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            const val = e.target.value;
+            e.target.value = val.replace(/\D/g, '');
+            
+            if (e.target.value.length === 1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+            updateCombinedValue();
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('focus', () => {
+            input.select();
+        });
+    });
+
+    inputs[0].addEventListener('paste', (e) => {
+        const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim();
+        if (/^\d{6}$/.test(pasteData)) {
+            e.preventDefault();
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = pasteData[i];
+                if (i < inputs.length - 1) {
+                    inputs[i + 1].focus();
+                }
+            }
+            updateCombinedValue();
+        }
+    });
+
+    function updateCombinedValue() {
+        let code = '';
+        inputs.forEach(input => {
+            code += input.value;
+        });
+        combinedInput.value = code;
+    }
+
+    otpForm.addEventListener('submit', (e) => {
+        updateCombinedValue();
+        if (combinedInput.value.length !== 6) {
+            e.preventDefault();
+            showAlert('error', 'Please enter all 6 digits of the verification code.');
+        }
+    });
+
+    resendBtn.addEventListener('click', async () => {
+        if (resendBtn.disabled) return;
+        
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Resending...';
+        
+        try {
+            const response = await fetch("{% url 'resend_otp' user_id=user.id %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showAlert('success', data.message);
+                if (djangoMessages) djangoMessages.classList.add('hidden');
+                
+                timeLeft = 300;
+                startTimer();
+            } else {
+                showAlert('error', data.message || 'Failed to resend code. Please try again.');
+                resendBtn.disabled = false;
+            }
+        } catch (err) {
+            console.error(err);
+            showAlert('error', 'Network error occurred. Please check your connection.');
+            resendBtn.disabled = false;
+        } finally {
+            resendBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i> Resend Verification Code';
+        }
+    });
+
+    function showAlert(type, message) {
+        alertBanner.innerHTML = `
+            <div class="p-4 rounded-xl text-xs ${type === 'error' ? 'bg-red-50 border border-red-200 text-red-600' : 'bg-green-50 border border-green-200 text-green-600'}">
+                ${message}
+            </div>
+        `;
+        alertBanner.classList.remove('hidden');
+    }
+
+    startTimer();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,304 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ document_title }} - REI GOLDEN STAR TRAVEL & TOURS</title>
+    <!-- Tailwind CSS -->
+    <script>(function(){const w=console.warn;console.warn=function(...a){if(a[0]&&typeof a[0]==='string'&&a[0].includes('cdn.tailwindcss.com'))return;w.apply(console,a);};})();</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #0f172a;
+            background-color: #f8fafc;
+        }
+        .font-space {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+            html, body {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .print-compact-gap {
+                margin-bottom: 0.75rem !important;
+                padding-bottom: 0.5rem !important;
+            }
+            .print-compact-py {
+                padding-top: 0.35rem !important;
+                padding-bottom: 0.35rem !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-6 px-4 sm:px-6">
+
+    <!-- Top Action Bar (Hidden when printing) -->
+    <div class="max-w-4xl mx-auto mb-4 no-print">
+        <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-file-contract"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-bold text-white">{{ document_title }}</h2>
+                    <p class="text-xs text-slate-400">Official Ref: <span class="font-mono text-orange-400 font-bold">{{ ref_number }}</span></p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 shrink-0">
+                <button onclick="if (window.history.length > 1 && document.referrer) { window.history.back(); } else { window.close(); }" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Back
+                </button>
+                <button onclick="window.print()" class="px-5 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-orange-600/30 flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> Print / Save 1-Page PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Printable Letter Paper Container (Single Page A4 Optimized) -->
+    <div class="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm print-card relative overflow-hidden">
+        
+        <!-- Subtle Ambient Background Seal Graphic -->
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full border-[20px] border-slate-100/60 pointer-events-none flex items-center justify-center no-print">
+            <i class="fa-solid fa-stamp text-9xl text-slate-100"></i>
+        </div>
+
+        <!-- 1. HEADER SECTION -->
+        <div class="border-b-2 border-slate-900 pb-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 print-compact-gap">
+            <div class="space-y-1">
+                <img src="{% static 'images/logo.png' %}" alt="REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD." class="h-14 w-auto object-contain">
+                <p class="text-[10px] text-slate-500 font-medium">
+                    Licensed Travel & Tours Operator • Umrah & Hajj Services • B2B Partner Portal
+                </p>
+            </div>
+            
+            <div class="text-left sm:text-right text-[11px] text-slate-600 space-y-0.5">
+                <p class="font-bold text-slate-900">Head Office Support Desk</p>
+                <p><i class="fa-solid fa-location-dot text-orange-500 mr-1"></i> Office 7/8, New Civil Lines, Regency Road, Faisalabad, Pakistan</p>
+                <p><i class="fa-solid fa-phone text-orange-500 mr-1"></i> +92 307 7233303 / +92 334 1114888</p>
+                <p><i class="fa-solid fa-envelope text-orange-500 mr-1"></i> goldenstartraveltours@gmail.com</p>
+            </div>
+        </div>
+
+        <!-- 2. DOCUMENT TITLE & STATUS BANNER -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 print-compact-gap">
+            <div>
+                <span class="inline-block px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-emerald-100 text-emerald-800 border border-emerald-300 mb-1">
+                    <i class="fa-solid fa-circle-check mr-1"></i> {{ status_display|default:"CONFIRMED & APPROVED" }}
+                </span>
+                <h2 class="text-lg font-extrabold text-slate-900 font-space tracking-tight leading-tight">{{ document_title }}</h2>
+                <p class="text-[11px] text-slate-500">Official Company Confirmation & Travel Voucher Certificate</p>
+            </div>
+            <div class="text-left sm:text-right font-mono text-[11px]">
+                <div class="text-slate-500">Document Ref:</div>
+                <div class="text-sm font-extrabold text-orange-600">{{ ref_number }}</div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Issue Date: {{ issue_date|date:"F d, Y" }}</div>
+            </div>
+        </div>
+
+        <!-- 3. TRAVELER / CLIENT DETAILS -->
+        <div class="mb-5 print-compact-gap">
+            <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-user text-orange-500"></i> Traveler / Client Information
+            </h3>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 bg-white border border-slate-200 rounded-2xl p-4 text-[11px]">
+                <div>
+                    <span class="text-slate-400 block text-[9px] uppercase font-bold">Passenger Name</span>
+                    <span class="font-extrabold text-slate-900 text-xs block mt-0.5">{{ traveler_name }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[9px] uppercase font-bold">Passport / CNIC</span>
+                    <span class="font-mono font-bold text-slate-800 block mt-0.5">{{ passport_number|default:"N/A" }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[9px] uppercase font-bold">Contact Phone</span>
+                    <span class="font-semibold text-slate-800 block mt-0.5">{{ traveler_phone|default:"N/A" }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block text-[9px] uppercase font-bold">Email Address</span>
+                    <span class="font-semibold text-slate-800 block mt-0.5 truncate">{{ traveler_email|default:"N/A" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. SPECIFIC ITEM DETAILS -->
+        <div class="mb-5 print-compact-gap">
+            <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5">
+                <i class="fa-solid fa-suitcase text-orange-500"></i> Confirmed Booking Details
+            </h3>
+            
+            {% if letter_type == 'package' %}
+            <!-- PACKAGE DETAILS TABLE -->
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px]">
+                <div class="bg-slate-900 text-white p-3 font-bold flex justify-between items-center text-xs">
+                    <span>{{ package_title }}</span>
+                    <span class="bg-orange-500 text-white px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider font-extrabold">{{ booking_type|default:"Package Booking" }}</span>
+                </div>
+                <div class="p-4 grid grid-cols-3 gap-4 bg-slate-50/50">
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Room Sharing</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">{{ sharing_category }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Travelers Count</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">
+                            {{ adults_count }} Adult(s) {% if children_count %}, {{ children_count }} Child{% endif %} {% if infants_count %}, {{ infants_count }} Infant{% endif %}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Booking Date</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">{{ booking_date|date:"Y-m-d H:i" }}</span>
+                    </div>
+                </div>
+                {% if selected_addons %}
+                <div class="border-t border-slate-200 p-3 bg-white">
+                    <span class="text-slate-400 text-[9px] uppercase font-bold block mb-1">Selected Add-ons</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for addon in selected_addons %}
+                        <span class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-semibold text-[10px]">
+                            <i class="fa-solid fa-check text-emerald-600 mr-1"></i> {{ addon.title|default:addon }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% elif letter_type == 'visa' %}
+            <!-- VISA DETAILS TABLE -->
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px]">
+                <div class="bg-slate-900 text-white p-3 font-bold flex justify-between items-center text-xs">
+                    <span>{{ visa_country }} - {{ visa_type }}</span>
+                    <span class="bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider font-extrabold">APPROVED</span>
+                </div>
+                <div class="p-4 grid grid-cols-3 gap-4 bg-slate-50/50">
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Destination Country</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">{{ visa_country }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Visa Type</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">{{ visa_type }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Passport Number</span>
+                        <span class="font-mono font-bold text-slate-800 block mt-0.5">{{ passport_number }}</span>
+                    </div>
+                </div>
+                <div class="border-t border-slate-200 p-3 bg-white flex justify-between items-center text-[10px]">
+                    <div>
+                        <span class="text-slate-400 uppercase font-bold block text-[9px]">Embassy Clearance</span>
+                        <span class="text-emerald-700 font-bold">Verified & Granted Electronic Visa Authorization</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-slate-400 uppercase font-bold block text-[9px]">Application Date</span>
+                        <span class="text-slate-700 font-bold">{{ created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {% elif letter_type == 'ticket' %}
+            <!-- FLIGHT TICKET DETAILS TABLE -->
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px]">
+                <div class="bg-slate-900 text-white p-3 font-bold flex justify-between items-center text-xs">
+                    <span>{{ departure_city }} <i class="fa-solid fa-plane text-orange-400 mx-1.5"></i> {{ destination_city }}</span>
+                    <span class="bg-indigo-500 text-white px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider font-extrabold">CONFIRMED TICKET</span>
+                </div>
+                <div class="p-4 grid grid-cols-3 gap-4 bg-slate-50/50">
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Departure Date</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">{{ departure_date|date:"F d, Y" }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Return Date</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">{{ return_date|date:"F d, Y"|default:"One Way Flight" }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Status</span>
+                        <span class="font-bold text-emerald-600 block mt-0.5 uppercase">{{ status }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 5. FINANCIAL & PAYMENT VERIFICATION -->
+        <div class="mb-5 bg-slate-900 text-white rounded-2xl p-4 flex items-center justify-between gap-4 print-compact-gap">
+            <div class="space-y-0.5">
+                <span class="text-[9px] font-bold uppercase tracking-widest text-orange-400">Financial Authorization</span>
+                <h4 class="text-sm font-extrabold font-space">Payment Status: FULLY CONFIRMED</h4>
+                <p class="text-[10px] text-slate-400">All fees, taxes, and service charges have been settled with Golden Star Travel.</p>
+            </div>
+            <div class="text-right">
+                <span class="text-[9px] font-bold uppercase tracking-widest text-slate-400 block">Total Approved Amount</span>
+                <span class="text-xl font-black text-white font-mono">PKR {{ total_price|floatformat:0 }}</span>
+            </div>
+        </div>
+
+        <!-- 6. OFFICIAL STAMP & AUTHORIZATION SIGNATURE -->
+        <div class="pt-4 border-t border-slate-200 grid grid-cols-2 gap-6 items-center print-compact-gap">
+            
+            <!-- Company Verification Seal Graphic -->
+            <div class="flex items-center gap-3">
+                <div class="relative h-16 w-16 rounded-full border-2 border-orange-600/30 flex items-center justify-center p-1 shrink-0">
+                    <div class="h-full w-full rounded-full border border-dashed border-orange-600 flex flex-col items-center justify-center text-center p-0.5 bg-orange-50">
+                        <span class="text-[6px] font-extrabold uppercase text-orange-600 tracking-tighter">GOLDEN STAR</span>
+                        <i class="fa-solid fa-stamp text-[10px] text-orange-600 my-0.5"></i>
+                        <span class="text-[5px] font-black uppercase text-slate-800 tracking-tighter">APPROVED</span>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="text-[10px] font-extrabold text-slate-900 uppercase">Official Verification Seal</h5>
+                    <p class="text-[9px] text-slate-500">Digitally authenticated by Golden Star Operations.</p>
+                    <p class="text-[8px] font-mono text-orange-600 font-bold mt-0.5">HASH: {{ ref_number }}-VERIFIED-2026</p>
+                </div>
+            </div>
+
+            <!-- Authorized Signature Block -->
+            <div class="text-right space-y-1">
+                <div class="h-8 flex items-end justify-end">
+                    <span class="font-serif italic text-base text-slate-800 font-bold border-b border-slate-400 px-3">GoldenStar Ops Dept</span>
+                </div>
+                <div>
+                    <h5 class="text-[10px] font-bold text-slate-900 uppercase">Authorized Operations Manager</h5>
+                    <p class="text-[9px] text-slate-500">Golden Star Travel & Tours (Pvt) Ltd</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. FOOTER TERMS -->
+        <div class="mt-4 pt-3 border-t border-slate-100 text-[9px] text-slate-400 space-y-0.5 text-center sm:text-left print-text-tight">
+            <p><strong>Notice to Traveler:</strong> Please present a printed copy of this approval letter or digital PDF along with your valid passport at check-in counter, embassy desk, or hotel reception.</p>
+            <p>&copy; 2026 Golden Star Travel &amp; Tours (Pvt) Ltd. All rights reserved. &bull; Created by <a href="https://eplanettech.com" target="_blank" rel="noopener noreferrer" class="font-bold text-[#E06A26] underline">ePlanet Technologies</a></p>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
+    
+    <!-- Meta tags for SEO -->
+    <meta name="description" content="{% block meta_description %}Premium Hajj, Umrah, family/group packages, visit visa services, and flight booking from Golden Star Agency Pakistan.{% endblock %}">
+    
+    <!-- Tailwind CSS with Earthy Color Palette Config -->
+    <script>(function(){const w=console.warn;console.warn=function(...a){if(a[0]&&typeof a[0]==='string'&&a[0].includes('cdn.tailwindcss.com'))return;w.apply(console,a);};})();</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#E06A26',
+                            'orange-dark': '#C45517',
+                            'orange-light': '#FDF2EA',
+                            dark: '#1F2E1A',
+                        },
+                        earth: {
+                            terracotta: '#E06A26',
+                            'terracotta-dark': '#C45517',
+                            'terracotta-light': '#FDF2EA',
+                            forest: '#2D4424',
+                            'forest-dark': '#1F2E1A',
+                            moss: '#567946',
+                            sage: '#90B576',
+                            'sage-light': '#F0F6EC',
+                            sand: '#EBD8B3',
+                            canvas: '#F7F3E9',
+                            card: '#FFFFFF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', '"Outfit"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Compiled Tailwind CSS -->
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-[#F7F3E9] text-[#1F2E1A] flex flex-col min-h-screen overflow-x-hidden">
+
+    <!-- Global Navigation -->
+    {% include 'partials/navbar.html' %}
+
+    <!-- Main Content Area -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Global Footer -->
+    {% include 'partials/footer.html' %}
+
+    <!-- AI Chatbot Widget -->
+    {% include 'partials/chatbot_widget.html' %}
+
+    <!-- Modern Submission Success Modal -->
+    {% include 'partials/submission_success_modal.html' %}
+
+    <!-- Core JS dependencies -->
+    <script src="{% static 'js/booking.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

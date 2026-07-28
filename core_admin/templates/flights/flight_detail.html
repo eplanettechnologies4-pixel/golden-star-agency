@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ flight.airline_name }} {{ flight.flight_number }} | Golden Star Agency{% endblock %}
+{% block content %}
+
+<!-- Top Level Banner Image Slider -->
+<section class="relative min-h-[40vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-20">
+    <!-- Background Image -->
+    <div class="absolute inset-0 z-0 bg-cover bg-center" data-bg="{% if flight.image %}{{ flight.image.url }}{% else %}{% static 'images/' %}{{ flight.static_image_name }}{% endif %}"></div>
+    <div class="absolute inset-0 bg-slate-950/80 z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
+
+    <!-- Content -->
+    <div class="max-w-4xl mx-auto px-4 relative z-10 text-white">
+        <!-- Breadcrumbs -->
+        <nav class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <a href="{% url 'flights_list' %}" class="hover:underline">Flights</a>
+            <span>/</span>
+            <span class="text-slate-350">{{ flight.flight_number }}</span>
+        </nav>
+        <h1 class="text-3xl sm:text-5xl font-extrabold text-white mb-4 tracking-tight">{{ flight.airline_name }}</h1>
+        <p class="text-slate-200 max-w-xl mx-auto text-sm sm:text-base leading-relaxed">
+            Flight schedule from <span class="font-bold text-brand-orange">{{ flight.departure_city }}</span> to <span class="font-bold text-brand-orange">{{ flight.destination_city }}</span>.
+        </p>
+    </div>
+</section>
+
+<!-- Flight Details and Ticket Options -->
+<section class="py-16 bg-slate-50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Flight Summary Info -->
+        <div class="bg-white rounded-3xl p-8 border border-slate-200/60 shadow-sm mb-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-100 pb-6 mb-8">
+                <div>
+                    <span class="text-xs font-bold text-brand-orange bg-brand-orange/15 px-3 py-1.5 rounded-full uppercase tracking-wider mb-2 inline-block">Scheduled Route</span>
+                    <h2 class="text-2xl font-extrabold text-slate-800">{{ flight.departure_city }} ⇄ {{ flight.destination_city }}</h2>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 block font-semibold">Airline Code</span>
+                    <span class="text-xl font-extrabold text-slate-800">{{ flight.flight_number }}</span>
+                </div>
+            </div>
+
+            <!-- Route Details Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Dep -->
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Departure</span>
+                    <h3 class="text-xl font-extrabold text-slate-800">{{ flight.departure_city }}</h3>
+                    <p class="text-xs text-slate-500 mt-1"><i class="fa-regular fa-clock mr-1"></i>{{ flight.departure_time|date:"d M Y, H:i" }}</p>
+                </div>
+                <!-- Arrow -->
+                <div class="flex flex-col items-center justify-center text-slate-300">
+                    <span class="text-3xl text-brand-orange"><i class="fa-solid fa-plane-circle-check"></i></span>
+                    <span class="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-widest">Direct Route</span>
+                </div>
+                <!-- Arr -->
+                <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">Arrival</span>
+                    <h3 class="text-xl font-extrabold text-slate-800">{{ flight.destination_city }}</h3>
+                    <p class="text-xs text-slate-500 mt-1"><i class="fa-regular fa-clock mr-1"></i>{{ flight.arrival_time|date:"d M Y, H:i" }}</p>
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if flight.description %}
+            <div class="mt-8 border-t border-slate-100 pt-6">
+                <h4 class="font-bold text-slate-800 text-sm mb-2">Flight Description & Notes</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">{{ flight.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Ticket Deals -->
+        <h3 class="text-2xl font-extrabold text-slate-900 mb-8 tracking-tight text-center md:text-left">Available Ticket Classes</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for ticket in tickets %}
+            <div class="bg-white rounded-3xl p-6 border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-brand-orange/30 transition-all duration-300 flex flex-col justify-between h-full">
+                <div>
+                    <!-- Ticket class header -->
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                        <h4 class="text-lg font-extrabold text-slate-800 uppercase tracking-wide">{{ ticket.get_ticket_class_display }}</h4>
+                        <span class="w-8 h-8 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center"><i class="fa-solid fa-ticket"></i></span>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="mb-6">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase block">Ticket Fare</span>
+                        <span class="text-2xl font-extrabold text-brand-orange">PKR {{ ticket.price }}</span>
+                    </div>
+
+                    <!-- Features -->
+                    <ul class="space-y-3.5 text-xs text-slate-600 mb-8">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-suitcase-rolling text-slate-400"></i> Baggage: <strong>{{ ticket.baggage_allowance }}</strong></li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-rotate-left text-slate-400"></i> Refund: <strong>{{ ticket.refund_policy }}</strong></li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-chair text-slate-400"></i> Seats: <strong>{{ ticket.seats_available }} Available</strong></li>
+                    </ul>
+                </div>
+
+                <!-- Action Button -->
+                <a href="{% url 'flight_quote' %}" class="w-full text-center py-3 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-bold transition-all duration-250 shadow-md shadow-brand-orange/10 block uppercase tracking-wider">Book Now</a>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-8 bg-white border border-slate-200/60 rounded-3xl">
+                <span class="text-2xl block mb-2">🎫</span>
+                <h4 class="font-bold text-slate-800">No Tickets Available</h4>
+                <p class="text-xs text-slate-500 mt-1">Please submit a custom quote request for fares.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
+
+<!-- Related Services Section with Background -->
+<section class="relative py-20 bg-slate-950 overflow-hidden border-t border-slate-900">
+    <div class="absolute inset-0 z-0 bg-cover bg-center bg-fixed" data-bg="{% static 'images/flights_banner.png' %}"></div>
+    <div class="absolute inset-0 bg-slate-950/85 z-0"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <h2 class="text-2xl font-extrabold text-white mb-2 tracking-tight">Explore Related Services</h2>
+        <p class="text-slate-300 mb-10 text-xs sm:text-sm">Complete your travel itinerary with our premium modules.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <!-- Card 1: Hajj -->
+            <a href="{% url 'hajj_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-mosque"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Hajj Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Premium shifting and non-shifting group catalogs.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+            
+            <!-- Card 2: Umrah -->
+            <a href="{% url 'umrah_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-kaaba"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Umrah Packages</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Economy & custom VIP options near Haram Makkah.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 3: Visa -->
+            <a href="{% url 'visa_countries' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-passport"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Visa Services</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Fast-track eVisas and sticker support advice.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+
+            <!-- Card 4: Flights -->
+            <a href="{% url 'flights_list' %}" class="group p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 hover:border-brand-orange hover:shadow-md transition-all duration-200 text-left flex flex-col justify-between">
+                <div>
+                    <span class="w-10 h-10 rounded-xl bg-brand-orange/10 text-brand-orange flex items-center justify-center text-lg mb-4 group-hover:bg-brand-orange group-hover:text-white transition-colors duration-200"><i class="fa-solid fa-plane"></i></span>
+                    <h4 class="font-bold text-white text-sm mb-1">Flights Ticket</h4>
+                    <p class="text-[11px] text-slate-400 leading-relaxed">Discount airline group seat deals & quotes.</p>
+                </div>
+                <span class="text-xs text-brand-orange font-bold mt-4 flex items-center gap-1">Explore <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i></span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.querySelectorAll('[data-bg]').forEach(el => {
+        el.style.backgroundImage = `url('${el.getAttribute('data-bg')}')`;
+    });
+</script>
+{% endblock %}

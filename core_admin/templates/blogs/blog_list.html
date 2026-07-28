@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Travel Blog | Golden Star Agency — Hajj, Umrah & Visa Insights{% endblock %}
+
+{% block content %}
+
+<!-- Hero / Featured Post Banner -->
+<section class="relative bg-slate-950 overflow-hidden min-h-[480px] flex items-end">
+    <!-- Ambient glows -->
+    <div class="absolute top-0 left-1/3 w-[500px] h-[500px] rounded-full bg-brand-orange/6 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-orange-400/4 blur-[100px] pointer-events-none"></div>
+    <!-- Grid lines -->
+    <div class="absolute inset-0 opacity-[0.025]" style="background-image:linear-gradient(rgba(255,255,255,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.4) 1px,transparent 1px);background-size:52px 52px;"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 py-16 lg:py-20 w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <!-- Left copywriting & search -->
+            <div>
+                <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-orange/10 border border-brand-orange/20 text-brand-orange text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-sm">
+                    <i class="fa-solid fa-newspaper"></i> Travel Insights Blog
+                </span>
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight mb-5">
+                    Expert Guides for<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange via-amber-400 to-yellow-300">Faith & Adventure</span>
+                </h1>
+                <p class="text-slate-400 text-sm leading-relaxed max-w-lg mb-8">
+                    Explore curated Hajj preparation guides, Umrah tips, visa requirements, destination spotlights, and travel industry updates — straight from our editorial team.
+                </p>
+
+                <!-- Search Input Form -->
+                <form action="{% url 'blog_list' %}" method="GET" class="relative max-w-md mb-8">
+                    {% if active_category %}
+                    <input type="hidden" name="category" value="{{ active_category.slug }}">
+                    {% endif %}
+                    {% if sort_by %}
+                    <input type="hidden" name="sort" value="{{ sort_by }}">
+                    {% endif %}
+                    <div class="relative flex items-center">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 text-slate-400 text-sm"></i>
+                        <input type="text" name="q" value="{{ search_query }}"
+                               placeholder="Search articles by topic, keyword, or author..."
+                               class="w-full pl-11 pr-24 py-3.5 bg-white/8 border border-white/15 rounded-2xl text-white placeholder-slate-400 text-sm focus:outline-none focus:border-brand-orange/80 focus:ring-2 focus:ring-brand-orange/20 transition-all backdrop-blur-md">
+                        <button type="submit" class="absolute right-2 px-4 py-2 bg-brand-orange hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-brand-orange/20">
+                            Search
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Stats row -->
+                <div class="flex items-center gap-6 text-sm">
+                    <div class="text-center">
+                        <p class="text-2xl font-extrabold text-brand-orange">{{ total_posts }}</p>
+                        <p class="text-slate-500 text-xs font-semibold mt-0.5">Articles</p>
+                    </div>
+                    <div class="w-px h-10 bg-white/10"></div>
+                    <div class="text-center">
+                        <p class="text-2xl font-extrabold text-brand-orange">{{ categories.count }}</p>
+                        <p class="text-slate-500 text-xs font-semibold mt-0.5">Categories</p>
+                    </div>
+                    <div class="w-px h-10 bg-white/10"></div>
+                    <div class="text-center">
+                        <p class="text-2xl font-extrabold text-brand-orange">Free</p>
+                        <p class="text-slate-500 text-xs font-semibold mt-0.5">Always</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Featured Post Card -->
+            {% if featured_post %}
+            <a href="{% url 'blog_detail' slug=featured_post.slug %}" class="group block bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-brand-orange/40 transition-all duration-300 hover:shadow-2xl hover:shadow-brand-orange/10">
+                <div class="relative h-56 bg-slate-800 overflow-hidden">
+                    {% if featured_post.cover_image %}
+                        <img src="{{ featured_post.cover_image.url }}" alt="{{ featured_post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    {% elif featured_post.static_cover %}
+                        <img src="{% static 'images/'|add:featured_post.static_cover %}" alt="{{ featured_post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                            <i class="fa-solid fa-newspaper text-4xl text-slate-600"></i>
+                        </div>
+                    {% endif %}
+                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md">
+                        <i class="fa-solid fa-star text-[9px] mr-1"></i> Featured Article
+                    </span>
+                </div>
+                <div class="p-6">
+                    {% if featured_post.category %}
+                    <span class="text-[10px] font-bold text-brand-orange bg-brand-orange/10 border border-brand-orange/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">{{ featured_post.category.name }}</span>
+                    {% endif %}
+                    <h2 class="text-xl font-bold text-white mt-2 mb-2 leading-snug group-hover:text-brand-orange transition-colors">{{ featured_post.title }}</h2>
+                    <p class="text-slate-400 text-xs leading-relaxed line-clamp-2">{{ featured_post.excerpt }}</p>
+                    <div class="flex items-center justify-between mt-5 pt-4 border-t border-white/8">
+                        <span class="text-slate-400 text-[11px] font-semibold"><i class="fa-regular fa-user mr-1.5 text-brand-orange"></i>{{ featured_post.author_name }}</span>
+                        <div class="flex items-center gap-3 text-slate-400 text-[11px]">
+                            <span><i class="fa-regular fa-clock mr-1"></i>{{ featured_post.read_time }} min read</span>
+                            <span><i class="fa-regular fa-eye mr-1"></i>{{ featured_post.views }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Category Filter & Sort Bar -->
+<section class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3">
+            <!-- Left: Category chips -->
+            <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+                <a href="{% url 'blog_list' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+                   class="flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 {% if not active_category %}bg-brand-orange text-white shadow-md shadow-brand-orange/25{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                    All Articles
+                </a>
+                {% for cat in categories %}
+                <a href="{% url 'blog_list' %}?category={{ cat.slug }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                   class="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-1.5 {% if active_category.slug == cat.slug %}bg-brand-orange text-white shadow-md shadow-brand-orange/25{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                    <span>{{ cat.name }}</span>
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if active_category.slug == cat.slug %}bg-white/25 text-white{% else %}bg-slate-200 text-slate-500{% endif %}">
+                        {{ cat.post_count }}
+                    </span>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Right: Sort control -->
+            <form action="{% url 'blog_list' %}" method="GET" class="flex items-center gap-2 flex-shrink-0">
+                {% if active_category %}
+                <input type="hidden" name="category" value="{{ active_category.slug }}">
+                {% endif %}
+                {% if search_query %}
+                <input type="hidden" name="q" value="{{ search_query }}">
+                {% endif %}
+                <label for="sort" class="text-xs text-slate-500 font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-down-short-wide text-brand-orange"></i> Sort:
+                </label>
+                <select id="sort" name="sort" onchange="this.form.submit()"
+                        class="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-none focus:border-brand-orange transition-all">
+                    <option value="latest" {% if sort_by == 'latest' %}selected{% endif %}>Latest Articles</option>
+                    <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                </select>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Main Grid & Sidebar Section -->
+<section class="py-16 bg-slate-50 min-h-[500px]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Search Query Header -->
+        {% if search_query %}
+        <div class="mb-8 flex items-center justify-between bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass text-brand-orange"></i>
+                <span class="text-sm text-slate-700">Showing results for <strong>"{{ search_query }}"</strong></span>
+                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">{{ total_posts }} found</span>
+            </div>
+            <a href="{% url 'blog_list' %}{% if active_category %}?category={{ active_category.slug }}{% endif %}"
+               class="text-xs font-bold text-brand-orange hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Clear Search
+            </a>
+        </div>
+        {% endif %}
+
+        {% if page_obj %}
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
+            <!-- Left: Articles Grid -->
+            <div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                    {% for post in page_obj %}
+                    <article class="group bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-brand-orange/30 transition-all duration-300 flex flex-col h-full">
+                        <!-- Cover Image -->
+                        <a href="{% url 'blog_detail' slug=post.slug %}" class="block relative aspect-[16/9] w-full bg-slate-100 overflow-hidden flex-shrink-0">
+                            {% if post.cover_image %}
+                                <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            {% elif post.static_cover %}
+                                <img src="{% static 'images/'|add:post.static_cover %}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                                    <i class="fa-solid fa-newspaper text-3xl text-slate-400"></i>
+                                </div>
+                            {% endif %}
+                            {% if post.is_featured %}
+                            <span class="absolute top-3 left-3 bg-brand-orange text-white text-[9px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow">Featured</span>
+                            {% endif %}
+                            {% if post.category %}
+                            <span class="absolute bottom-3 left-3 bg-black/65 backdrop-blur-sm text-white text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">{{ post.category.name }}</span>
+                            {% endif %}
+                        </a>
+
+                        <!-- Content Body -->
+                        <div class="p-6 flex flex-col flex-grow">
+                            <h2 class="text-base font-bold text-slate-800 mb-2.5 leading-snug group-hover:text-brand-orange transition-colors line-clamp-2 min-h-[2.8rem]">
+                                <a href="{% url 'blog_detail' slug=post.slug %}">{{ post.title }}</a>
+                            </h2>
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-3 min-h-[3.6rem] mb-5 flex-grow">{{ post.excerpt }}</p>
+
+                            <!-- Meta row -->
+                            <div class="pt-4 border-t border-slate-100 flex items-center justify-between mt-auto">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-full bg-brand-orange/15 text-brand-orange flex items-center justify-center text-xs font-extrabold shrink-0">
+                                        {{ post.author_name|slice:":1"|upper }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-[11px] font-semibold text-slate-700 truncate">{{ post.author_name }}</p>
+                                        <p class="text-[10px] text-slate-400">
+                                            {% if post.published_at %}{{ post.published_at|date:"M d, Y" }}{% else %}{{ post.created_at|date:"M d, Y" }}{% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 text-[11px] text-slate-400 font-semibold shrink-0">
+                                    <span><i class="fa-regular fa-clock mr-0.5"></i>{{ post.read_time }}m</span>
+                                    <span><i class="fa-regular fa-eye mr-0.5"></i>{{ post.views }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CTA Footer -->
+                        <a href="{% url 'blog_detail' slug=post.slug %}"
+                           class="flex items-center justify-center gap-2 py-3 bg-slate-50 group-hover:bg-brand-orange group-hover:text-white text-slate-600 text-xs font-bold border-t border-slate-100 transition-all duration-200 mt-auto">
+                            Read Article <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="flex items-center justify-center gap-2 mt-14">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                       class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-semibold hover:border-brand-orange hover:text-brand-orange transition-all">
+                        <i class="fa-solid fa-chevron-left mr-1"></i> Previous
+                    </a>
+                    {% endif %}
+
+                    <div class="flex items-center gap-1">
+                        {% for num in page_obj.paginator.page_range %}
+                        <a href="?page={{ num }}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                           class="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-bold transition-all {% if num == page_obj.number %}bg-brand-orange text-white shadow-md shadow-brand-orange/25{% else %}bg-white border border-slate-200 text-slate-600 hover:border-brand-orange hover:text-brand-orange{% endif %}">
+                            {{ num }}
+                        </a>
+                        {% endfor %}
+                    </div>
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if active_category %}&category={{ active_category.slug }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}"
+                       class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-sm font-semibold hover:border-brand-orange hover:text-brand-orange transition-all">
+                        Next <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right: Sidebar -->
+            <aside class="space-y-8">
+
+                <!-- Popular Articles Widget -->
+                {% if popular_posts %}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm p-6">
+                    <div class="flex items-center gap-2 mb-5">
+                        <i class="fa-solid fa-fire text-brand-orange"></i>
+                        <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Popular Articles</h3>
+                    </div>
+                    <div class="space-y-4">
+                        {% for ppost in popular_posts %}
+                        <a href="{% url 'blog_detail' slug=ppost.slug %}" class="group flex items-start gap-3 pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                            <div class="w-16 h-16 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 relative">
+                                {% if ppost.cover_image %}
+                                    <img src="{{ ppost.cover_image.url }}" alt="{{ ppost.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                                {% elif ppost.static_cover %}
+                                    <img src="{% static 'images/'|add:ppost.static_cover %}" alt="{{ ppost.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center bg-slate-200">
+                                        <i class="fa-solid fa-newspaper text-slate-400 text-xs"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <h4 class="text-xs font-bold text-slate-800 group-hover:text-brand-orange transition-colors line-clamp-2 mb-1">
+                                    {{ ppost.title }}
+                                </h4>
+                                <div class="flex items-center gap-3 text-[10px] text-slate-400">
+                                    <span><i class="fa-regular fa-clock mr-0.5"></i>{{ ppost.read_time }}m</span>
+                                    <span><i class="fa-regular fa-eye mr-0.5"></i>{{ ppost.views }}</span>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Newsletter / Consultation Box -->
+                <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 rounded-3xl p-6 text-white border border-white/10 shadow-lg relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-brand-orange/15 blur-2xl"></div>
+                    <div class="w-10 h-10 rounded-2xl bg-brand-orange/20 border border-brand-orange/30 flex items-center justify-center text-brand-orange text-lg mb-4">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                    <h3 class="font-extrabold text-base mb-2">Need Custom Guidance?</h3>
+                    <p class="text-slate-300 text-xs leading-relaxed mb-5">
+                        Planning your Hajj or Umrah journey? Contact our team for customized package estimates and travel consultation.
+                    </p>
+                    <a href="{% url 'contact' %}" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-brand-orange hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-brand-orange/25">
+                        Get In Touch <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+
+            </aside>
+        </div>
+
+        {% else %}
+        <!-- Empty state -->
+        <div class="text-center py-24 bg-white rounded-3xl border border-slate-200/60 shadow-sm max-w-2xl mx-auto">
+            <div class="w-20 h-20 rounded-3xl bg-brand-orange/10 border border-brand-orange/20 flex items-center justify-center mx-auto mb-6 text-brand-orange">
+                <i class="fa-solid fa-newspaper text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-800 mb-2">No Articles Found</h3>
+            <p class="text-slate-500 text-sm max-w-md mx-auto mb-6">
+                {% if search_query %}
+                We couldn't find any articles matching "<strong>{{ search_query }}</strong>". Try searching for different keywords.
+                {% else %}
+                There are no articles available in this category at the moment. Check back soon!
+                {% endif %}
+            </p>
+            <a href="{% url 'blog_list' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-orange hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-brand-orange/20">
+                <i class="fa-solid fa-arrows-rotate"></i> View All Articles
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}
