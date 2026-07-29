@@ -1,7 +1,32 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}About Us | REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.{% endblock %}
-{% block meta_description %}Learn about REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD., our CEO Mian Ejaz Aslam, our vision, mission, and world-class Umrah, Hajj, visit visa, and air ticketing services across Pakistan.{% endblock %}
+{% block title %}About Us | REI Golden Star Travel & Tours (Pvt) Ltd.{% endblock %}
+{% block meta_description %}Learn about REI Golden Star Travel & Tours (Pvt) Ltd., CEO Mian Ejaz Aslam, our vision, mission, and world-class Umrah, Hajj, visit visa, and air ticketing services in Pakistan.{% endblock %}
+
+{% block og_title %}About Us | REI Golden Star Travel & Tours (Pvt) Ltd.{% endblock %}
+{% block og_description %}Discover Golden Star Agency's 15+ years of excellence in Hajj, Umrah, Visit Visa processing, and flight ticketing across Pakistan.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_b2b.png' %}{% endblock %}
+
+{% block twitter_title %}About Us | REI Golden Star Travel & Tours{% endblock %}
+{% block twitter_description %}Discover Golden Star Agency's 15+ years of excellence in Hajj, Umrah, Visit Visa, and flight ticketing.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_b2b.png' %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "About Golden Star Agency",
+  "description": "REI Golden Star Travel & Tours (Pvt) Ltd. is a premier travel management company in Pakistan led by CEO Mian Ejaz Aslam.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "REI Golden Star Travel & Tours (Pvt) Ltd.",
+    "founder": "Mian Ejaz Aslam",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <!-- Banner & Hero Header -->

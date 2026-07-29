@@ -4428,9 +4428,10 @@
         }
 
         // ══════════════════════════════════════════════════════════
-        // B2C PACKAGES
+        // B2C PACKAGES STUDIO (Full CRUD)
         // ══════════════════════════════════════════════════════════
         let _b2cPackagesData = [];
+        let _editingPackageId = null;
 
         async function fetchAdminB2CPackages() {
             const icon = document.getElementById('icon-refresh-pkg');
@@ -4438,94 +4439,276 @@
             try {
                 const res = await fetch('/dashboard/admin/api/packages/');
                 const data = await res.json();
-                if (data.packages) {
-                    _b2cPackagesData = data.packages;
-                    renderB2CPackages(_b2cPackagesData);
+                if (data.success || data.packages) {
+                    _b2cPackagesData = data.packages || data.data || [];
+                    const total = _b2cPackagesData.length;
+                    const umrah = _b2cPackagesData.filter(p => p.category === 'umrah').length;
+                    const hajj  = _b2cPackagesData.filter(p => p.category === 'hajj').length;
+                    const tour  = _b2cPackagesData.filter(p => p.category === 'tour').length;
+                    const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+                    el('stat-pkg-total', total); el('stat-pkg-umrah', umrah);
+                    el('stat-pkg-hajj', hajj);   el('stat-pkg-tour', tour);
+                    const badge = document.getElementById('badge-pkg-count');
+                    if (badge) badge.textContent = `${total} Packages`;
+                    renderB2CPackagesTable();
+                } else {
+                    const tbody = document.getElementById('tbody-b2c-packages');
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-rose-600 font-bold">Failed to load packages.</td></tr>';
                 }
-            } catch(err) { console.error('B2C packages error:', err); }
-            finally { if (icon) icon.classList.remove('fa-spin'); }
+            } catch(err) {
+                console.error('fetchAdminB2CPackages error:', err);
+                const tbody = document.getElementById('tbody-b2c-packages');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-rose-600 font-bold">Server error. Please refresh.</td></tr>';
+            } finally {
+                if (icon) icon.classList.remove('fa-spin');
+            }
         }
 
-        function renderB2CPackages(packages) {
+        function renderB2CPackagesTable() {
             const tbody = document.getElementById('tbody-b2c-packages');
             if (!tbody) return;
-            const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
-            el('stat-pkg-total',  packages.length);
-            el('stat-pkg-umrah',  packages.filter(p => p.category === 'umrah').length);
-            el('stat-pkg-hajj',   packages.filter(p => p.category === 'hajj').length);
-            el('stat-pkg-tour',   packages.filter(p => p.category === 'tour').length);
-            const badge = document.getElementById('badge-pkg-count');
-            if (badge) badge.textContent = `${packages.length} Packages`;
-
-            if (!packages.length) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-[#567946] font-semibold">No packages found. Add your first package.</td></tr>`;
+            if (!_b2cPackagesData.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-[#567946] font-bold">No packages found. Click "+ Create New Package" to add one.</td></tr>';
                 return;
             }
-            const catColor = cat => cat==='umrah'?'bg-emerald-100 text-emerald-800':cat==='hajj'?'bg-[#FDF2EA] text-[#E06A26]':'bg-blue-50 text-blue-700';
-            tbody.innerHTML = packages.map(p => `
-                <tr class="hover:bg-[#F6FAF3] transition-colors">
-                    <td class="p-3 font-mono text-[#2D4424] font-bold">#${p.id}</td>
+            tbody.innerHTML = _b2cPackagesData.map(pkg => {
+                const catColor = pkg.category === 'hajj' ? 'bg-[#2D4424]/10 text-[#2D4424] border-[#2D4424]/20' : pkg.category === 'tour' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                const seats = pkg.available_seats;
+                const seatColor = seats <= 5 ? 'text-rose-600 font-black' : seats <= 10 ? 'text-amber-600 font-bold' : 'text-emerald-700 font-bold';
+                const seatsBar = Math.min(100, Math.round((seats / Math.max(pkg.total_seats, 1)) * 100));
+                return `
+                <tr class="hover:bg-[#F6FAF3] transition-colors border-b border-[#E7DCB9]">
+                    <td class="p-3 font-bold text-[#2D4424]">#${pkg.id}</td>
                     <td class="p-3">
-                        <div class="font-bold text-[#2D4424] max-w-[200px] truncate">${p.title}</div>
-                        <div class="text-[10px] text-[#567946]">${p.duration_days} days &bull; ${p.airline || 'N/A'}</div>
+                        <div class="font-black text-[#2D4424] text-xs max-w-xs truncate">${escapeHTML(pkg.title)}</div>
+                        <div class="text-[10px] text-[#567946] font-semibold mt-0.5">${escapeHTML(pkg.airline || 'Saudi Airlines')} &bull; ${pkg.duration_days} Days</div>
                     </td>
-                    <td class="p-3"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${catColor(p.category)}">${p.category}</span></td>
-                    <td class="p-3 font-mono font-black text-[#2D4424]">PKR ${Number(p.price).toLocaleString('en-PK')}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${catColor}">${(pkg.category || 'umrah').toUpperCase()}</span></td>
+                    <td class="p-3 font-extrabold text-[#2D4424]">PKR ${Number(pkg.price).toLocaleString()}</td>
                     <td class="p-3">
-                        <div class="text-xs font-bold text-[#2D4424]">${p.available_seats} / ${p.total_seats}</div>
-                        <div class="w-20 h-1.5 bg-[#E7DCB9] rounded-full mt-1"><div class="h-1.5 rounded-full ${p.available_seats > 10 ? 'bg-emerald-500' : 'bg-[#E06A26]'}" style="width:${Math.min(100,Math.round((p.available_seats/Math.max(p.total_seats,1))*100))}%"></div></div>
+                        <span class="${seatColor}">${seats}/${pkg.total_seats}</span>
+                        <div class="w-16 h-1.5 bg-[#E7DCB9] rounded-full mt-1"><div class="h-1.5 rounded-full ${seats > 10 ? 'bg-emerald-500' : 'bg-[#E06A26]'}" style="width:${seatsBar}%"></div></div>
                     </td>
-                    <td class="p-3 text-[11px] text-[#567946] max-w-[150px] truncate">${p.makkah_hotel_name || 'N/A'}</td>
-                    <td class="p-3">
-                        <div class="flex items-center gap-1.5">
-                            <a href="/packages/${p.id}/" target="_blank" class="px-2.5 py-1 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-[10px] font-bold rounded-lg flex items-center gap-1"><i class="fa-solid fa-eye"></i> View</a>
+                    <td class="p-3 text-xs text-[#567946] font-semibold max-w-[120px] truncate">${escapeHTML(pkg.makkah_hotel_name || 'N/A')}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-1">
+                            <button onclick="viewB2CPackage(${pkg.id})" title="View Details" class="px-2 py-1.5 rounded-xl text-[10px] font-black bg-[#F6FAF3] border border-emerald-200 text-[#567946] hover:bg-emerald-50 transition-all flex items-center gap-1"><i class="fa-solid fa-eye"></i> View</button>
+                            <button onclick="editB2CPackage(${pkg.id})" title="Edit" class="px-2 py-1.5 rounded-xl text-[10px] font-black bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] hover:bg-[#EBD8B3] transition-all flex items-center gap-1"><i class="fa-solid fa-pen text-[#E06A26]"></i> Edit</button>
+                            <button onclick="deleteB2CPackage(${pkg.id})" title="Delete" class="px-2 py-1.5 rounded-xl text-[10px] font-black bg-rose-50 border border-rose-200 text-rose-600 hover:bg-rose-100 transition-all flex items-center gap-1"><i class="fa-solid fa-trash"></i> Del</button>
                         </div>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
 
-        // B2C Creation Handlers
+        function _pkgVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+        function _pkgSet(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+        function _pkgSetSel(id, val) { const el = document.getElementById(id); if (el && val) { for(let o of el.options) { if(o.value === val) { o.selected=true; break; } } } }
+
         function openAddB2CPackageModal() {
-            const modal = document.getElementById('modal-add-b2c-package');
-            if (modal) {
-                modal.style.display = 'flex';
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
+            _editingPackageId = null;
+            const modal = document.getElementById('modal-b2c-package-form');
+            if (!modal) return;
+            document.getElementById('pkg-modal-title').textContent = 'Create New Package';
+            _pkgSet('pkg-form-title', '');
+            _pkgSetSel('pkg-form-category', 'umrah');
+            _pkgSet('pkg-form-duration', '15');
+            _pkgSet('pkg-form-seats', '30');
+            _pkgSet('pkg-form-discount', '0');
+            _pkgSet('pkg-form-price-sharing', '210000');
+            _pkgSet('pkg-form-price-quad',    '245000');
+            _pkgSet('pkg-form-price-triple',  '275000');
+            _pkgSet('pkg-form-price-double',  '320000');
+            _pkgSet('pkg-form-price-child',   '180000');
+            _pkgSet('pkg-form-price-infant',  '65000');
+            _pkgSetSel('pkg-form-airline', 'Saudi Airlines');
+            _pkgSetSel('pkg-form-route-type', 'direct');
+            _pkgSet('pkg-form-routes', 'KHI - JED - MED - KHI');
+            _pkgSetSel('pkg-form-meal', 'Full Board');
+            _pkgSetSel('pkg-form-transport', 'Sharing');
+            _pkgSet('pkg-form-luggage', '20 kg + 7 kg Hand Carry');
+            _pkgSet('pkg-form-makkah-hotel', 'Anjum Hotel Makkah');
+            _pkgSet('pkg-form-makkah-dist',  '350m from Haram');
+            _pkgSet('pkg-form-madinah-hotel', 'Pullman Zamzam Madinah');
+            _pkgSet('pkg-form-madinah-dist',  "150m from Prophet's Mosque");
+            _pkgSet('pkg-form-description', '');
+            document.getElementById('pkg-form-error').textContent = '';
+            const btn = document.getElementById('pkg-form-submit-btn');
+            if (btn) { btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Create Package'; btn.disabled = false; }
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden'); modal.classList.add('flex');
         }
-        function closeAddB2CPackageModal() {
-            const modal = document.getElementById('modal-add-b2c-package');
-            if (modal) {
-                modal.style.display = 'none';
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        }
-        async function submitAddB2CPackage(e) {
-            e.preventDefault();
-            const form = e.target;
-            const formData = new FormData(form);
+
+        async function editB2CPackage(id) {
+            _editingPackageId = id;
+            // Close detail modal if open
+            closePkgDetailModal();
             try {
-                const res = await fetch('/dashboard/admin/api/packages/', {
+                const res = await fetch(`/dashboard/admin/api/packages/${id}/`);
+                const data = await res.json();
+                if (data.success && data.package) {
+                    const p = data.package;
+                    const modal = document.getElementById('modal-b2c-package-form');
+                    if (!modal) return;
+                    document.getElementById('pkg-modal-title').textContent = 'Edit Package — #' + p.id;
+                    _pkgSet('pkg-form-title', p.title);
+                    _pkgSetSel('pkg-form-category', p.category || 'umrah');
+                    _pkgSet('pkg-form-duration', p.duration_days || 15);
+                    _pkgSet('pkg-form-seats', p.available_seats || 30);
+                    _pkgSet('pkg-form-discount', p.discount_percentage || 0);
+                    _pkgSet('pkg-form-price-sharing', p.price_sharing || p.price || '');
+                    _pkgSet('pkg-form-price-quad',    p.price_quad    || '');
+                    _pkgSet('pkg-form-price-triple',  p.price_triple  || '');
+                    _pkgSet('pkg-form-price-double',  p.price_double  || '');
+                    _pkgSet('pkg-form-price-child',   p.price_child   || '');
+                    _pkgSet('pkg-form-price-infant',  p.price_infant  || '');
+                    _pkgSetSel('pkg-form-airline', p.airline || 'Saudi Airlines');
+                    _pkgSetSel('pkg-form-route-type', p.flight_route_type || 'direct');
+                    _pkgSet('pkg-form-routes', p.flight_routes);
+                    _pkgSetSel('pkg-form-meal', p.meal_detail || 'Full Board');
+                    _pkgSetSel('pkg-form-transport', p.transport_type || 'Sharing');
+                    _pkgSet('pkg-form-luggage', p.luggage_weight || '20 kg + 7 kg Hand Carry');
+                    _pkgSet('pkg-form-makkah-hotel', p.makkah_hotel_name);
+                    _pkgSet('pkg-form-makkah-dist',  p.makkah_hotel_distance);
+                    _pkgSet('pkg-form-madinah-hotel', p.madinah_hotel_name);
+                    _pkgSet('pkg-form-madinah-dist',  p.madinah_hotel_distance);
+                    _pkgSet('pkg-form-description',   p.description);
+                    document.getElementById('pkg-form-error').textContent = '';
+                    const btn = document.getElementById('pkg-form-submit-btn');
+                    if (btn) { btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes'; btn.disabled = false; }
+                    modal.style.display = 'flex';
+                    modal.classList.remove('hidden'); modal.classList.add('flex');
+                }
+            } catch(err) { alert('Could not load package details.'); console.error(err); }
+        }
+
+        function closePackageModal() {
+            const modal = document.getElementById('modal-b2c-package-form');
+            if (modal) { modal.style.display = 'none'; modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+
+        async function submitB2CPackageForm(e) {
+            e.preventDefault();
+            const errEl = document.getElementById('pkg-form-error');
+            const submitBtn = document.getElementById('pkg-form-submit-btn');
+            const title = _pkgVal('pkg-form-title').trim();
+            if (!title) { errEl.textContent = 'Package title is required.'; return; }
+            const sharing = parseFloat(_pkgVal('pkg-form-price-sharing')) || 210000;
+            const body = {
+                title,
+                category:           _pkgVal('pkg-form-category'),
+                price:              sharing,   // base price = sharing price
+                price_sharing:      sharing,
+                price_quad:         parseFloat(_pkgVal('pkg-form-price-quad'))   || sharing + 35000,
+                price_triple:       parseFloat(_pkgVal('pkg-form-price-triple')) || sharing + 65000,
+                price_double:       parseFloat(_pkgVal('pkg-form-price-double')) || sharing + 110000,
+                price_child:        parseFloat(_pkgVal('pkg-form-price-child'))  || 180000,
+                price_infant:       parseFloat(_pkgVal('pkg-form-price-infant')) || 65000,
+                discount_percentage: parseFloat(_pkgVal('pkg-form-discount'))   || 0,
+                duration_days:      parseInt(_pkgVal('pkg-form-duration'))        || 15,
+                available_seats:    parseInt(_pkgVal('pkg-form-seats'))           || 30,
+                total_seats:        parseInt(_pkgVal('pkg-form-seats'))           || 30,
+                airline:            _pkgVal('pkg-form-airline'),
+                flight_route_type:  _pkgVal('pkg-form-route-type'),
+                flight_routes:      _pkgVal('pkg-form-routes'),
+                meal_detail:        _pkgVal('pkg-form-meal'),
+                transport_type:     _pkgVal('pkg-form-transport'),
+                luggage_weight:     _pkgVal('pkg-form-luggage'),
+                makkah_hotel_name:       _pkgVal('pkg-form-makkah-hotel'),
+                makkah_hotel_distance:   _pkgVal('pkg-form-makkah-dist'),
+                madinah_hotel_name:      _pkgVal('pkg-form-madinah-hotel'),
+                madinah_hotel_distance:  _pkgVal('pkg-form-madinah-dist'),
+                description:        _pkgVal('pkg-form-description')
+            };
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin mr-1"></i> Saving...';
+            try {
+                const url = _editingPackageId
+                    ? `/dashboard/admin/api/packages/${_editingPackageId}/`
+                    : '/dashboard/admin/api/packages/create/';
+                const res = await fetch(url, {
                     method: 'POST',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' },
-                    body: formData
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.success) { closePackageModal(); fetchAdminB2CPackages(); }
+                else { errEl.textContent = data.message || 'Failed to save package.'; }
+            } catch(err) { errEl.textContent = 'Network error. Please try again.'; console.error(err); }
+            finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = _editingPackageId
+                    ? '<i class="fa-solid fa-floppy-disk"></i> Save Changes'
+                    : '<i class="fa-solid fa-floppy-disk"></i> Create Package';
+            }
+        }
+
+        async function deleteB2CPackage(id) {
+            if (!confirm('Permanently delete this package? This cannot be undone.')) return;
+            try {
+                const res = await fetch(`/dashboard/admin/api/packages/${id}/delete/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('Package published successfully!');
-                    closeAddB2CPackageModal();
-                    form.reset();
-                    fetchAdminB2CPackages();
-                } else {
-                    alert('Error creating package: ' + (data.message || data.error || 'Unknown error'));
-                }
-            } catch(err) {
-                alert('Network error publishing package.');
-            }
+                    _b2cPackagesData = _b2cPackagesData.filter(p => p.id !== id);
+                    renderB2CPackagesTable();
+                    const el = document.getElementById('stat-pkg-total');
+                    if (el) el.textContent = _b2cPackagesData.length;
+                } else { alert(data.message || 'Failed to delete package.'); }
+            } catch(err) { console.error('Delete package error:', err); }
         }
 
+        async function viewB2CPackage(id) {
+            const pkg = _b2cPackagesData.find(p => p.id === id);
+            if (!pkg) return;
+            const modal = document.getElementById('modal-pkg-detail');
+            if (!modal) return;
+
+            const fmtPKR = v => 'PKR ' + Number(v || 0).toLocaleString();
+            document.getElementById('pkgd-title').textContent = pkg.title;
+            document.getElementById('pkgd-cat').textContent = (pkg.category || 'umrah').toUpperCase() + ' Package';
+            document.getElementById('pkgd-duration').textContent = (pkg.duration_days || '—') + ' Days';
+            document.getElementById('pkgd-seats').textContent = (pkg.available_seats || '—') + ' / ' + (pkg.total_seats || '—');
+            document.getElementById('pkgd-airline').textContent = pkg.airline || '—';
+            document.getElementById('pkgd-route').textContent = pkg.flight_routes || '—';
+            document.getElementById('pkgd-meal').textContent = pkg.meal_detail || 'Full Board';
+            document.getElementById('pkgd-luggage').textContent = pkg.luggage_weight || '20 kg + 7 kg';
+            document.getElementById('pkgd-makkah-hotel').textContent = pkg.makkah_hotel_name || '—';
+            document.getElementById('pkgd-makkah-dist').textContent = pkg.makkah_hotel_distance || '—';
+            document.getElementById('pkgd-madinah-hotel').textContent = pkg.madinah_hotel_name || '—';
+            document.getElementById('pkgd-madinah-dist').textContent = pkg.madinah_hotel_distance || '—';
+            document.getElementById('pkgd-description').textContent = pkg.description || 'No description provided.';
+
+            const pricesGrid = document.getElementById('pkgd-prices');
+            const priceDefs = [
+                { label: 'Sharing (5-6 pax)', val: pkg.price_sharing, color: 'bg-emerald-50 border-emerald-200 text-emerald-800' },
+                { label: 'Quad (4 pax)',       val: pkg.price_quad,    color: 'bg-[#F7F3E9] border-[#D9CBAC] text-[#2D4424]' },
+                { label: 'Triple (3 pax)',     val: pkg.price_triple,  color: 'bg-[#F7F3E9] border-[#D9CBAC] text-[#2D4424]' },
+                { label: 'Double (2 pax)',     val: pkg.price_double,  color: 'bg-[#F7F3E9] border-[#D9CBAC] text-[#2D4424]' },
+                { label: 'Child (with bed)',   val: pkg.price_child,   color: 'bg-amber-50 border-amber-200 text-amber-800' },
+                { label: 'Infant (no bed)',    val: pkg.price_infant,  color: 'bg-blue-50 border-blue-200 text-blue-800' }
+            ];
+            pricesGrid.innerHTML = priceDefs.map(pd => `
+                <div class="border rounded-2xl p-3 ${pd.color}">
+                    <p class="text-[9px] font-black uppercase mb-1">${pd.label}</p>
+                    <p class="font-extrabold text-sm">${fmtPKR(pd.val)}</p>
+                </div>`).join('');
+
+            const editBtn = document.getElementById('pkgd-edit-btn');
+            if (editBtn) editBtn.onclick = () => { closePkgDetailModal(); editB2CPackage(id); };
+            const viewLink = document.getElementById('pkgd-view-link');
+            if (viewLink) viewLink.href = `/packages/${id}/`;
+
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+
+        function closePkgDetailModal() {
+            const modal = document.getElementById('modal-pkg-detail');
+            if (modal) { modal.style.display = 'none'; modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
         function openAddB2CVisaModal() {
             const modal = document.getElementById('modal-add-b2c-visa');
             if (modal) {
@@ -5277,7 +5460,6 @@
         }
 
         // ══════════════════════════════════════════════════════════
-        // B2C CUSTOM INQUIRIES
         // ══════════════════════════════════════════════════════════
         let _b2cInquiriesData = [];
 
@@ -7947,6 +8129,272 @@
                     <button type="submit" class="px-5 py-2 bg-[#567946] hover:bg-[#38522D] text-white font-extrabold rounded-xl shadow-md text-xs">Create Category</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: CREATE / EDIT B2C PACKAGE (FULL DETAIL) ==================== -->
+    <div id="modal-b2c-package-form" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto" style="display: none;">
+        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-0 relative my-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-4 mb-5">
+                <h3 id="pkg-modal-title" class="text-base font-black text-[#2D4424] flex items-center gap-2">
+                    <i class="fa-solid fa-box-archive text-[#E06A26]"></i> Create New Package
+                </h3>
+                <button type="button" onclick="closePackageModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 text-sm font-bold transition-all">✕</button>
+            </div>
+            <div id="pkg-form-error" class="text-rose-600 text-xs font-bold mb-3 empty:hidden"></div>
+
+            <form id="form-b2c-package" onsubmit="submitB2CPackageForm(event)" class="space-y-5 text-xs max-h-[80vh] overflow-y-auto pr-1">
+
+                <!-- ── SECTION 1: Basic Info ── -->
+                <div>
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Basic Information</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Package Title *</label>
+                            <input type="text" id="pkg-form-title" required placeholder="e.g. Premium Umrah Package 2026 — 15 Days" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Category</label>
+                            <select id="pkg-form-category" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="umrah">Umrah</option>
+                                <option value="hajj">Hajj</option>
+                                <option value="tour">Tour Package</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Duration (Days)</label>
+                            <input type="number" id="pkg-form-duration" min="1" placeholder="15" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Total Seats</label>
+                            <input type="number" id="pkg-form-seats" min="1" placeholder="30" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Discount (%)</label>
+                            <input type="number" id="pkg-form-discount" min="0" max="100" step="0.5" placeholder="0" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 2: Pricing Matrix ── -->
+                <div class="border-t border-[#E7DCB9] pt-4">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-tags"></i> Room-Type Pricing (PKR)</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3">
+                            <label class="block font-black text-[#2D4424] mb-1 text-[10px] uppercase">Sharing (5-6 pax)</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[#567946] font-bold text-[10px]">PKR</span>
+                                <input type="number" id="pkg-form-price-sharing" min="0" step="1000" placeholder="210000" class="flex-1 bg-transparent font-extrabold text-[#2D4424] text-xs focus:outline-none w-full">
+                            </div>
+                        </div>
+                        <div class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3">
+                            <label class="block font-black text-[#2D4424] mb-1 text-[10px] uppercase">Quad (4 pax)</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[#567946] font-bold text-[10px]">PKR</span>
+                                <input type="number" id="pkg-form-price-quad" min="0" step="1000" placeholder="245000" class="flex-1 bg-transparent font-extrabold text-[#2D4424] text-xs focus:outline-none w-full">
+                            </div>
+                        </div>
+                        <div class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3">
+                            <label class="block font-black text-[#2D4424] mb-1 text-[10px] uppercase">Triple (3 pax)</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[#567946] font-bold text-[10px]">PKR</span>
+                                <input type="number" id="pkg-form-price-triple" min="0" step="1000" placeholder="275000" class="flex-1 bg-transparent font-extrabold text-[#2D4424] text-xs focus:outline-none w-full">
+                            </div>
+                        </div>
+                        <div class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3">
+                            <label class="block font-black text-[#2D4424] mb-1 text-[10px] uppercase">Double (2 pax)</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[#567946] font-bold text-[10px]">PKR</span>
+                                <input type="number" id="pkg-form-price-double" min="0" step="1000" placeholder="320000" class="flex-1 bg-transparent font-extrabold text-[#2D4424] text-xs focus:outline-none w-full">
+                            </div>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3">
+                            <label class="block font-black text-amber-700 mb-1 text-[10px] uppercase">Child (with bed)</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-amber-600 font-bold text-[10px]">PKR</span>
+                                <input type="number" id="pkg-form-price-child" min="0" step="1000" placeholder="180000" class="flex-1 bg-transparent font-extrabold text-amber-700 text-xs focus:outline-none w-full">
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3">
+                            <label class="block font-black text-blue-700 mb-1 text-[10px] uppercase">Infant (no bed)</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-blue-500 font-bold text-[10px]">PKR</span>
+                                <input type="number" id="pkg-form-price-infant" min="0" step="1000" placeholder="65000" class="flex-1 bg-transparent font-extrabold text-blue-700 text-xs focus:outline-none w-full">
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-[9px] text-[#567946] mt-2 font-semibold"><i class="fa-solid fa-circle-info mr-1"></i>Base Price shown in listing = Sharing price. All above prices shown to customers on package detail page.</p>
+                </div>
+
+                <!-- ── SECTION 3: Flight Info ── -->
+                <div class="border-t border-[#E7DCB9] pt-4">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-plane-departure"></i> Flight Information</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Airline</label>
+                            <select id="pkg-form-airline" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="Saudi Airlines">Saudi Airlines (Saudia)</option>
+                                <option value="PIA">PIA (Pakistan International)</option>
+                                <option value="Emirates">Emirates</option>
+                                <option value="Qatar Airways">Qatar Airways</option>
+                                <option value="Air Arabia">Air Arabia</option>
+                                <option value="FlyDubai">FlyDubai</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Route Type</label>
+                            <select id="pkg-form-route-type" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="direct">Direct Flight</option>
+                                <option value="via">Via / Connecting</option>
+                            </select>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Flight Route</label>
+                            <input type="text" id="pkg-form-routes" placeholder="KHI - JED - MED - KHI" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 4: Inclusions ── -->
+                <div class="border-t border-[#E7DCB9] pt-4">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Inclusions & Services</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Meal Plan</label>
+                            <select id="pkg-form-meal" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="Full Board">Full Board (3 meals)</option>
+                                <option value="Half Board">Half Board (2 meals)</option>
+                                <option value="Breakfast Only">Breakfast Only</option>
+                                <option value="No Meals">No Meals</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Transport</label>
+                            <select id="pkg-form-transport" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="Sharing">Sharing Bus</option>
+                                <option value="Private">Private Vehicle</option>
+                                <option value="Haramain Train">Haramain Train</option>
+                                <option value="Not Included">Not Included</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Luggage</label>
+                            <input type="text" id="pkg-form-luggage" placeholder="20 kg + 7 kg Hand Carry" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 5: Hotels ── -->
+                <div class="border-t border-[#E7DCB9] pt-4">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-hotel"></i> Hotel Information</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Hotel</label>
+                            <input type="text" id="pkg-form-makkah-hotel" placeholder="Anjum Hotel Makkah" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Distance</label>
+                            <input type="text" id="pkg-form-makkah-dist" placeholder="350m from Haram" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Hotel</label>
+                            <input type="text" id="pkg-form-madinah-hotel" placeholder="Pullman Zamzam Madinah" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Distance</label>
+                            <input type="text" id="pkg-form-madinah-dist" placeholder="150m from Prophet's Mosque" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 6: Description ── -->
+                <div class="border-t border-[#E7DCB9] pt-4">
+                    <label class="block font-extrabold text-[#2D4424] mb-1">Package Description</label>
+                    <textarea id="pkg-form-description" rows="3" placeholder="Describe the package highlights, inclusions, and special features..." class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-medium text-[#2D4424] focus:outline-none focus:border-[#E06A26]"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-3 pt-3 border-t border-[#E7DCB9] sticky bottom-0 bg-white pb-1">
+                    <button type="button" onclick="closePackageModal()" class="px-5 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] font-extrabold rounded-xl text-xs hover:bg-[#EBD8B3] transition-all">Cancel</button>
+                    <button type="submit" id="pkg-form-submit-btn" class="px-7 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Create Package</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL: VIEW PACKAGE DETAIL (Read-only) ==================== -->
+    <div id="modal-pkg-detail" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto" style="display: none;">
+        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative my-8">
+            <div class="flex justify-between items-start border-b border-[#E7DCB9] pb-4 mb-5">
+                <div>
+                    <h3 id="pkgd-title" class="text-base font-black text-[#2D4424]">Package Details</h3>
+                    <p id="pkgd-cat" class="text-[10px] font-bold text-[#E06A26] uppercase mt-0.5"></p>
+                </div>
+                <button type="button" onclick="closePkgDetailModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 text-sm font-bold">✕</button>
+            </div>
+
+            <!-- Price Matrix -->
+            <div class="mb-5">
+                <p class="text-[10px] font-black text-[#567946] uppercase tracking-wider mb-3"><i class="fa-solid fa-tags mr-1 text-[#E06A26]"></i> Pricing by Room Type</p>
+                <div id="pkgd-prices" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5"></div>
+            </div>
+
+            <!-- Key Info Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
+                <div class="bg-[#F7F3E9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase">Duration</p>
+                    <p id="pkgd-duration" class="font-extrabold text-[#2D4424] text-sm mt-0.5">— Days</p>
+                </div>
+                <div class="bg-[#F7F3E9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase">Seats Left</p>
+                    <p id="pkgd-seats" class="font-extrabold text-[#2D4424] text-sm mt-0.5">—/—</p>
+                </div>
+                <div class="bg-[#F7F3E9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase">Airline</p>
+                    <p id="pkgd-airline" class="font-extrabold text-[#2D4424] text-sm mt-0.5">—</p>
+                </div>
+                <div class="bg-[#F7F3E9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase">Flight Route</p>
+                    <p id="pkgd-route" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
+                </div>
+                <div class="bg-[#F7F3E9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase">Meal Plan</p>
+                    <p id="pkgd-meal" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
+                </div>
+                <div class="bg-[#F7F3E9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase">Luggage</p>
+                    <p id="pkgd-luggage" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
+                </div>
+            </div>
+
+            <!-- Hotels -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                <div class="border border-[#E7DCB9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase mb-1"><i class="fa-solid fa-kaaba text-[#E06A26] mr-1"></i> Makkah Hotel</p>
+                    <p id="pkgd-makkah-hotel" class="font-extrabold text-[#2D4424] text-xs">—</p>
+                    <p id="pkgd-makkah-dist" class="text-[10px] text-[#567946] font-semibold mt-0.5">—</p>
+                </div>
+                <div class="border border-[#E7DCB9] rounded-2xl p-3">
+                    <p class="text-[9px] font-black text-[#567946] uppercase mb-1"><i class="fa-solid fa-mosque text-[#E06A26] mr-1"></i> Madinah Hotel</p>
+                    <p id="pkgd-madinah-hotel" class="font-extrabold text-[#2D4424] text-xs">—</p>
+                    <p id="pkgd-madinah-dist" class="text-[10px] text-[#567946] font-semibold mt-0.5">—</p>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="border-t border-[#E7DCB9] pt-4 mb-5">
+                <p class="text-[9px] font-black text-[#567946] uppercase mb-1">Description</p>
+                <p id="pkgd-description" class="text-xs text-[#2D4424] font-medium leading-relaxed">—</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-end gap-2 border-t border-[#E7DCB9] pt-4">
+                <button type="button" onclick="closePkgDetailModal()" class="px-4 py-2 bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] font-extrabold rounded-xl text-xs hover:bg-[#EBD8B3] transition-all">Close</button>
+                <button type="button" id="pkgd-edit-btn" onclick="" class="px-4 py-2 bg-[#2D4424] hover:bg-[#1a2c14] text-white font-black rounded-xl text-xs flex items-center gap-1.5 transition-all"><i class="fa-solid fa-pen"></i> Edit This Package</button>
+                <a id="pkgd-view-link" href="#" target="_blank" class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white font-black rounded-xl text-xs flex items-center gap-1.5 transition-all"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Live</a>
+            </div>
         </div>
     </div>
 

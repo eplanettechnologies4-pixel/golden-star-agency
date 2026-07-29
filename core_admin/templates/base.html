@@ -4,13 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.{% endblock %}</title>
+    <title>{% block title %}Golden Star Agency | Hajj & Umrah Packages, Visa & Flights Pakistan{% endblock %}</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     <link rel="shortcut icon" href="{% static 'favicon.ico' %}">
     
-    <!-- Meta tags for SEO -->
-    <meta name="description" content="{% block meta_description %}Premium Hajj, Umrah, family/group packages, visit visa services, and flight booking from Golden Star Agency Pakistan.{% endblock %}">
+    <!-- Technical & Meta tags for SEO -->
+    <meta name="description" content="{% block meta_description %}Golden Star Agency provides premium Hajj & Umrah packages, fast visit visa processing, and air tickets from Pakistan with 24/7 dedicated support.{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}index, follow{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    <meta name="author" content="Golden Star Travel & Tours (Pvt) Ltd.">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:site_name" content="Golden Star Agency">
+    <meta property="og:title" content="{% block og_title %}{% block title_og %}{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static 'images/default-share.jpg' %}{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}{{ request.build_absolute_uri }}{% endblock %}">
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{% block twitter_title %}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}{% endblock %}">
+
+    <!-- Structured Data JSON-LD Block -->
+    {% block schema_markup %}{% endblock %}
     
     <!-- Tailwind CSS with Earthy Color Palette Config -->
     <script>(function(){const w=console.warn;console.warn=function(...a){if(a[0]&&typeof a[0]==='string'&&a[0].includes('cdn.tailwindcss.com'))return;w.apply(console,a);};})();</script>

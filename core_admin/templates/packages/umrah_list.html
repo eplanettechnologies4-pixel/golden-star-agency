@@ -1,6 +1,41 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Umrah Packages | Golden Star Agency{% endblock %}
+{% block title %}Cheap Umrah Packages 2026 Pakistan | Economy & 5-Star VIP | Golden Star Agency{% endblock %}
+{% block meta_description %}Compare 15, 21, and 28 days Umrah packages from Pakistan (Lahore, Karachi, Islamabad). Includes Saudi Airlines ticket, visa, Makkah & Madinah hotel booking.{% endblock %}
+
+{% block og_title %}Umrah Packages 2026 Pakistan | Economy & 5-Star VIP Deals{% endblock %}
+{% block og_description %}Compare all Umrah packages with Golden Star Agency. Transparent pricing, verified Makkah/Madinah hotels, direct Saudi flights, and instant booking.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/umrah_banner.png' %}{% endblock %}
+
+{% block twitter_title %}Umrah Packages 2026 Pakistan | Golden Star Agency{% endblock %}
+{% block twitter_description %}Compare economy & luxury Umrah packages from Pakistan with transparent pricing.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/umrah_banner.png' %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Umrah Packages 2026 Pakistan",
+  "description": "Comprehensive list of economy, quad, triple, and VIP 5-star Umrah packages offered by Golden Star Agency Pakistan.",
+  "itemListElement": [
+    {% for pkg in packages %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "item": {
+        "@type": "TouristTrip",
+        "name": "{{ pkg.title|escapejs }}",
+        "price": "{{ pkg.price }}",
+        "priceCurrency": "PKR",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'package_detail' pkg.id %}"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
 {% block content %}
 <!-- Top Level Banner Image Slider -->
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">

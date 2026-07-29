@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Flight Ticketing & Airline Deals | Golden Star Agency{% endblock %}
+{% block title %}Cheap Flight Tickets Pakistan to Saudi Arabia, UAE, UK | Golden Star Agency{% endblock %}
+{% block meta_description %}Book cheap airline tickets from Pakistan (Lahore, Karachi, Islamabad) to Jeddah, Madinah, Riyadh, Dubai, London. PIA, Saudi Airlines & Emirates deals.{% endblock %}
+
+{% block og_title %}Cheap Flight Tickets & Airline Deals | Golden Star Agency{% endblock %}
+{% block og_description %}Instant flight ticket search and booking from Pakistan to Saudi Arabia, UAE, UK, and worldwide destinations.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/flights_banner.png' %}{% endblock %}
+
+{% block twitter_title %}Cheap Flight Tickets & Airline Deals | Golden Star Agency{% endblock %}
+{% block twitter_description %}Instant flight ticket booking from Pakistan to Saudi Arabia, UAE, UK.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/flights_banner.png' %}{% endblock %}
 {% block content %}
 <!-- Top Level Banner Image Slider -->
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">

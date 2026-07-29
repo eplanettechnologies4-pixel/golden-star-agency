@@ -1,7 +1,45 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Golden Star Agency | Premium Travel, Hajj & Umrah Platform{% endblock %}
+{% block title %}Golden Star Agency | Hajj & Umrah Packages, Visit Visa & Flights Pakistan{% endblock %}
+{% block meta_description %}Golden Star Agency is Pakistan's leading travel agency offering economy & VIP 5-star Hajj & Umrah packages, fast visit visa processing, and air tickets from Lahore, Karachi & Faisalabad.{% endblock %}
+
+{% block og_title %}Golden Star Agency | Hajj & Umrah Packages, Visit Visa & Flights Pakistan{% endblock %}
+{% block og_description %}Pakistan's leading travel platform for Hajj, Umrah, Visit Visa processing & Flight Ticketing. Book packages with transparent pricing and 24/7 support.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_b2b.png' %}{% endblock %}
+
+{% block twitter_title %}Golden Star Agency | Hajj & Umrah Packages, Visit Visa & Flights Pakistan{% endblock %}
+{% block twitter_description %}Pakistan's leading travel platform for Hajj, Umrah, Visit Visa processing & Flight Ticketing.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_b2b.png' %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TravelAgency",
+  "name": "REI Golden Star Travel & Tours (Pvt) Ltd.",
+  "alternateName": "Golden Star Agency",
+  "url": "{{ request.build_absolute_uri }}",
+  "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon.png' %}",
+  "image": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/hero_b2b.png' %}",
+  "description": "Golden Star Agency is a premier travel agency in Pakistan specializing in Hajj, Umrah packages, Visit Visa services, and international flight tickets.",
+  "telephone": "+92-42-35780000",
+  "priceRange": "PKR 45,000 - PKR 1,500,000",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Main Boulevard, Gulberg III",
+    "addressLocality": "Lahore",
+    "addressRegion": "Punjab",
+    "postalCode": "54000",
+    "addressCountry": "PK"
+  },
+  "sameAs": [
+    "https://facebook.com/GoldenStarAgency",
+    "https://instagram.com/GoldenStarAgency"
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <!-- Hero Slider Section (Interactive Auto-Playing Carousel with Top-Level Generated Backgrounds) -->
@@ -1450,9 +1488,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (res.ok && data.success) {
                         showSubmissionSuccessModal({
                             userName: reviewerNameInput.value.trim(),
+                            badgeText: 'Review Submitted',
                             title: 'Review Submitted Successfully!',
                             message: 'Thank you for sharing your feedback with Golden Star Agency. Your review has been submitted for verification.',
-                            trackingId: 'GS-REV-' + Math.floor(100000 + Math.random() * 900000),
+                            showTracking: false,
+                            showDownload: false,
                             details: [
                                 { label: 'Reviewer Name', value: reviewerNameInput.value.trim() },
                                 { label: 'Rating', value: ratingValueInput.value + ' / 5 Stars' }

@@ -15,8 +15,9 @@
         </div>
 
         <!-- Greeting & Title -->
+        <!-- Greeting & Title -->
         <div>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold uppercase tracking-wider mb-2">
+            <span id="app-modal-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold uppercase tracking-wider mb-2">
                 <i class="fa-solid fa-circle-check text-[10px]"></i> Application Received
             </span>
             <h2 id="app-modal-user-name" class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
@@ -31,7 +32,7 @@
         </div>
 
         <!-- Highlighted Tracking ID Card -->
-        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center gap-1.5 shadow-inner">
+        <div id="app-modal-tracking-card" class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center gap-1.5 shadow-inner">
             <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Your Unique Reference Tracking ID</span>
             <div class="flex items-center gap-2">
                 <code id="app-modal-tracking-id" class="text-base sm:text-lg font-black text-slate-900 tracking-wider font-mono bg-white px-4 py-1.5 rounded-xl border border-slate-200 shadow-sm">GS-TRK-000000</code>
@@ -55,6 +56,9 @@
             <a id="app-modal-track-btn" href="javascript:void(0)" onclick="trackModalStatusNow()" class="w-full sm:flex-1 py-3 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all shadow-md shadow-brand-orange/20 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-magnifying-glass-location"></i> Track Status
             </a>
+            <button id="app-modal-close-btn" onclick="closeSubmissionSuccessModal()" class="w-full sm:flex-1 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 hidden">
+                <i class="fa-solid fa-check"></i> Done
+            </button>
             <a id="app-modal-dash-btn" href="{% url 'customer_dashboard' %}" class="w-full sm:flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-200">
                 <i class="fa-solid fa-gauge"></i> My Dashboard
             </a>
@@ -70,13 +74,26 @@ function showSubmissionSuccessModal(options) {
         userName = '',
         title = 'Application Submitted Successfully!',
         message = 'Your application has been received and is being processed.',
+        badgeText = '',
         trackingId = '',
+        showTracking = true,
+        showDownload = true,
         details = [],
         downloadUrl = '',
         dashboardUrl = "{% url 'customer_dashboard' %}"
     } = options || {};
 
+    const hasTrackingId = Boolean(trackingId && trackingId.trim());
+    const isTrackingVisible = (showTracking !== false) && hasTrackingId;
+    const isDownloadVisible = (showDownload !== false) && (Boolean(downloadUrl) || isTrackingVisible);
+
     window._currentSubmissionData = { userName, title, message, trackingId, details, downloadUrl, dashboardUrl };
+
+    const badgeEl = document.getElementById('app-modal-badge');
+    if (badgeEl) {
+        const defaultBadge = isTrackingVisible ? 'Application Received' : 'Submission Received';
+        badgeEl.innerHTML = `<i class="fa-solid fa-circle-check text-[10px]"></i> ${badgeText || defaultBadge}`;
+    }
 
     const userEl = document.getElementById('app-modal-user-name');
     if (userEl) {
@@ -92,6 +109,11 @@ function showSubmissionSuccessModal(options) {
     const trkEl = document.getElementById('app-modal-tracking-id');
     if (trkEl) trkEl.textContent = trackingId || 'N/A';
 
+    const trkCard = document.getElementById('app-modal-tracking-card');
+    if (trkCard) {
+        trkCard.classList.toggle('hidden', !isTrackingVisible);
+    }
+
     // Populate extra details if available
     const detailsBox = document.getElementById('app-modal-details-box');
     if (detailsBox) {
@@ -106,6 +128,21 @@ function showSubmissionSuccessModal(options) {
         } else {
             detailsBox.classList.add('hidden');
         }
+    }
+
+    const downloadBtn = document.getElementById('app-modal-download-btn');
+    if (downloadBtn) {
+        downloadBtn.classList.toggle('hidden', !isDownloadVisible);
+    }
+
+    const trackBtn = document.getElementById('app-modal-track-btn');
+    if (trackBtn) {
+        trackBtn.classList.toggle('hidden', !isTrackingVisible);
+    }
+
+    const closeBtn = document.getElementById('app-modal-close-btn');
+    if (closeBtn) {
+        closeBtn.classList.toggle('hidden', isTrackingVisible || isDownloadVisible);
     }
 
     const dashBtn = document.getElementById('app-modal-dash-btn');

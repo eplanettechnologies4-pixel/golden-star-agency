@@ -1,6 +1,41 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Hajj Packages 2026 | Golden Star Agency{% endblock %}
+{% block title %}Hajj Packages 2026 Pakistan | Executive Private Booking | Golden Star Agency{% endblock %}
+{% block meta_description %}Official Hajj packages 2026 from Pakistan. Book private, short, and executive Hajj packages with Makkah 5-star hotel accommodation & full transport.{% endblock %}
+
+{% block og_title %}Hajj Packages 2026 Pakistan | Executive Private Hajj Booking{% endblock %}
+{% block og_description %}Book official 2026 Hajj packages with Golden Star Agency. 5-Star Makkah & Madinah hotels, VIP transport in Mina/Arafat, and dedicated guidance.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hajj_banner.png' %}{% endblock %}
+
+{% block twitter_title %}Hajj Packages 2026 Pakistan | Golden Star Agency{% endblock %}
+{% block twitter_description %}Official Hajj packages 2026 from Pakistan with 5-star Makkah & Madinah hotels.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/hajj_banner.png' %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Hajj Packages 2026 Pakistan",
+  "description": "Executive and economy Hajj packages 2026 offered by Golden Star Agency Pakistan.",
+  "itemListElement": [
+    {% for pkg in packages %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "item": {
+        "@type": "TouristTrip",
+        "name": "{{ pkg.title|escapejs }}",
+        "price": "{{ pkg.price }}",
+        "priceCurrency": "PKR",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% url 'package_detail' pkg.id %}"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
 {% block content %}
 <!-- Top Level Banner Image Slider -->
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">

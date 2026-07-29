@@ -1,6 +1,38 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Contact Support | Golden Star Agency{% endblock %}
+{% block title %}Contact Us & Office Locations | Golden Star Agency Pakistan{% endblock %}
+{% block meta_description %}Contact Golden Star Agency for Hajj & Umrah package inquiries, visit visa processing, or air ticketing support. Visit our Lahore office or call 24/7.{% endblock %}
+
+{% block og_title %}Contact Us & Office Locations | Golden Star Agency{% endblock %}
+{% block og_description %}Get in touch with Golden Star Agency travel consultants in Lahore, Karachi, and Faisalabad. 24/7 hotline and WhatsApp support.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/contact_banner.png' %}{% endblock %}
+
+{% block twitter_title %}Contact Us | Golden Star Agency Pakistan{% endblock %}
+{% block twitter_description %}Contact Golden Star Agency for Hajj, Umrah, visa, and flight support.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/contact_banner.png' %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact Golden Star Agency",
+  "url": "{{ request.build_absolute_uri }}",
+  "mainEntity": {
+    "@type": "TravelAgency",
+    "name": "Golden Star Travel & Tours (Pvt) Ltd.",
+    "telephone": "+92-42-35780000",
+    "email": "info@goldenstaragency.com",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Main Boulevard, Gulberg III",
+      "addressLocality": "Lahore",
+      "addressCountry": "PK"
+    }
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 <!-- Top Level Banner Image Slider -->
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">

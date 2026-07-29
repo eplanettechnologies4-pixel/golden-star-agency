@@ -1,7 +1,35 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Travel Blog | Golden Star Agency — Hajj, Umrah & Visa Insights{% endblock %}
+{% block title %}Travel Blog & Pilgrimage Guides | Golden Star Agency Pakistan{% endblock %}
+{% block meta_description %}Read travel guides, Umrah packing lists, Saudi e-visa rules, Hajj tips, and ziarat guides written by Golden Star Agency experts.{% endblock %}
+
+{% block og_title %}Travel Blog & Pilgrimage Guides | Golden Star Agency{% endblock %}
+{% block og_description %}Expert guides and practical advice for Umrah, Hajj, visit visas, and flight booking from Pakistan.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/blog_hajj.png' %}{% endblock %}
+
+{% block twitter_title %}Travel Blog & Pilgrimage Guides | Golden Star Agency{% endblock %}
+{% block twitter_description %}Expert travel and pilgrimage advice from Golden Star Agency Pakistan.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/blog_hajj.png' %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "Golden Star Agency Travel Blog",
+  "description": "Pilgrimage, Umrah, Hajj, Visa, and Flight travel guides for Pakistani travelers.",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Golden Star Agency",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/favicon.png' %}"
+    }
+  }
+}
+</script>
+{% endblock %}
 
 {% block content %}
 

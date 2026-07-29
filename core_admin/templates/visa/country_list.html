@@ -1,6 +1,49 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Visit Visa Services | Golden Star Agency{% endblock %}
+{% block title %}Visit Visa Consultancy Pakistan | Saudi, UAE, UK, Turkey | Golden Star Agency{% endblock %}
+{% block meta_description %}Apply for tourist and visit visas from Pakistan. Fast processing for Saudi Arabia 1-year e-Visa, UAE 30/90 days, Turkey, UK, and Malaysia. Golden Star Agency.{% endblock %}
+
+{% block og_title %}Visit Visa Consultancy Pakistan | Saudi, UAE, UK, Turkey{% endblock %}
+{% block og_description %}Fast and reliable tourist visa processing in Pakistan. Guaranteed documentation guidance and expert embassy filing.{% endblock %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/visa_banner.png' %}{% endblock %}
+
+{% block twitter_title %}Visit Visa Consultancy Pakistan | Golden Star Agency{% endblock %}
+{% block twitter_description %}Fast tourist visa processing for Saudi Arabia, UAE, UK, Turkey from Pakistan.{% endblock %}
+{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/visa_banner.png' %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Visit & Tourist Visa Consultancy",
+  "provider": {
+    "@type": "TravelAgency",
+    "name": "Golden Star Agency",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  },
+  "areaServed": "Pakistan",
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Visit Visa Processing Services",
+    "itemListElement": [
+      {% for v in visa_packages %}
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "{{ v.title|escapejs }}",
+          "description": "{{ v.visa_type|escapejs }} - {{ v.processing_time|escapejs }}"
+        },
+        "price": "{{ v.price }}",
+        "priceCurrency": "PKR"
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 <!-- Top Level Banner Image Slider -->
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">

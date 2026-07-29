@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import user_passes_test
@@ -217,3 +217,21 @@ def admin_achievement_detail_api(request, pk):
         return JsonResponse({'success': True, 'message': 'Updated.'})
 
     return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
+
+
+def robots_txt_view(request):
+    """
+    Serves plain-text robots.txt allowing search indexing for public routes
+    while strictly disallowing internal dashboard, auth, and admin URLs.
+    """
+    host = request.build_absolute_uri('/')[:-1]
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /dashboard/\n"
+        "Disallow: /auth/\n"
+        "Disallow: /admin/\n"
+        "Disallow: /api/\n\n"
+        f"Sitemap: {host}/sitemap.xml\n"
+    )
+    return HttpResponse(content, content_type="text/plain")

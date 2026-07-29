@@ -18,8 +18,21 @@ from apps.blog import views as blog_views
 from apps.blog import admin_views as blog_admin_views
 from apps.airline_ticketing import views as airline_ticketing_views
 
+from django.contrib.sitemaps.views import sitemap
+from sitemaps import StaticViewSitemap, PackageSitemap, BlogPostSitemap
+
+sitemaps = {
+    'static': StaticViewSitemap,
+    'packages': PackageSitemap,
+    'blog': BlogPostSitemap,
+}
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # SEO Technical URLs
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('robots.txt', content_views.robots_txt_view, name='robots_txt'),
     
     # Static pages (Templates)
     path('', accounts_views.home_view, name='home'),
@@ -108,8 +121,10 @@ urlpatterns = [
 
     path('dashboard/admin/api/overview-stats/', accounts_views.admin_dashboard_overview_api, name='admin_dashboard_overview_api'),
     path('dashboard/admin/api/b2b-overview/', accounts_views.admin_b2b_overview_api, name='admin_b2b_overview_api'),
-    path('dashboard/admin/api/packages/', accounts_views.admin_packages_api, name='admin_packages_api'),
-    path('dashboard/admin/api/packages/<int:pk>/', accounts_views.admin_package_detail_api, name='admin_package_detail_api'),
+    path('dashboard/admin/api/packages/', packages_views.admin_packages_list_api, name='admin_packages_api'),
+    path('dashboard/admin/api/packages/create/', packages_views.admin_package_create_api, name='admin_package_create_api'),
+    path('dashboard/admin/api/packages/<int:pk>/', packages_views.admin_package_detail_api, name='admin_package_detail_api'),
+    path('dashboard/admin/api/packages/<int:pk>/delete/', packages_views.admin_package_delete_api, name='admin_package_delete_api'),
     path('dashboard/admin/api/visas/', accounts_views.admin_visas_api, name='admin_visas_api'),
     path('dashboard/admin/api/visas/<int:pk>/', accounts_views.admin_visa_status_api, name='admin_visa_status_api'),
     path('dashboard/admin/api/visa-packages/', accounts_views.admin_visa_packages_api, name='admin_visa_packages_api'),

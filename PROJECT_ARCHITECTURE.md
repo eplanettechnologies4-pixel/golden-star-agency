@@ -227,6 +227,7 @@ function goBackOrClose() {
         window.close();
     }
 }
+
 ```
 
 ---

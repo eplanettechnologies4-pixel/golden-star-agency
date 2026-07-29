@@ -1,6 +1,38 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Comfort Star Umrah Package | Golden Star Agency{% endblock %}
+{% block title %}{{ package.title }} | {{ package.duration_days }} Days {{ package.category|title }} Package | Golden Star Agency{% endblock %}
+{% block meta_description %}Book {{ package.title }} for {{ package.duration_days }} days starting at PKR {{ package.price }}. Includes {{ package.makkah_hotel_name }} ({{ package.makkah_hotel_distance }}) & {{ package.madinah_hotel_name }}. Golden Star Agency.{% endblock %}
+
+{% block og_title %}{{ package.title }} | {{ package.duration_days }} Days {{ package.category|title }} Package{% endblock %}
+{% block og_description %}Book {{ package.title }} ({{ package.duration_days }} Days) with Golden Star Agency. Makkah: {{ package.makkah_hotel_name }}, Madinah: {{ package.madinah_hotel_name }}. Airline: {{ package.airline }}.{% endblock %}
+{% block og_image %}{% if package.get_images_list.0 %}{{ package.get_images_list.0 }}{% else %}{% static 'images/umrah_card.png' %}{% endif %}{% endblock %}
+
+{% block twitter_title %}{{ package.title }} | {{ package.duration_days }} Days {{ package.category|title }} Package{% endblock %}
+{% block twitter_description %}Book {{ package.title }} ({{ package.duration_days }} Days) starting at PKR {{ package.price }} with Golden Star Agency.{% endblock %}
+{% block twitter_image %}{% if package.get_images_list.0 %}{{ package.get_images_list.0 }}{% else %}{% static 'images/umrah_card.png' %}{% endif %}{% endblock %}
+
+{% block schema_markup %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TouristTrip",
+  "name": "{{ package.title|escapejs }}",
+  "description": "{{ package.description|truncatewords:40|escapejs }}",
+  "touristType": "{{ package.category|title }} Pilgrim",
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ package.price }}",
+    "priceCurrency": "PKR",
+    "availability": "https://schema.org/InStock"
+  },
+  "provider": {
+    "@type": "TravelAgency",
+    "name": "Golden Star Agency",
+    "url": "{{ request.scheme }}://{{ request.get_host }}"
+  }
+}
+</script>
+{% endblock %}
 {% block content %}
 <!-- Top Level Banner Image Slider -->
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
