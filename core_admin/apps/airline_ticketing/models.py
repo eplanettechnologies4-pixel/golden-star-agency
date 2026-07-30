@@ -47,7 +47,7 @@ class AirlineFlightInventory(models.Model):
     Times stored as strings (e.g. '03:30 AM') — matches existing
     FlightTicketOffer.departure_time_str / arrival_time_str convention in apps.flights.
     """
-    TRIP_TYPE_CHOICES = [('oneway', 'One Way'), ('return', 'Return')]
+    TRIP_TYPE_CHOICES = [('oneway', 'One Way'), ('return', 'Return / Round Trip'), ('multicity', 'Multi City')]
     ROUTE_TYPE_CHOICES = [('direct', 'Direct'), ('via', 'Via Connection')]
 
     sector = models.ForeignKey(
@@ -69,7 +69,7 @@ class AirlineFlightInventory(models.Model):
     total_seats = models.PositiveIntegerField(default=0)
     booked_seats = models.PositiveIntegerField(default=0)   # paid + active holds
 
-    trip_type = models.CharField(max_length=10, choices=TRIP_TYPE_CHOICES, default='return')
+    trip_type = models.CharField(max_length=15, choices=TRIP_TYPE_CHOICES, default='return')
     route_type = models.CharField(max_length=10, choices=ROUTE_TYPE_CHOICES, default='direct')
     via_city = models.CharField(max_length=100, blank=True, null=True)
     has_meal = models.BooleanField(default=False)

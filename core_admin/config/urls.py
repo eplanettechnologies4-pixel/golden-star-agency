@@ -82,6 +82,7 @@ urlpatterns = [
     path('dashboard/admin/api/agents/<str:agent_id>/approve/', accounts_views.admin_approve_agent, name='admin_approve_agent'),
     path('dashboard/admin/api/agents/<str:agent_id>/reject/', accounts_views.admin_reject_agent, name='admin_reject_agent'),
     path('dashboard/admin/api/agents/<str:agent_id>/suspend/', accounts_views.admin_suspend_agent, name='admin_suspend_agent'),
+    path('dashboard/admin/api/agents/<str:agent_id>/delete/', accounts_views.admin_delete_agent, name='admin_delete_agent'),
     path('dashboard/admin/api/agents/<str:agent_id>/toggle-badge/', accounts_views.admin_toggle_agent_verification_badge, name='admin_toggle_agent_verification_badge'),
     path('dashboard/admin/api/agents/<str:agent_id>/details/', accounts_views.admin_agent_detail_data_api, name='admin_agent_detail_data_api'),
     path('dashboard/admin/api/agents/<str:agent_id>/ledger/', accounts_views.admin_agent_ledger_api, name='admin_agent_ledger_api'),

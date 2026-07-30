@@ -24,6 +24,7 @@ class Settings:
     JWT_ALGORITHM: str = "HS256"
     
     # AI Chatbot
+    AI_CHATBOT_ENABLED: bool = config('AI_CHATBOT_ENABLED', default=False, cast=bool)
     CLAUDE_API_KEY: str = config('CLAUDE_API_KEY', default='')
     GROQ_API_KEY: str = config('GROQ_API_KEY', default='')
     

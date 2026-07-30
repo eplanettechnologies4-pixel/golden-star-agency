@@ -19,9 +19,11 @@ from apps.packages.models import Package, CustomPackageInquiry
 from apps.visa.models import VisaApplication
 from apps.flights.models import FlightQuoteRequest
 from apps.bookings.models import Booking
-from apps.airline_ticketing.models import AgentPackage, AgentTicketOrder
-from ai_chatbot.embeddings import EmbeddingsService
 from django.conf import settings
+try:
+    from ai_chatbot.embeddings import EmbeddingsService
+except ImportError:
+    EmbeddingsService = None
 from django.core.mail import send_mail
 from django.core.cache import cache
 import io
@@ -1239,15 +1241,16 @@ def admin_packages_api(request):
             available_seats=available_seats
         )
         
-        # Generate Vector Embedding in real-time
-        try:
-            service = EmbeddingsService()
-            text_to_embed = f"{package.title} - {package.description}"
-            package.embedding = service.get_embedding(text_to_embed)
-            package.save()
-            print(f"[Embedding] Generated embedding for package ID {package.id}")
-        except Exception as e:
-            print(f"[Embedding Error] Failed to generate embedding: {e}")
+        # Generate Vector Embedding in real-time if AI Chatbot feature is enabled
+        if getattr(settings, 'AI_CHATBOT_ENABLED', False) and EmbeddingsService:
+            try:
+                service = EmbeddingsService()
+                text_to_embed = f"{package.title} - {package.description}"
+                package.embedding = service.get_embedding(text_to_embed)
+                package.save()
+                print(f"[Embedding] Generated embedding for package ID {package.id}")
+            except Exception as e:
+                print(f"[Embedding Error] Failed to generate embedding: {e}")
             
         return JsonResponse({'success': True, 'package_id': package.id})
     return JsonResponse({'success': False}, status=400)
@@ -1340,14 +1343,15 @@ def admin_package_detail_api(request, pk):
         if request.POST.get('available_seats'):
             package.available_seats = int(request.POST.get('available_seats'))
 
-        # Regenerate Vector Embedding
-        try:
-            service = EmbeddingsService()
-            text_to_embed = f"{package.title} - {package.description}"
-            package.embedding = service.get_embedding(text_to_embed)
-            print(f"[Embedding] Regenerated embedding for package ID {package.id}")
-        except Exception as e:
-            print(f"[Embedding Error] Failed to regenerate embedding: {e}")
+        # Regenerate Vector Embedding if AI Chatbot feature is enabled
+        if getattr(settings, 'AI_CHATBOT_ENABLED', False) and EmbeddingsService:
+            try:
+                service = EmbeddingsService()
+                text_to_embed = f"{package.title} - {package.description}"
+                package.embedding = service.get_embedding(text_to_embed)
+                print(f"[Embedding] Regenerated embedding for package ID {package.id}")
+            except Exception as e:
+                print(f"[Embedding Error] Failed to regenerate embedding: {e}")
             
         package.save()
         return JsonResponse({'success': True})
@@ -1725,6 +1729,20 @@ def admin_suspend_agent(request, agent_id):
     return JsonResponse({'success': False}, status=400)
 
 
+@csrf_exempt
+@user_passes_test(is_admin)
+def admin_delete_agent(request, agent_id):
+    if request.method in ['DELETE', 'POST']:
+        agent = get_object_or_404(User, id=agent_id, role='agent')
+        company_name = agent.company_name or agent.username
+        agent.delete()
+        return JsonResponse({
+            'success': True,
+            'message': f'Agent account "{company_name}" has been permanently deleted.'
+        })
+    return JsonResponse({'success': False, 'error': 'Invalid HTTP method.'}, status=400)
+
+
 def is_agent(user):
     return user.is_authenticated and user.role == 'agent' and user.approval_status == 'approved'
 
@@ -1888,8 +1906,8 @@ def admin_agent_detail_view(request, agent_id):
 def home_view(request):
     from apps.content.models import Achievement
     from apps.packages.models import Package
-    # Fetch top verified active agents sorted by rating
-    best_agents = User.objects.filter(role='agent', approval_status='approved').order_by('-rating')[:6]
+    # Fetch real-time registered agent partners ordered by latest registration
+    best_agents = User.objects.filter(role='agent').order_by('-date_joined')
     achievements = Achievement.objects.filter(is_active=True)
     featured_packages = Package.objects.all().order_by('-created_at')[:3]
     return render(request, 'home.html', {

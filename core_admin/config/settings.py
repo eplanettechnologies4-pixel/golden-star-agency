@@ -27,6 +27,9 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')]
 
+# Feature Flags
+AI_CHATBOT_ENABLED = config('AI_CHATBOT_ENABLED', default=False, cast=bool)
+
 
 # Application definition
 

@@ -572,137 +572,65 @@
             <p id="agent-search-status" class="text-center text-xs text-brand-orange font-semibold mt-2 hidden"></p>
         </div>
 
-        <!-- Marquee Scrolling Container -->
-        <div id="agent-marquee-container" class="relative w-full overflow-hidden py-4">
-            <!-- Smooth Gradient Fading Edges -->
-            <div class="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
-            <div class="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none"></div>
-
-            <!-- Left & Right Navigation Buttons -->
-            <button id="agent-nav-left" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-brand-orange text-slate-700 hover:text-white flex items-center justify-center shadow-lg transition-all duration-200 border border-slate-200 hover:border-brand-orange hover:scale-105 active:scale-95 focus:outline-none" aria-label="Scroll Left">
-                <i class="fa-solid fa-chevron-left text-sm"></i>
-            </button>
-            <button id="agent-nav-right" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/90 hover:bg-brand-orange text-slate-700 hover:text-white flex items-center justify-center shadow-lg transition-all duration-200 border border-slate-200 hover:border-brand-orange hover:scale-105 active:scale-95 focus:outline-none" aria-label="Scroll Right">
-                <i class="fa-solid fa-chevron-right text-sm"></i>
-            </button>
-
-            <div class="flex gap-8 w-max animate-marquee hover:[animation-play-state:paused] pointer-events-auto">
-                <!-- Track Part 1 -->
-                <div class="flex gap-8">
-                    {% for agent in best_agents %}
-                    <div class="agent-card w-[340px] flex-shrink-0 bg-slate-50 border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
-                         data-company-name="{{ agent.company_name }}"
-                         data-about="{{ agent.about|default:'Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.' }}"
-                         data-email="{{ agent.email }}">
-                        <!-- Cover Photo / Gradient banner -->
-                        <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-orange-500 to-amber-500{% endif %}">
-                            {% if agent.cover_photo %}
-                            <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+        <!-- Agent Partners Cards Grid (Single Render - ONE Card per Agent) -->
+        <div id="agent-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for agent in best_agents %}
+            <div class="agent-card bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
+                 data-company-name="{{ agent.company_name|default:agent.username }}"
+                 data-about="{{ agent.about|default:'Professional B2B travel partner facilitating flight bookings, custom reselling, and visa processing.' }}"
+                 data-email="{{ agent.email }}">
+                <!-- Cover Photo / Gradient banner -->
+                <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#E06A26]{% endif %}">
+                    {% if agent.cover_photo %}
+                    <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+                    {% endif %}
+                    
+                    <!-- Profile Photo Overlapping -->
+                    <div class="absolute -bottom-6 left-6">
+                        <div class="h-16 w-16 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow">
+                            {% if agent.profile_photo %}
+                            <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name|default:agent.username }}" class="h-full w-full object-cover">
+                            {% else %}
+                            <div class="h-full w-full flex items-center justify-center bg-[#E06A26] text-white font-extrabold text-lg uppercase">
+                                {{ agent.company_name|default:agent.username|slice:":1" }}
+                            </div>
                             {% endif %}
-                            
-                            <!-- Profile Photo Overlapping -->
-                            <div class="absolute -bottom-6 left-6">
-                                <div class="h-16 w-16 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow">
-                                    {% if agent.profile_photo %}
-                                    <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name }}" class="h-full w-full object-cover">
-                                    {% else %}
-                                    <div class="h-full w-full flex items-center justify-center bg-brand-orange text-white font-extrabold text-lg">
-                                        {{ agent.company_name|slice:":1" }}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-6 pt-8 flex-grow flex flex-col">
-                            <div class="flex items-center justify-between mb-2">
-                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-brand-orange transition-colors">{{ agent.company_name }}</a>
-                                <div class="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-full">
-                                    <i class="fa-solid fa-star text-[10px]"></i>
-                                    <span>{{ agent.rating|stringformat:".1f" }}</span>
-                                </div>
-                            </div>
-                            
-                            <p class="text-xs text-slate-500 line-clamp-3 mb-4 leading-relaxed flex-grow">
-                                {% if agent.about %}
-                                {{ agent.about }}
-                                {% else %}
-                                Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.
-                                {% endif %}
-                            </p>
-
-                            <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
-                                <div class="flex items-center justify-between text-[11px] text-slate-500 font-semibold gap-2">
-                                    <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-slate-400"></i>{{ agent.email }}</span>
-                                    <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-slate-400"></i>{{ agent.phone|default:"N/A" }}</span>
-                                </div>
-                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-brand-orange hover:text-white border border-slate-200/80 hover:border-brand-orange text-[11px] font-bold rounded-lg transition-all duration-200 text-slate-700">
-                                    <i class="fa-regular fa-comment mr-1"></i> View Profile & Reviews
-                                </a>
-                            </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
 
-                <!-- Track Part 2 (seamless duplication) -->
-                <div class="flex gap-8" aria-hidden="true">
-                    {% for agent in best_agents %}
-                    <div class="agent-card w-[340px] flex-shrink-0 bg-slate-50 border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
-                         data-company-name="{{ agent.company_name }}"
-                         data-about="{{ agent.about|default:'Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.' }}"
-                         data-email="{{ agent.email }}">
-                        <!-- Cover Photo / Gradient banner -->
-                        <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-orange-500 to-amber-500{% endif %}">
-                            {% if agent.cover_photo %}
-                            <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+                <div class="p-6 pt-8 flex-grow flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-[#E06A26] transition-colors truncate">
+                                {{ agent.company_name|default:agent.get_full_name|default:agent.username }}
+                            </a>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                <i class="fa-solid fa-shield-check mr-1 text-emerald-600"></i>Verified
+                            </span>
+                        </div>
+                        
+                        <p class="text-xs text-slate-500 line-clamp-3 leading-relaxed">
+                            {% if agent.about %}
+                            {{ agent.about }}
+                            {% else %}
+                            Professional B2B travel partner facilitating flight bookings, group deals, custom package reselling, and visa processing.
                             {% endif %}
-                            
-                            <!-- Profile Photo Overlapping -->
-                            <div class="absolute -bottom-6 left-6">
-                                <div class="h-16 w-16 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow">
-                                    {% if agent.profile_photo %}
-                                    <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name }}" class="h-full w-full object-cover">
-                                    {% else %}
-                                    <div class="h-full w-full flex items-center justify-center bg-brand-orange text-white font-extrabold text-lg">
-                                        {{ agent.company_name|slice:":1" }}
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-6 pt-8 flex-grow flex flex-col">
-                            <div class="flex items-center justify-between mb-2">
-                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-brand-orange transition-colors">{{ agent.company_name }}</a>
-                                <div class="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200/50 px-2 py-0.5 rounded-full">
-                                    <i class="fa-solid fa-star text-[10px]"></i>
-                                    <span>{{ agent.rating|stringformat:".1f" }}</span>
-                                </div>
-                            </div>
-                            
-                            <p class="text-xs text-slate-500 line-clamp-3 mb-4 leading-relaxed flex-grow">
-                                {% if agent.about %}
-                                {{ agent.about }}
-                                {% else %}
-                                Professional B2B travel agent facilitating premium flights booking, packages custom reselling, and fast visa processing.
-                                {% endif %}
-                            </p>
-
-                            <div class="pt-4 border-t border-slate-100 flex flex-col gap-3">
-                                <div class="flex items-center justify-between text-[11px] text-slate-500 font-semibold gap-2">
-                                    <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-slate-400"></i>{{ agent.email }}</span>
-                                    <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-slate-400"></i>{{ agent.phone|default:"N/A" }}</span>
-                                </div>
-                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-brand-orange hover:text-white border border-slate-200/80 hover:border-brand-orange text-[11px] font-bold rounded-lg transition-all duration-200 text-slate-700">
-                                    <i class="fa-regular fa-comment mr-1"></i> View Profile & Reviews
-                                </a>
-                            </div>
-                        </div>
+                        </p>
                     </div>
-                    {% endfor %}
+
+                    <div class="pt-4 border-t border-slate-200/80 flex flex-col gap-3">
+                        <div class="flex items-center justify-between text-[11px] text-slate-600 font-semibold gap-2">
+                            <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-[#E06A26]"></i>{{ agent.email }}</span>
+                            <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-[#2D4424]"></i>{{ agent.phone|default:"N/A" }}</span>
+                        </div>
+                        <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-[#E06A26] hover:text-white border border-slate-200 hover:border-[#E06A26] text-[11px] font-bold rounded-xl transition-all duration-200 text-slate-700 shadow-xs">
+                            <i class="fa-solid fa-id-card mr-1"></i> View Agent Profile
+                        </a>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
 
         <!-- No Results Empty State -->
@@ -1080,29 +1008,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             
+            const cardsContainer = document.getElementById('agent-cards-container');
             if (visibleCount === 0 && query !== '') {
                 if (noResultsEl) noResultsEl.classList.remove('hidden');
-                if (marqueeContainer) marqueeContainer.classList.add('hidden');
+                if (cardsContainer) cardsContainer.classList.add('hidden');
             } else {
                 if (noResultsEl) noResultsEl.classList.add('hidden');
-                if (marqueeContainer) marqueeContainer.classList.remove('hidden');
+                if (cardsContainer) cardsContainer.classList.remove('hidden');
             }
             
             if (query !== '') {
-                // If searching, pause auto-scroll / snap manual if necessary
-                if (innerTrack) {
-                    innerTrack.style.animationPlayState = 'paused';
-                }
                 if (statusText) {
                     statusText.classList.remove('hidden');
-                    const uniqueVisible = Math.ceil(visibleCount / 2);
-                    statusText.textContent = `Found ${uniqueVisible} matching agent partner(s).`;
+                    statusText.textContent = `Found ${visibleCount} matching agent partner(s).`;
                 }
             } else {
-                // If search is cleared, resume marquee only if not manually overridden by arrows
-                if (!isManual && innerTrack) {
-                    innerTrack.style.animationPlayState = 'running';
-                }
                 if (statusText) statusText.classList.add('hidden');
             }
         });

@@ -276,6 +276,9 @@ def admin_flight_inventory_api(request):
     """
     if request.method == 'GET':
         entries = AirlineFlightInventory.objects.select_related('airline', 'sector').prefetch_related('baggage_tiers')
+        trip_type = request.GET.get('trip_type', '').strip()
+        if trip_type:
+            entries = entries.filter(trip_type=trip_type)
         data = []
         for fi in entries:
             tiers = [
@@ -632,14 +635,26 @@ def admin_agent_packages_api(request):
 
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
-        description = request.POST.get('description', '').strip()
-        agent_price = request.POST.get('agent_price', '').strip()
+        description = request.POST.get('description', '').strip() or title
+        agent_price_input = request.POST.get('agent_price', '').strip()
 
-        if not title or not description or not agent_price:
+        if not title:
             return JsonResponse(
-                {'success': False, 'message': 'Title, description, and agent_price are required.'},
+                {'success': False, 'message': 'Package title is required.'},
                 status=400
             )
+
+        # Fallback for agent_price if not directly supplied
+        if agent_price_input:
+            agent_price_val = Decimal(agent_price_input)
+        else:
+            adult_p = request.POST.get('adult_price', '').strip()
+            sharing_p = request.POST.get('price_sharing', '').strip()
+            quad_p = request.POST.get('price_quad', '').strip()
+            double_p = request.POST.get('price_double', '').strip()
+            triple_p = request.POST.get('price_triple', '').strip()
+            fallback = adult_p or sharing_p or quad_p or triple_p or double_p or '0.00'
+            agent_price_val = Decimal(fallback)
 
         airline_id = request.POST.get('airline_id', '').strip()
         airline = get_object_or_404(Airline, pk=airline_id) if airline_id else None
@@ -693,10 +708,10 @@ def admin_agent_packages_api(request):
             title=title,
             description=description,
             duration_days=int(request.POST.get('duration_days', 15) or 15),
-            agent_price=Decimal(agent_price),
+            agent_price=agent_price_val,
             suggested_resale_price=parse_dec(suggested_resale),
             commission_amount=parse_dec(commission),
-            adult_price=parse_dec(request.POST.get('adult_price')) or Decimal(agent_price),
+            adult_price=parse_dec(request.POST.get('adult_price')) or agent_price_val,
             child_price=parse_dec(request.POST.get('child_price')),
             infant_price=parse_dec(request.POST.get('infant_price')),
             price_sharing=parse_dec(request.POST.get('price_sharing')),
@@ -778,8 +793,15 @@ def admin_agent_package_detail_api(request, pk):
             return val.strip() if val and str(val).strip() else None
 
         price = request.POST.get('agent_price')
-        if price is not None and price != '':
+        if price is not None and str(price).strip() != '':
             pkg.agent_price = Decimal(price)
+        else:
+            adult_p = request.POST.get('adult_price', '').strip()
+            sharing_p = request.POST.get('price_sharing', '').strip()
+            if adult_p:
+                pkg.agent_price = Decimal(adult_p)
+            elif sharing_p:
+                pkg.agent_price = Decimal(sharing_p)
 
         suggested = request.POST.get('suggested_resale_price')
         pkg.suggested_resale_price = parse_dec(suggested)
@@ -1010,15 +1032,16 @@ def is_agent(user):
 @user_passes_test(is_agent)
 def agent_airlines_api(request):
     """
-    GET → List all active airlines for agent browsing
+    GET → List all airlines for agent browsing
     """
-    airlines = Airline.objects.filter(is_active=True)
+    airlines = Airline.objects.all()
     data = []
     for a in airlines:
         data.append({
             'id': a.id,
             'name': a.name,
             'logo_url': a.logo.url if a.logo else None,
+            'is_active': a.is_active,
         })
     return JsonResponse({'success': True, 'airlines': data})
 
@@ -1038,6 +1061,10 @@ def agent_flight_inventory_api(request):
     trip_type = request.GET.get('trip_type')
     if trip_type:
         inventory = inventory.filter(trip_type=trip_type)
+
+    route_type = request.GET.get('route_type')
+    if route_type:
+        inventory = inventory.filter(route_type=route_type)
 
     search = request.GET.get('search')
     if search:

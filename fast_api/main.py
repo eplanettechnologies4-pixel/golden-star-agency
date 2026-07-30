@@ -32,8 +32,10 @@ app.include_router(bookings_router)
 app.include_router(payments_router)
 app.include_router(visa_router)
 app.include_router(flights_router)
-app.include_router(chatbot_router)
 app.include_router(n8n_router)
+
+if getattr(settings, 'AI_CHATBOT_ENABLED', False) and chatbot_router:
+    app.include_router(chatbot_router)
 
 @app.get("/")
 def read_root():

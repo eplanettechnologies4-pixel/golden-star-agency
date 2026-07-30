@@ -3,8 +3,12 @@ from fast_api.routers.bookings import router as bookings_router
 from fast_api.routers.payments import router as payments_router
 from fast_api.routers.visa import router as visa_router
 from fast_api.routers.flights import router as flights_router
-from fast_api.routers.chatbot import router as chatbot_router
 from fast_api.routers.bot_readonly import router as n8n_router
+
+try:
+    from fast_api.routers.chatbot import router as chatbot_router
+except ImportError:
+    chatbot_router = None
 
 __all__ = [
     "packages_router",

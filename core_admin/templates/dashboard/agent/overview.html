@@ -8,7 +8,7 @@
     <title>Agent Portal | Golden Star Agency</title>
 
     <!-- Tailwind CSS via CDN -->
-    <script>(function(){const w=console.warn;console.warn=function(...a){if(a[0]&&typeof a[0]==='string'&&a[0].includes('cdn.tailwindcss.com'))return;w.apply(console,a);};})();</script>
+    <script>(function () { const w = console.warn; console.warn = function (...a) { if (a[0] && typeof a[0] === 'string' && a[0].includes('cdn.tailwindcss.com')) return; w.apply(console, a); }; })();</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -47,7 +47,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
 
     <!-- FontAwesome Icons with CDN Fallback -->
@@ -57,6 +57,27 @@
 
     <!-- Earthy Terracotta & Sage Design System -->
     <style>
+        /* Global Sans-Serif Typography Enforcement */
+        *,
+        html,
+        body,
+        button,
+        input,
+        select,
+        textarea,
+        p,
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        span,
+        td,
+        th {
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif !important;
+        }
+
         /* Preserve FontAwesome Icons Font Family Across All Elements */
         i.fa,
         i.fas,
@@ -91,7 +112,6 @@
         /* Page Background & Base Setup */
         html,
         body {
-            font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
             background-color: #F7F3E9 !important;
             color: #1F2E1A !important;
         }
@@ -854,11 +874,50 @@
                                     class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-[#E06A26] text-white transition-all shadow-sm">All
                                     Airlines</button>
                             </div>
-                            <div id="b2b-airlines-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                            <div id="b2b-airlines-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-3">
                                 <div class="col-span-full py-4 text-center text-[#567946] text-xs">Loading active
                                     airlines...</div>
                             </div>
                         </div>
+
+                        <!-- Real-Time Flight Inventory Search & Ticket Type Filters -->
+                        <div class="bg-white p-5 rounded-2xl border border-[#E7DCB9] shadow-sm space-y-4">
+                            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                                <div>
+                                    <h4 class="text-sm font-black text-[#2D4424] flex items-center gap-2">
+                                        <i class="fa-solid fa-plane-circle-check text-[#E06A26]"></i> Search Flight Routes & Filters
+                                    </h4>
+                                    <p class="text-xs text-[#567946] font-semibold mt-0.5">Filter live routes by Origin, Destination, Airline name, or Ticket Type (One Way, Round Trip, Multi City).</p>
+                                </div>
+
+                                <!-- Live Search Bar -->
+                                <div class="relative w-full sm:w-72 md:w-80">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#567946] pointer-events-none z-10"></i>
+                                    <input type="text" id="agent-ticket-search-input" onkeyup="applyAgentTicketRealtimeFilters()" placeholder="Search routes (e.g. LHR, JED, KHI)..." class="w-full pl-10 pr-4 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl text-xs font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26] transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Filter Pills: Ticket Types & Route Types -->
+                            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#E7DCB9]/80">
+                                <!-- Ticket Type Pills -->
+                                <div class="flex flex-wrap items-center gap-1.5" id="agent-ticket-type-filter-group">
+                                    <span class="text-[10px] font-black text-[#567946] uppercase tracking-wider mr-1">TICKET TYPE:</span>
+                                    <button onclick="setAgentTicketTypeFilter('all')" id="btn-agent-ticket-type-all" class="agent-ticket-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#2D4424] text-white shadow-xs transition-all">All Types</button>
+                                    <button onclick="setAgentTicketTypeFilter('oneway')" id="btn-agent-ticket-type-oneway" class="agent-ticket-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3] border border-[#D9CBAC] transition-all">One Way</button>
+                                    <button onclick="setAgentTicketTypeFilter('return')" id="btn-agent-ticket-type-return" class="agent-ticket-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3] border border-[#D9CBAC] transition-all">Round Trip</button>
+                                    <button onclick="setAgentTicketTypeFilter('multicity')" id="btn-agent-ticket-type-multicity" class="agent-ticket-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3] border border-[#D9CBAC] transition-all">Multi City</button>
+                                </div>
+
+                                <!-- Route Type Pills -->
+                                <div class="flex flex-wrap items-center gap-1.5" id="agent-route-type-filter-group">
+                                    <span class="text-[10px] font-black text-[#567946] uppercase tracking-wider mr-1">ROUTE:</span>
+                                    <button onclick="setAgentRouteTypeFilter('all')" id="btn-agent-route-type-all" class="agent-route-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#567946] text-white shadow-xs transition-all">All Routes</button>
+                                    <button onclick="setAgentRouteTypeFilter('direct')" id="btn-agent-route-type-direct" class="agent-route-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3] border border-[#D9CBAC] transition-all">Direct Non-Stop</button>
+                                    <button onclick="setAgentRouteTypeFilter('via')" id="btn-agent-route-type-via" class="agent-route-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3] border border-[#D9CBAC] transition-all">Via / Connecting</button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div>
                             <h4 id="b2b-inventory-section-title"
                                 class="text-xs font-bold text-[#567946] uppercase tracking-wider mb-3">Flight Inventory
@@ -919,15 +978,11 @@
                                 </div>
 
                                 <!-- Keyword Search Input -->
-                                <div class="space-y-1">
-                                    <label class="block text-[10px] font-extrabold text-[#567946] uppercase">Search
-                                        Package</label>
-                                    <div class="relative">
-                                        <input type="text" id="umrah-filter-keyword"
-                                            onkeyup="applyUmrahPackageFilters()" placeholder="Search title/hotel..."
-                                            class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl pl-8 pr-3 py-1.5 text-xs text-[#1F2E1A] font-bold focus:outline-none focus:border-[#E06A26]">
-                                        <i
-                                            class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-[#567946] text-xs"></i>
+                                <div class="space-y-1 w-full sm:w-auto">
+                                    <label class="block text-[10px] font-extrabold text-[#567946] uppercase">Search Package</label>
+                                    <div class="relative w-full sm:w-64">
+                                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#567946] pointer-events-none z-10"></i>
+                                        <input type="text" id="umrah-filter-keyword" onkeyup="applyUmrahPackageFilters()" placeholder="Search title, hotel, airline..." class="w-full pl-10 pr-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl text-xs text-[#1F2E1A] font-bold focus:outline-none focus:border-[#E06A26] transition-all">
                                     </div>
                                 </div>
 
@@ -1244,24 +1299,33 @@
                 </div>
 
                 <!-- Digital ID Card Quick-Access Section in Settings -->
-                <div class="bg-gradient-to-r from-[#1F2E1A] via-[#2D4424] to-[#38522D] text-white rounded-2xl p-6 shadow-lg border border-[#E7DCB9] flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
+                <div
+                    class="bg-gradient-to-r from-[#1F2E1A] via-[#2D4424] to-[#38522D] text-white rounded-2xl p-6 shadow-lg border border-[#E7DCB9] flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden">
                     <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-[#E06A26]/15 rounded-full blur-2xl"></div>
                     <div class="flex items-center space-x-4 z-10">
-                        <div class="h-14 w-14 rounded-2xl bg-white p-1.5 shadow-xl border-2 border-[#E7DCB9] flex items-center justify-center shrink-0">
-                            <img src="{% static 'images/logo.png' %}" alt="REI GOLDEN STAR" class="h-full w-full object-contain">
+                        <div
+                            class="h-14 w-14 rounded-2xl bg-white p-1.5 shadow-xl border-2 border-[#E7DCB9] flex items-center justify-center shrink-0">
+                            <img src="{% static 'images/logo.png' %}" alt="REI GOLDEN STAR"
+                                class="h-full w-full object-contain">
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h4 class="text-sm font-black text-white uppercase tracking-tight">Official Partner Digital ID Card</h4>
-                                <span class="px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase bg-[#E06A26] text-white shadow-sm flex items-center gap-1">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span> REAL-TIME VERIFIED
+                                <h4 class="text-sm font-black text-white uppercase tracking-tight">Official Partner
+                                    Digital ID Card</h4>
+                                <span
+                                    class="px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase bg-[#E06A26] text-white shadow-sm flex items-center gap-1">
+                                    <span class="h-1.5 w-1.5 rounded-full bg-white animate-pulse"></span> REAL-TIME
+                                    VERIFIED
                                 </span>
                             </div>
-                            <p class="text-xs text-[#90B576] font-semibold mt-1">Agent ID Number: <span class="font-mono text-[#E06A26] font-extrabold">{{ user.agent_id_number|default:"GSA-AGT-PENDING" }}</span></p>
+                            <p class="text-xs text-[#90B576] font-semibold mt-1">Agent ID Number: <span
+                                    class="font-mono text-[#E06A26] font-extrabold">{{
+                                    user.agent_id_number|default:"GSA-AGT-PENDING" }}</span></p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 z-10">
-                        <button type="button" onclick="switchTab('id-card')" class="px-4 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5">
+                        <button type="button" onclick="switchTab('id-card')"
+                            class="px-4 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-1.5">
                             <i class="fa-solid fa-id-card"></i> View &amp; Download ID Card
                         </button>
                     </div>
@@ -1271,32 +1335,40 @@
 
             <!-- ==================== PANEL: BANK ACCOUNTS ==================== -->
             <div id="tab-content-bank-accounts" class="tab-pane hidden space-y-6">
-                <div class="p-6 bg-white border border-[#E7DCB9] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                <div
+                    class="p-6 bg-white border border-[#E7DCB9] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
                     <div>
                         <h3 class="text-lg font-black text-[#2D4424] flex items-center gap-2">
                             <i class="fa-solid fa-building-columns text-[#E06A26]"></i>
                             Company Official Bank Accounts for Wallet Top-Up
                         </h3>
-                        <p class="text-xs text-[#567946] mt-1">Deposit or transfer funds to any of the official bank accounts below to top-up your B2B Agent Wallet.</p>
+                        <p class="text-xs text-[#567946] mt-1">Deposit or transfer funds to any of the official bank
+                            accounts below to top-up your B2B Agent Wallet.</p>
                     </div>
-                    <a href="https://wa.me/923077233303" target="_blank" class="px-4 py-2.5 bg-[#25D366] hover:bg-[#1DA851] text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-2 shrink-0">
+                    <a href="https://wa.me/923077233303" target="_blank"
+                        class="px-4 py-2.5 bg-[#25D366] hover:bg-[#1DA851] text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-2 shrink-0">
                         <i class="fa-brands fa-whatsapp text-sm"></i> Send Payment Receipt
                     </a>
                 </div>
 
                 <div id="agent-bank-accounts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">Loading official company bank accounts...</div>
+                    <div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">Loading official
+                        company bank accounts...</div>
                 </div>
 
                 <div class="bg-[#F7F3E9] p-5 rounded-2xl border border-[#D9CBAC] flex items-start gap-4">
-                    <div class="h-10 w-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center text-lg shrink-0 border border-[#FCE2D2]">
+                    <div
+                        class="h-10 w-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center text-lg shrink-0 border border-[#FCE2D2]">
                         <i class="fa-solid fa-circle-info"></i>
                     </div>
                     <div class="space-y-1 text-xs text-[#1F2E1A]">
                         <h4 class="font-bold text-[#2D4424]">Bank Deposit & Top-Up Instructions:</h4>
-                        <p class="text-[#567946]">1. Transfer funds online or deposit cash at any branch of the banks listed above.</p>
-                        <p class="text-[#567946]">2. Share the deposit slip or transaction reference via WhatsApp (+92 307 7233303) or email (goldenstartraveltours@gmail.com).</p>
-                        <p class="text-[#567946]">3. Your B2B Wallet balance will be credited upon verification by Golden Star accounts office.</p>
+                        <p class="text-[#567946]">1. Transfer funds online or deposit cash at any branch of the banks
+                            listed above.</p>
+                        <p class="text-[#567946]">2. Share the deposit slip or transaction reference via WhatsApp (+92
+                            307 7233303) or email (goldenstartraveltours@gmail.com).</p>
+                        <p class="text-[#567946]">3. Your B2B Wallet balance will be credited upon verification by
+                            Golden Star accounts office.</p>
                     </div>
                 </div>
             </div>
@@ -1492,101 +1564,90 @@
                         <div class="digital-card-inner" id="agent-my-card-inner">
 
                             <!-- FRONT SIDE -->
-                            <div class="digital-card-front bg-gradient-to-br from-[#1A2616] via-[#24381C] to-[#2D4424] text-white p-6 flex flex-col justify-between border-2 border-[#E7DCB9] relative overflow-hidden shadow-2xl">
-                                <!-- Background Ambient Light & Watermark -->
-                                <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-[#E06A26]/20 rounded-full blur-3xl pointer-events-none"></div>
-                                <div class="absolute -left-12 -top-12 w-36 h-36 bg-[#90B576]/10 rounded-full blur-2xl pointer-events-none"></div>
+                            <div class="digital-card-front bg-white text-[#2D4424] p-5 flex flex-col justify-between border-2 border-[#D9CBAC] relative overflow-hidden shadow-2xl rounded-3xl">
+                                <!-- Background Ambient Light -->
+                                <div class="absolute -right-16 -bottom-16 w-56 h-56 bg-[#E06A26]/5 rounded-full blur-2xl pointer-events-none"></div>
 
-                                <!-- Header with Main Company Logo ONLY -->
-                                <div class="flex items-center justify-between border-b border-white/20 pb-3.5 z-10">
-                                    <div class="h-11 px-3 py-1 bg-white rounded-xl shadow-lg border border-white/30 flex items-center justify-center">
-                                        <img src="{% static 'images/logo.png' %}" alt="REI GOLDEN STAR" class="h-full w-auto object-contain">
-                                    </div>
-                                    <span class="px-2.5 py-1 rounded-full text-[8px] font-black uppercase bg-[#E06A26] text-white tracking-wider shadow-md border border-white/20 flex items-center gap-1 shrink-0">
-                                        <i class="fa-solid fa-circle-check text-[9px]"></i> VERIFIED B2B AGENT
-                                    </span>
+                                <!-- Full Width Header: Logo ONLY on Clean White (No Green Banner, No Logo Background Box) -->
+                                <div class="w-[calc(100%+2.5rem)] -mx-5 -mt-5 bg-white p-3.5 border-b border-[#E7DCB9] flex flex-col items-center justify-center z-10 shadow-xs">
+                                    <img src="{% static 'images/logo.png' %}" alt="REI GOLDEN STAR" class="h-12 w-auto max-w-[90%] object-contain mx-auto">
                                 </div>
 
-                                <!-- Profile Avatar, Chip & Agent Details -->
-                                <div class="my-auto flex flex-col items-center text-center z-10 py-1">
-                                    <!-- Security Chip & Photo layout -->
-                                    <div class="relative mb-3">
-                                        <div class="h-24 w-24 rounded-2xl border-2 border-[#E06A26] overflow-hidden bg-white/10 shadow-2xl p-1">
-                                            {% if user.profile_photo %}
-                                            <img src="{{ user.profile_photo.url }}" class="h-full w-full object-cover rounded-xl" alt="Profile Photo">
-                                            {% else %}
-                                            <div class="h-full w-full flex items-center justify-center bg-gradient-to-tr from-[#E06A26] to-[#567946] text-white font-black text-2xl rounded-xl">
-                                                {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="absolute -bottom-1 -right-1 bg-[#1F2E1A] text-amber-400 p-1.5 rounded-lg border border-[#E7DCB9] shadow-md text-xs" title="Smart Security Chip Encrypted">
-                                            <i class="fa-solid fa-microchip"></i>
-                                        </div>
-                                    </div>
-
-                                    <h2 class="text-base font-black text-white tracking-tight leading-snug">{{ user.get_full_name|default:user.username }}</h2>
-                                    <p class="text-xs text-[#90B576] font-extrabold mt-0.5">{{ user.company_name|default:user.username }}</p>
-
-                                    <div class="mt-3 bg-white/10 backdrop-blur-xs border border-white/20 rounded-2xl px-4 py-2 text-center w-full shadow-inner">
-                                        <span class="text-[8px] font-black text-[#90B576] uppercase tracking-widest block">OFFICIAL AGENT LICENSE NO.</span>
-                                        <span class="text-sm font-black font-mono text-[#E06A26] tracking-widest block agent-id-number-display">{{ user.agent_id_number|default:"GSA-AGT-PENDING" }}</span>
-                                    </div>
-                                </div>
-
-                                <!-- Footer -->
-                                <div class="border-t border-white/20 pt-3 flex justify-between items-center z-10 text-[9px]">
+                                <!-- Front Content: Text Fields ONLY (No Icons, No Photos) -->
+                                <div class="my-auto flex flex-col items-center text-center z-10 py-2 w-full space-y-2.5">
+                                    <!-- Agent Name & Company -->
                                     <div>
-                                        <span class="text-[8px] text-white/60 font-bold uppercase tracking-wider block">Issued / Member Since</span>
-                                        <span class="font-extrabold text-white">{% if user.id_card_issued_at %}{{ user.id_card_issued_at|date:"M d, Y" }}{% else %}{{ user.date_joined|date:"M d, Y" }}{% endif %}</span>
+                                        <h2 class="text-lg font-black text-[#2D4424] tracking-tight leading-snug">{{ user.get_full_name|default:user.username }}</h2>
+                                        <p class="text-xs text-[#E06A26] font-extrabold uppercase tracking-wide mt-0.5">{{ user.company_name|default:user.username }}</p>
                                     </div>
-                                    <span class="text-[9px] font-bold text-[#90B576] bg-black/40 px-2.5 py-1 rounded-xl flex items-center gap-1 border border-white/15 shadow-sm">
+
+                                    <!-- License & ID Card Box -->
+                                    <div class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-2.5 text-center w-full shadow-inner space-y-0.5">
+                                        <span class="text-[8px] font-black text-[#567946] uppercase tracking-widest block">OFFICIAL AGENT LICENSE NO.</span>
+                                        <span class="text-base font-black font-mono text-[#2D4424] tracking-widest block agent-id-number-display">{{ user.agent_id_number|default:"GSA-AGT-PENDING" }}</span>
+                                    </div>
+
+                                    <!-- Phone Number & Office Address Text Fields -->
+                                    <div class="w-full text-left bg-white border border-[#E7DCB9] rounded-2xl p-2.5 space-y-1.5 text-xs shadow-2xs">
+                                        <div class="flex items-center justify-between text-[10px]">
+                                            <span class="font-bold text-[#567946] uppercase">Phone:</span>
+                                            <span class="font-extrabold text-[#2D4424]">{{ user.phone|default:"N/A" }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[10px] border-t border-[#E7DCB9]/60 pt-1">
+                                            <span class="font-bold text-[#567946] uppercase">Address:</span>
+                                            <span class="font-extrabold text-[#2D4424] truncate max-w-[170px]">{{ user.address|default:"N/A" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Front Footer: Member Since & Tap to Flip Button -->
+                                <div class="border-t border-[#E7DCB9] pt-2 flex justify-between items-center z-10 text-[9px]">
+                                    <div>
+                                        <span class="text-[8px] text-[#567946] font-bold uppercase tracking-wider block">Issued / Member Since</span>
+                                        <span class="font-extrabold text-[#2D4424]">{% if user.id_card_issued_at %}{{ user.id_card_issued_at|date:"M d, Y" }}{% else %}{{ user.date_joined|date:"M d, Y" }}{% endif %}</span>
+                                    </div>
+                                    <span class="tap-to-flip-badge text-[9px] font-bold text-[#E06A26] bg-[#FDF2EA] px-2.5 py-1 rounded-xl flex items-center gap-1 border border-[#FCE2D2] shadow-xs">
                                         <i class="fa-solid fa-arrows-rotate text-[10px] text-[#E06A26]"></i> Tap to Flip
                                     </span>
                                 </div>
                             </div>
 
                             <!-- BACK SIDE -->
-                            <div class="digital-card-back bg-gradient-to-br from-[#162213] via-[#1F2E1A] to-[#2D4424] text-white p-6 flex flex-col justify-between border-2 border-[#E7DCB9] relative overflow-hidden shadow-2xl">
-                                <!-- Top Header with Main Logo & Real-time Badge -->
-                                <div class="flex items-center justify-between border-b border-white/20 pb-3 z-10">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="h-6 w-6 bg-white p-0.5 rounded-lg border border-white/30 flex items-center justify-center shrink-0">
-                                            <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-full w-full object-contain">
-                                        </div>
-                                        <span class="text-[9px] font-black text-[#90B576] uppercase tracking-widest">OFFICIAL SECURITY CREDENTIAL</span>
-                                    </div>
-                                    <span class="px-2 py-0.5 rounded-full text-[7px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 uppercase tracking-widest flex items-center gap-1 shadow-sm">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE VERIFIED
-                                    </span>
+                            <div class="digital-card-back bg-white text-[#2D4424] p-5 flex flex-col justify-between border-2 border-[#D9CBAC] relative overflow-hidden shadow-2xl rounded-3xl">
+                                <!-- Background Ambient Light -->
+                                <div class="absolute -right-16 -bottom-16 w-56 h-56 bg-[#2D4424]/5 rounded-full blur-2xl pointer-events-none"></div>
+
+                                <!-- Full Width Header: Logo ONLY on Clean White (No Green Banner) -->
+                                <div class="w-[calc(100%+2.5rem)] -mx-5 -mt-5 bg-white p-3.5 border-b border-[#E7DCB9] flex items-center justify-center z-10 shadow-xs">
+                                    <img src="{% static 'images/logo.png' %}" alt="Logo" class="h-10 w-auto max-w-[85%] object-contain mx-auto">
                                 </div>
 
-                                <!-- Real-Time Dynamic QR Code -->
-                                <div class="my-auto flex flex-col items-center justify-center space-y-3 z-10">
-                                    <div class="p-3.5 bg-white rounded-2xl shadow-2xl border-2 border-[#E06A26] relative group">
+                                <!-- Center Dynamic QR Code with Clean Typography -->
+                                <div class="my-auto flex flex-col items-center justify-center space-y-3 z-10 font-sans">
+                                    <div class="p-3 bg-white rounded-2xl shadow-xl border-2 border-[#E06A26] relative group">
                                         {% if user.agent_id_number %}
                                         <img id="agent-id-card-qr-img" src="/dashboard/agent/id-card-qr/{{ user.agent_id_number }}/" alt="Scan to Verify" class="h-28 w-28 object-contain">
                                         {% else %}
                                         <img id="agent-id-card-qr-img" src="#" alt="Scan to Verify" class="h-28 w-28 object-contain hidden">
                                         <div id="agent-id-card-qr-spinner" class="h-28 w-28 flex flex-col items-center justify-center text-center p-2">
                                             <i class="fa-solid fa-spinner fa-spin text-[#E06A26] text-xl mb-1"></i>
-                                            <span class="text-[9px] text-gray-500 font-bold">Generating QR...</span>
+                                            <span class="text-[9px] text-[#567946] font-bold">Generating QR...</span>
                                         </div>
                                         {% endif %}
                                     </div>
-                                    <a id="btn-realtime-verify-link" href="/verify-agent/{{ user.agent_id_number|default:'' }}/" target="_blank" onclick="event.stopPropagation();" class="text-[9px] font-extrabold text-white bg-gradient-to-r from-[#E06A26] to-[#C45517] hover:from-[#C45517] hover:to-[#A3430E] px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg transition-all flex items-center gap-1.5 hover:scale-105">
+                                    <a id="btn-realtime-verify-link" href="/verify-agent/{{ user.agent_id_number|default:'' }}/" target="_blank" onclick="event.stopPropagation();" class="text-[9.5px] font-black text-white bg-[#E06A26] hover:bg-[#C45517] px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5 hover:scale-105 font-sans">
                                         <i class="fa-solid fa-qrcode text-[10px]"></i> Real-Time Agent Verification Page
                                     </a>
                                 </div>
 
-                                <!-- Footer Security Details -->
-                                <div class="border-t border-white/20 pt-3 space-y-2 text-center z-10">
-                                    <p class="text-[8px] text-white/70 font-semibold leading-relaxed">
-                                        Official property of REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD. Scanning this QR code performs a live real-time status check.
+                                <!-- Back Footer Security Details -->
+                                <div class="border-t border-[#E7DCB9] pt-2.5 space-y-2 text-center z-10 font-sans">
+                                    <p class="text-[8.5px] text-[#567946] font-semibold leading-snug">
+                                        Official property of REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD. Scan QR code to perform live verification.
                                     </p>
-                                    <div class="flex justify-between items-center pt-1 text-[8px] font-mono text-[#90B576]">
-                                        <span class="flex items-center gap-1 text-emerald-400 font-bold"><i class="fa-solid fa-shield-check"></i> STATUS: ACTIVE</span>
-                                        <span class="flex items-center gap-1 text-white/80"><i class="fa-solid fa-arrows-rotate"></i> Tap to Flip</span>
+                                    <div class="flex justify-between items-center pt-1 text-[8.5px] font-mono text-[#2D4424]">
+                                        <span class="flex items-center gap-1 text-emerald-700 font-extrabold"><i class="fa-solid fa-shield-check"></i> STATUS: ACTIVE</span>
+                                        <span class="tap-to-flip-badge flex items-center gap-1 text-[#E06A26] font-bold font-sans"><i class="fa-solid fa-arrows-rotate"></i> Tap to Flip</span>
                                     </div>
                                 </div>
                             </div>
@@ -1596,23 +1657,32 @@
                 </div>
             </div>
 
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ==================== PANEL: CONTACT US (DEPARTMENT DIRECTORY) ==================== -->
             <div id="tab-content-contact-us" class="tab-pane hidden space-y-6">
-                <div class="p-6 bg-white border border-[#E7DCB9] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                <div
+                    class="p-6 bg-white border border-[#E7DCB9] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
                     <div>
                         <h3 class="text-lg font-black text-[#2D4424] flex items-center gap-2">
                             <i class="fa-solid fa-headset text-[#E06A26]"></i>
                             Golden Star Travel — Official Department Contacts Directory
                         </h3>
-                        <p class="text-xs text-[#567946] mt-1">Direct contact numbers, WhatsApp lines, and official email addresses for all operational departments.</p>
+                        <p class="text-xs text-[#567946] mt-1">Direct contact numbers, WhatsApp lines, and official
+                            email addresses for all operational departments.</p>
                     </div>
-                    <a href="https://wa.me/923077233303" target="_blank" class="px-4 py-2.5 bg-[#25D366] hover:bg-[#1DA851] text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-2 shrink-0">
+                    <a href="https://wa.me/923077233303" target="_blank"
+                        class="px-4 py-2.5 bg-[#25D366] hover:bg-[#1DA851] text-white text-xs font-bold rounded-xl shadow transition-all flex items-center gap-2 shrink-0">
                         <i class="fa-brands fa-whatsapp text-sm"></i> 24/7 WhatsApp Helpline
                     </a>
                 </div>
 
                 <div id="agent-dept-contacts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">Loading department directory...</div>
+                    <div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">Loading department
+                        directory...</div>
                 </div>
             </div>
 
@@ -2406,14 +2476,18 @@
                             </div>
 
                             <div>
-                                <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4] inline-block mb-2">
+                                <span
+                                    class="px-3 py-1 rounded-full text-[11px] font-black uppercase bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4] inline-block mb-2">
                                     🎉 THANK YOU! BOOKING SUBMITTED
                                 </span>
                                 <h4 class="text-xl font-black text-[#2D4424]">Your Order Has Been Placed!</h4>
                                 <div class="text-xs text-[#567946] mt-1 flex items-center justify-center gap-2">
                                     <span>Reference Number:</span>
-                                    <strong id="success-ref-num" class="text-[#E06A26] font-mono text-base font-black">GSA-2026-00000</strong>
-                                    <button type="button" onclick="copySuccessRefNum()" class="px-2 py-0.5 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-[10px] font-bold rounded transition-all" title="Copy Reference Number">
+                                    <strong id="success-ref-num"
+                                        class="text-[#E06A26] font-mono text-base font-black">GSA-2026-00000</strong>
+                                    <button type="button" onclick="copySuccessRefNum()"
+                                        class="px-2 py-0.5 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-[10px] font-bold rounded transition-all"
+                                        title="Copy Reference Number">
                                         <i class="fa-solid fa-copy"></i>
                                     </button>
                                 </div>
@@ -2464,6 +2538,17 @@
                 visibility: visible !important;
             }
 
+            .tap-to-flip-badge,
+            .tap-to-flip-btn,
+            .no-print,
+            button {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                width: 0 !important;
+                height: 0 !important;
+            }
+
             #printable-id-card-section {
                 position: absolute !important;
                 left: 0 !important;
@@ -2497,16 +2582,18 @@
             .digital-card-front,
             .digital-card-back {
                 position: relative !important;
-                width: 330px !important;
-                height: 500px !important;
+                width: 340px !important;
+                height: 520px !important;
                 transform: none !important;
                 backface-visibility: visible !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
                 page-break-inside: avoid !important;
-                border-radius: 1.5rem !important;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+                border-radius: 1.25rem !important;
+                border: 2px solid #2D4424 !important;
+                box-shadow: none !important;
+                background: #ffffff !important;
             }
         }
     </style>
@@ -2532,6 +2619,47 @@
             }
             return cookieValue || '{{ csrf_token }}';
         }
+
+        function updateIslamabadLiveClock() {
+            try {
+                const now = new Date();
+                const options = {
+                    timeZone: 'Asia/Karachi',
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                };
+                const formatter = new Intl.DateTimeFormat('en-US', options);
+                const parts = formatter.formatToParts(now);
+
+                let weekday = '', month = '', day = '', year = '', hour = '', minute = '', second = '', dayPeriod = '';
+                parts.forEach(p => {
+                    if (p.type === 'weekday') weekday = p.value;
+                    if (p.type === 'month') month = p.value;
+                    if (p.type === 'day') day = p.value;
+                    if (p.type === 'year') year = p.value;
+                    if (p.type === 'hour') hour = p.value;
+                    if (p.type === 'minute') minute = p.value;
+                    if (p.type === 'second') second = p.value;
+                    if (p.type === 'dayPeriod') dayPeriod = p.value;
+                });
+
+                const formattedText = `${weekday}, ${month} ${day}, ${year} | ${hour}:${minute}:${second} ${dayPeriod.toUpperCase()} (PKT - Islamabad)`;
+
+                const elAgent = document.getElementById('live-header-date');
+                if (elAgent) elAgent.textContent = formattedText;
+            } catch (err) {
+                console.error("Error updating Islamabad clock:", err);
+            }
+        }
+
+        setInterval(updateIslamabadLiveClock, 1000);
+        updateIslamabadLiveClock();
 
         function toggleAgentSidebar() {
             const sidebar = document.querySelector('aside');
@@ -3848,7 +3976,10 @@
                 ? `<span class="text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md border border-emerald-200" title="Includes In-Flight Meal"><i class="fa-solid fa-utensils mr-1"></i>In-flight Meal</span>`
                 : '';
 
-            const tripBadge = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-md ${fi.trip_type === 'oneway' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-purple-50 text-purple-700 border border-purple-200'}"><i class="fa-solid ${fi.trip_type === 'oneway' ? 'fa-arrow-right' : 'fa-rotate'} mr-1"></i>${fi.trip_type_display || (fi.trip_type === 'oneway' ? 'One-Way' : 'Return Flight')}</span>`;
+            const tripBadgeClass = fi.trip_type === 'oneway' ? 'bg-blue-50 text-blue-700 border border-blue-200' : (fi.trip_type === 'multicity' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-purple-50 text-purple-700 border border-purple-200');
+            const tripIconClass = fi.trip_type === 'oneway' ? 'fa-arrow-right' : (fi.trip_type === 'multicity' ? 'fa-diagram-project' : 'fa-rotate');
+            const tripText = fi.trip_type_display || (fi.trip_type === 'oneway' ? 'One-Way' : (fi.trip_type === 'multicity' ? 'Multi City' : 'Return Flight'));
+            const tripBadge = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-md ${tripBadgeClass}"><i class="fa-solid ${tripIconClass} mr-1"></i>${tripText}</span>`;
 
             const routeBadge = `<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${fi.route_type === 'via' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}"><i class="fa-solid ${fi.route_type === 'via' ? 'fa-location-crosshairs' : 'fa-bolt'} mr-1"></i>${fi.route_type === 'via' ? 'Via ' + escapeHTML(fi.via_city || '') : 'Non-Stop Direct'}</span>`;
 
@@ -4237,6 +4368,96 @@
             `;
         }
 
+        window._agentTicketTypeFilter = 'all';
+        window._agentTicketRouteFilter = 'all';
+        window._agentTicketSearchQuery = '';
+        window._agentMasterFlightInventory = [];
+
+        function setAgentTicketTypeFilter(filter) {
+            window._agentTicketTypeFilter = filter;
+            applyAgentTicketRealtimeFilters();
+        }
+
+        function setAgentTicketRouteFilter(filter) {
+            window._agentTicketRouteFilter = filter;
+            applyAgentTicketRealtimeFilters();
+        }
+
+        function onAgentTicketSearchInput(val) {
+            window._agentTicketSearchQuery = (val || '').toLowerCase().trim();
+            applyAgentTicketRealtimeFilters();
+        }
+
+        function applyAgentTicketRealtimeFilters() {
+            const listContainer = document.getElementById('agent-tickets-list-wrapper');
+            const countBadge = document.getElementById('category-wholesale-count-badge');
+            const typeF = window._agentTicketTypeFilter || 'all';
+            const routeF = window._agentTicketRouteFilter || 'all';
+            const query = window._agentTicketSearchQuery || '';
+
+            ['all', 'oneway', 'return', 'multicity'].forEach(t => {
+                const btn = document.getElementById(`btn-agent-filter-type-${t}`);
+                if (btn) {
+                    btn.className = (t === typeF)
+                        ? 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#E06A26] text-white shadow-xs'
+                        : 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3]';
+                }
+            });
+
+            ['all', 'direct', 'via'].forEach(r => {
+                const btn = document.getElementById(`btn-agent-filter-route-${r}`);
+                if (btn) {
+                    btn.className = (r === routeF)
+                        ? 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#2D4424] text-white shadow-xs'
+                        : 'px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3]';
+                }
+            });
+
+            const items = window._agentMasterFlightInventory || [];
+            const filtered = items.filter(fi => {
+                const matchesType = typeF === 'all' || fi.trip_type === typeF;
+                const matchesRoute = routeF === 'all' || fi.route_type === routeF;
+                const matchesSearch = !query ||
+                    (fi.departure_city || '').toLowerCase().includes(query) ||
+                    (fi.destination_city || '').toLowerCase().includes(query) ||
+                    (fi.airline_name || '').toLowerCase().includes(query) ||
+                    (fi.sector_name || '').toLowerCase().includes(query) ||
+                    (fi.via_city || '').toLowerCase().includes(query);
+
+                return matchesType && matchesRoute && matchesSearch;
+            });
+
+            if (countBadge) {
+                countBadge.textContent = `${filtered.length} Available`;
+            }
+
+            if (!listContainer) return;
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="py-8 text-center bg-white rounded-2xl border border-dashed border-[#D9CBAC] p-6 space-y-2">
+                        <i class="fa-solid fa-plane-slash text-3xl text-amber-600"></i>
+                        <div class="font-extrabold text-sm text-[#2D4424]">No Matching Flight Tickets Found</div>
+                        <p class="text-xs text-[#567946]">No ticket routes match your selected ticket type, route configuration, or search query.</p>
+                        <button type="button" onclick="resetAgentTicketFilters()" class="mt-2 px-3 py-1.5 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-bold rounded-xl transition-all">
+                            Reset All Filters
+                        </button>
+                    </div>
+                `;
+            } else {
+                listContainer.innerHTML = filtered.map(fi => renderLandscapeFlightCard(fi)).join('');
+            }
+        }
+
+        function resetAgentTicketFilters() {
+            window._agentTicketTypeFilter = 'all';
+            window._agentTicketRouteFilter = 'all';
+            window._agentTicketSearchQuery = '';
+            const input = document.getElementById('input-agent-ticket-search');
+            if (input) input.value = '';
+            applyAgentTicketRealtimeFilters();
+        }
+
         async function reloadCategoryPage() {
             const catKey = window._currentCategoryKey || 'tickets';
             const containerTop = document.getElementById('category-wholesale-items-container');
@@ -4266,9 +4487,8 @@
                     // Flight inventory categories configured by Admin
                     containerTop.className = "space-y-4";
                     let inventoryUrl = '/dashboard/agent/api/flight-inventory/';
-                    if (catKey === 'tickets') {
-                        inventoryUrl += '?trip_type=return';
-                    } else if (catKey === 'ksa_group') {
+
+                    if (catKey === 'ksa_group') {
                         inventoryUrl += '?search=Jeddah';
                     } else if (catKey === 'uae_group') {
                         inventoryUrl += '?search=Dubai';
@@ -4282,15 +4502,41 @@
 
                     const resInv = await fetch(inventoryUrl);
                     const dataInv = await resInv.json();
-                    const items = dataInv.inventory || [];
+                    window._agentMasterFlightInventory = dataInv.inventory || [];
 
-                    if (items.length === 0) {
-                        containerTop.innerHTML = `<div class="py-6 text-center text-[#567946] text-xs font-semibold">No wholesale admin flight offers currently active under this category.</div>`;
-                        badgeTop.textContent = `0 Available`;
-                    } else {
-                        badgeTop.textContent = `${items.length} Available`;
-                        containerTop.innerHTML = items.map(fi => renderLandscapeFlightCard(fi)).join('');
-                    }
+                    const filterPanelHtml = `
+                        <div class="bg-white p-4 rounded-3xl border border-[#E7DCB9] shadow-sm mb-4 space-y-3">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-[#E7DCB9]">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-filter text-[#E06A26]"></i>
+                                    <h4 class="text-xs font-extrabold text-[#2D4424] uppercase tracking-wider">Real-Time Ticket & Route Filters</h4>
+                                </div>
+                                <div class="relative w-full md:max-w-md">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#567946] pointer-events-none z-10"></i>
+                                    <input type="text" id="input-agent-ticket-search" value="${window._agentTicketSearchQuery || ''}" oninput="onAgentTicketSearchInput(this.value)" placeholder="Search departure city, destination, airline..." class="w-full pl-10 pr-4 py-2 text-xs bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl text-[#2D4424] font-bold focus:outline-none focus:border-[#E06A26] transition-all">
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-[10px] font-black uppercase text-[#E06A26] mr-1">Ticket Type:</span>
+                                    <button type="button" id="btn-agent-filter-type-all" onclick="setAgentTicketTypeFilter('all')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#E06A26] text-white shadow-xs">All Types</button>
+                                    <button type="button" id="btn-agent-filter-type-oneway" onclick="setAgentTicketTypeFilter('oneway')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3]">One Way</button>
+                                    <button type="button" id="btn-agent-filter-type-return" onclick="setAgentTicketTypeFilter('return')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3]">Round Trip</button>
+                                    <button type="button" id="btn-agent-filter-type-multicity" onclick="setAgentTicketTypeFilter('multicity')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3]">Multi City</button>
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-[10px] font-black uppercase text-[#2D4424] mr-1">Route Type:</span>
+                                    <button type="button" id="btn-agent-filter-route-all" onclick="setAgentTicketRouteFilter('all')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#2D4424] text-white shadow-xs">All Routes</button>
+                                    <button type="button" id="btn-agent-filter-route-direct" onclick="setAgentTicketRouteFilter('direct')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3]">Direct Non-Stop</button>
+                                    <button type="button" id="btn-agent-filter-route-via" onclick="setAgentTicketRouteFilter('via')" class="px-3 py-1.5 rounded-xl font-extrabold text-xs transition-all bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3]">Via / Connecting</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="agent-tickets-list-wrapper" class="space-y-4"></div>
+                    `;
+
+                    containerTop.innerHTML = filterPanelHtml;
+                    applyAgentTicketRealtimeFilters();
                 }
 
                 // Fetch bottom section: My Booked Orders matching category
@@ -4329,6 +4575,79 @@
             } catch (err) {
                 console.error("Error reloading category page:", err);
             }
+        }
+
+        window._agentSelectedTicketType = 'all';
+        window._agentSelectedRouteType = 'all';
+
+        function setAgentTicketTypeFilter(type) {
+            window._agentSelectedTicketType = type;
+            document.querySelectorAll('.agent-ticket-type-btn').forEach(btn => {
+                btn.className = "agent-ticket-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3] border border-[#D9CBAC] transition-all";
+            });
+            const activeBtn = document.getElementById(`btn-agent-ticket-type-${type}`);
+            if (activeBtn) {
+                activeBtn.className = "agent-ticket-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#2D4424] text-white shadow-xs transition-all";
+            }
+            applyAgentTicketRealtimeFilters();
+        }
+
+        function setAgentRouteTypeFilter(routeType) {
+            window._agentSelectedRouteType = routeType;
+            document.querySelectorAll('.agent-route-type-btn').forEach(btn => {
+                btn.className = "agent-route-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#F7F3E9] text-[#2D4424] hover:bg-[#EBD8B3] border border-[#D9CBAC] transition-all";
+            });
+            const activeBtn = document.getElementById(`btn-agent-route-type-${routeType}`);
+            if (activeBtn) {
+                activeBtn.className = "agent-route-type-btn px-3 py-1 text-[11px] font-extrabold rounded-lg bg-[#567946] text-white shadow-xs transition-all";
+            }
+            applyAgentTicketRealtimeFilters();
+        }
+
+        function applyAgentTicketRealtimeFilters() {
+            const container = document.getElementById("b2b-inventory-container");
+            if (!container) return;
+
+            let routes = window._currentInventoryData || [];
+            const query = (document.getElementById("agent-ticket-search-input")?.value || "").toLowerCase().trim();
+            const ticketType = window._agentSelectedTicketType || "all";
+            const routeType = window._agentSelectedRouteType || "all";
+
+            if (ticketType !== "all") {
+                routes = routes.filter(fi => {
+                    const tt = (fi.trip_type || "").toLowerCase();
+                    if (ticketType === "oneway") return tt === "oneway" || tt === "one_way";
+                    if (ticketType === "return") return tt === "return" || tt === "round_trip" || tt === "roundtrip";
+                    if (ticketType === "multicity") return tt === "multicity" || tt === "multi_city";
+                    return true;
+                });
+            }
+
+            if (routeType !== "all") {
+                routes = routes.filter(fi => {
+                    const rt = (fi.route_type || "").toLowerCase();
+                    if (routeType === "direct") return rt === "direct" || rt === "non-stop" || rt === "non_stop";
+                    if (routeType === "via") return rt === "via" || rt === "connecting";
+                    return true;
+                });
+            }
+
+            if (query) {
+                routes = routes.filter(fi =>
+                    (fi.airline_name || "").toLowerCase().includes(query) ||
+                    (fi.departure_city || "").toLowerCase().includes(query) ||
+                    (fi.destination_city || "").toLowerCase().includes(query) ||
+                    (fi.via_city || "").toLowerCase().includes(query) ||
+                    (fi.sector_name || "").toLowerCase().includes(query)
+                );
+            }
+
+            if (routes.length === 0) {
+                container.innerHTML = `<div class="py-8 text-center text-[#567946] text-xs font-semibold">No flight routes found matching your search and filter criteria.</div>`;
+                return;
+            }
+
+            container.innerHTML = routes.map(fi => renderLandscapeFlightCard(fi)).join('');
         }
 
         async function syncB2BDealsData() {
@@ -4373,14 +4692,7 @@
                 const invData = await invRes.json();
                 window._currentInventoryData = invData.inventory || [];
 
-                const container = document.getElementById("b2b-inventory-container");
-                container.innerHTML = "";
-
-                if (!invData.inventory || invData.inventory.length === 0) {
-                    container.innerHTML = `<div class="py-8 text-center text-[#567946] text-xs">No active flight routes available for the selected criteria.</div>`;
-                } else {
-                    container.innerHTML = invData.inventory.map(fi => renderLandscapeFlightCard(fi)).join('');
-                }
+                applyAgentTicketRealtimeFilters();
             }
 
             else if (sub === 'group') {
@@ -5164,8 +5476,10 @@
     <!-- ════════════════════════════════════════════════════════════════ -->
     <!-- REAL-TIME ORDER TRACKER MODAL (LIVE STEPPER & PNR ALLOTMENT) -->
     <!-- ════════════════════════════════════════════════════════════════ -->
-    <div id="modal-order-tracker" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 relative max-h-[92vh] overflow-y-auto">
+    <div id="modal-order-tracker"
+        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 relative max-h-[92vh] overflow-y-auto">
             <!-- Modal Header -->
             <div class="flex items-center justify-between border-b border-[#E7DCB9] pb-4">
                 <div>
@@ -5173,25 +5487,33 @@
                         <i class="fa-solid fa-location-crosshairs text-[#E06A26]"></i>
                         Real-Time Order Tracking &amp; Status System
                     </h3>
-                    <p class="text-xs text-[#567946] font-semibold mt-0.5">Live order status, PNR code allotment, and e-ticket issuance tracker.</p>
+                    <p class="text-xs text-[#567946] font-semibold mt-0.5">Live order status, PNR code allotment, and
+                        e-ticket issuance tracker.</p>
                 </div>
-                <button type="button" onclick="closeOrderTrackerModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1">
+                <button type="button" onclick="closeOrderTrackerModal()"
+                    class="text-slate-400 hover:text-slate-600 text-xl p-1">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
             <!-- Search Bar & Live Sync Bar -->
-            <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div
+                class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div class="flex items-center gap-2 w-full sm:w-auto flex-1">
                     <i class="fa-solid fa-magnifying-glass text-[#E06A26] text-sm"></i>
-                    <input type="text" id="tracker-search-input" placeholder="Enter Order Ref (e.g. GSA-2026-00001) or PNR..." class="w-full bg-white border border-[#D9CBAC] rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                    <button type="button" onclick="searchAndTrackOrder()" class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow-xs transition-all shrink-0">
+                    <input type="text" id="tracker-search-input"
+                        placeholder="Enter Order Ref (e.g. GSA-2026-00001) or PNR..."
+                        class="w-full bg-white border border-[#D9CBAC] rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                    <button type="button" onclick="searchAndTrackOrder()"
+                        class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow-xs transition-all shrink-0">
                         Track Order
                     </button>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <label class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-[#D9CBAC]">
-                        <input type="checkbox" id="tracker-auto-sync" checked onchange="toggleTrackerAutoSync(this.checked)" class="rounded accent-[#E06A26]">
+                    <label
+                        class="flex items-center gap-1.5 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-[#D9CBAC]">
+                        <input type="checkbox" id="tracker-auto-sync" checked
+                            onchange="toggleTrackerAutoSync(this.checked)" class="rounded accent-[#E06A26]">
                         <span class="text-[11px] font-bold text-[#2D4424]">⚡ Auto-Sync (10s)</span>
                     </label>
                 </div>
@@ -5491,9 +5813,9 @@
                 const res = await fetch("/dashboard/agent/api/my-orders/");
                 const data = await res.json();
                 const orders = data.orders || [];
-                
+
                 const cleanQ = query.toLowerCase().trim();
-                const found = orders.find(o => 
+                const found = orders.find(o =>
                     (o.reference_number && o.reference_number.toLowerCase() === cleanQ) ||
                     (o.pnr && o.pnr.toLowerCase() === cleanQ) ||
                     (String(o.id) === cleanQ)
@@ -5538,11 +5860,10 @@
                         <span class="text-xs font-black uppercase text-[#2D4424] flex items-center gap-1.5">
                             <i class="fa-solid fa-route text-[#E06A26]"></i> Live Order Progress Stepper
                         </span>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                            isTicketed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                            st === 'hold' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                            'bg-orange-100 text-[#E06A26] border border-orange-300'
-                        }">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${isTicketed ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                    st === 'hold' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
+                        'bg-orange-100 text-[#E06A26] border border-orange-300'
+                }">
                             ${isTicketed ? '✓ ISSUED & CONFIRMED' : (order.status_display || st.toUpperCase())}
                         </span>
                     </div>

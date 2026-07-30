@@ -1,0 +1,10 @@
+# ==============================================================================
+# Optional AI Chatbot & Vector Search Dependencies
+# Install only if AI_CHATBOT_ENABLED=True is activated in config/settings.py
+# ==============================================================================
+
+langchain>=0.0.260
+langchain-anthropic>=0.1.0
+pgvector>=0.2.0
+sentence-transformers>=2.2.2
+torch>=2.0.0

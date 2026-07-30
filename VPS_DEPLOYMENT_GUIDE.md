@@ -183,8 +183,18 @@ Execute database migrations and static files collection inside the running Djang
 # 1. Run database migrations
 docker compose exec core_admin python core_admin/manage.py migrate
 
-# 2. Collect all CSS, JS, and image static files for Nginx
+# 2. Ensure media upload directory exists
+mkdir -p core_admin/media
+chmod -R 775 core_admin/media
+
+# 3. Collect all CSS, JS, and image static files for Nginx
 docker compose exec core_admin python core_admin/manage.py collectstatic --noinput
+
+# 4. SELinux Context Setup (Required ONLY for SELinux-enabled Linux distros like AlmaLinux, RHEL, CentOS, Rocky Linux)
+# Fixes HTTP 403 Forbidden error on /static/ and /media/ files
+sudo semanage fcontext -a -t httpd_sys_content_t "/var/www/travel-agency/core_admin/staticfiles(/.*)?" 2>/dev/null || true
+sudo semanage fcontext -a -t httpd_sys_content_t "/var/www/travel-agency/core_admin/media(/.*)?" 2>/dev/null || true
+sudo restorecon -R /var/www/travel-agency/core_admin/staticfiles /var/www/travel-agency/core_admin/media 2>/dev/null || true
 
 # 3. Create Super Admin User (Credentials: reigoldenstarmianejaz)
 docker compose exec core_admin python core_admin/manage.py shell -c "

@@ -45,7 +45,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -56,6 +56,11 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
     <style>
+        /* Global Sans-Serif Typography Enforcement */
+        *, html, body, button, input, select, textarea, p, h1, h2, h3, h4, h5, h6, span, td, th {
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif !important;
+        }
+
         i.fa, i.fas, i.far, i.fal, i.fab, i.fa-solid, i.fa-regular, i.fa-brands, [class^="fa-"], [class*=" fa-"] {
             font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
             font-style: normal;
@@ -76,7 +81,6 @@
         html, body {
             background-color: #F7F3E9 !important;
             color: #1F2E1A !important;
-            font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
         }
 
         aside {
@@ -439,6 +443,11 @@
                 </span>
             </div>
             <div class="flex items-center space-x-3 sm:space-x-4">
+                <!-- Islamabad Live Clock Badge -->
+                <div class="hidden md:flex items-center space-x-2 bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#567946] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm border border-[#38522D]">
+                    <i class="fa-regular fa-clock text-[#90B576]"></i>
+                    <span id="admin-live-header-date">Loading Islamabad Time...</span>
+                </div>
                 <button onclick="openPortalSelectionModal()" class="px-3.5 py-1.5 rounded-xl bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-extrabold transition-all flex items-center gap-1.5">
                     <i class="fa-solid fa-right-left text-[#E06A26]"></i>
                     <span class="hidden sm:inline">Switch Admin Portal</span>
@@ -989,11 +998,19 @@
 
                 <!-- Flight Route Inventories List Table -->
                 <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm space-y-4">
-                    <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
+                    <div class="flex flex-wrap justify-between items-center border-b border-[#E7DCB9] pb-3 gap-2">
                         <h3 class="text-sm font-extrabold text-[#2D4424] flex items-center gap-2">
                             <i class="fa-solid fa-plane-up text-[#E06A26]"></i> Flight Route Inventories &amp; Baggage Allowance Tiers
                         </h3>
-                        <span id="badge-flight-inventory-count" class="text-[10px] font-black uppercase bg-[#F0F6EC] text-[#567946] px-2.5 py-0.5 rounded-full border border-[#C6DCB4]">0 Routes</span>
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1 bg-[#F7F3E9] p-1 rounded-xl border border-[#D9CBAC] text-[11px]">
+                                <button type="button" id="btn-admin-flight-filter-all" onclick="filterAdminFlightInventory('all')" class="px-2.5 py-1 rounded-lg font-bold bg-white text-[#2D4424] shadow-xs">All Types</button>
+                                <button type="button" id="btn-admin-flight-filter-oneway" onclick="filterAdminFlightInventory('oneway')" class="px-2.5 py-1 rounded-lg font-bold text-[#567946] hover:text-[#2D4424]">One Way</button>
+                                <button type="button" id="btn-admin-flight-filter-return" onclick="filterAdminFlightInventory('return')" class="px-2.5 py-1 rounded-lg font-bold text-[#567946] hover:text-[#2D4424]">Round Trip</button>
+                                <button type="button" id="btn-admin-flight-filter-multicity" onclick="filterAdminFlightInventory('multicity')" class="px-2.5 py-1 rounded-lg font-bold text-[#567946] hover:text-[#2D4424]">Multi City</button>
+                            </div>
+                            <span id="badge-flight-inventory-count" class="text-[10px] font-black uppercase bg-[#F0F6EC] text-[#567946] px-2.5 py-0.5 rounded-full border border-[#C6DCB4]">0 Routes</span>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
@@ -2356,8 +2373,11 @@
                                 <button onclick="openAdminAddLedgerModal(${a.id}, '${safeName}')" class="px-2.5 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white text-[10px] font-bold rounded-lg transition-all shadow flex items-center gap-1" title="Add Wallet Credit / Debit">
                                     <i class="fa-solid fa-wallet"></i> Wallet
                                 </button>
-                                <button onclick="adminSuspendAgentAccount(${a.id})" class="px-2 py-1 ${a.approval_status === 'suspended' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-600 hover:bg-rose-700'} text-white text-[10px] font-bold rounded-lg transition-all" title="${a.approval_status === 'suspended' ? 'Reactivate Account' : 'Suspend Account'}">
+                                <button onclick="adminSuspendAgentAccount(${a.id})" class="px-2 py-1 ${a.approval_status === 'suspended' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'} text-white text-[10px] font-bold rounded-lg transition-all" title="${a.approval_status === 'suspended' ? 'Reactivate Account' : 'Suspend Account'}">
                                     <i class="fa-solid ${a.approval_status === 'suspended' ? 'fa-user-check' : 'fa-user-slash'}"></i>
+                                </button>
+                                <button onclick="adminDeleteAgentAccount(${a.id}, '${safeName}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all" title="Permanently Delete Agent Account">
+                                    <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
                         </td>
@@ -2464,12 +2484,15 @@
                             <button onclick="adminApproveAgentAccount(${a.id})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black rounded-lg shadow transition-all flex items-center gap-1">
                                 <i class="fa-solid fa-check"></i> Approve
                             </button>
-                            <button onclick="adminRejectAgentAccount(${a.id})" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all">
+                            <button onclick="adminRejectAgentAccount(${a.id})" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold rounded-lg transition-all">
                                 Reject
                             </button>
                             <a href="/dashboard/admin/agents/${a.id}/view/" target="_blank" class="px-2 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all">
                                 Inspect
                             </a>
+                            <button onclick="adminDeleteAgentAccount(${a.id}, '${(a.company_name || a.username || '').replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all" title="Delete Agent Application">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
@@ -2537,6 +2560,67 @@
                 console.error("Error suspending agent:", err);
             }
         }
+
+        async function adminDeleteAgentAccount(agentId, companyName) {
+            if (!confirm(`Are you sure you want to PERMANENTLY DELETE agent account "${companyName}"? This action cannot be undone.`)) return;
+            try {
+                const res = await fetch(`/dashboard/admin/api/agents/${agentId}/delete/`, { method: "DELETE" });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message || "Agent account deleted successfully.");
+                    fetchAdminManageAccounts();
+                    fetchAdminPendingAccounts();
+                } else {
+                    alert(data.error || data.message || "Failed to delete agent account.");
+                }
+            } catch (err) {
+                console.error("Error deleting agent account:", err);
+            }
+        }
+
+        function updateIslamabadLiveClock() {
+            try {
+                const now = new Date();
+                const options = {
+                    timeZone: 'Asia/Karachi',
+                    weekday: 'short',
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                };
+                const formatter = new Intl.DateTimeFormat('en-US', options);
+                const parts = formatter.formatToParts(now);
+
+                let weekday = '', month = '', day = '', year = '', hour = '', minute = '', second = '', dayPeriod = '';
+                parts.forEach(p => {
+                    if (p.type === 'weekday') weekday = p.value;
+                    if (p.type === 'month') month = p.value;
+                    if (p.type === 'day') day = p.value;
+                    if (p.type === 'year') year = p.value;
+                    if (p.type === 'hour') hour = p.value;
+                    if (p.type === 'minute') minute = p.value;
+                    if (p.type === 'second') second = p.value;
+                    if (p.type === 'dayPeriod') dayPeriod = p.value;
+                });
+
+                const formattedText = `${weekday}, ${month} ${day}, ${year} | ${hour}:${minute}:${second} ${dayPeriod.toUpperCase()} (PKT - Islamabad)`;
+
+                const elAgent = document.getElementById('live-header-date');
+                if (elAgent) elAgent.textContent = formattedText;
+
+                const elAdmin = document.getElementById('admin-live-header-date');
+                if (elAdmin) elAdmin.textContent = formattedText;
+            } catch (err) {
+                console.error("Error updating Islamabad clock:", err);
+            }
+        }
+
+        setInterval(updateIslamabadLiveClock, 1000);
+        updateIslamabadLiveClock();
 
         async function adminToggleAgentBadge(agentId) {
             try {
@@ -2793,11 +2877,32 @@
             }
         }
 
+        let currentAdminFlightTripFilter = 'all';
+
+        function filterAdminFlightInventory(tripType) {
+            currentAdminFlightTripFilter = tripType;
+            ['all', 'oneway', 'return', 'multicity'].forEach(t => {
+                const btn = document.getElementById(`btn-admin-flight-filter-${t}`);
+                if (btn) {
+                    if (t === tripType) {
+                        btn.className = 'px-2.5 py-1 rounded-lg font-bold bg-white text-[#2D4424] shadow-xs border border-[#D9CBAC]';
+                    } else {
+                        btn.className = 'px-2.5 py-1 rounded-lg font-bold text-[#567946] hover:text-[#2D4424]';
+                    }
+                }
+            });
+            fetchAdminAirlinesAndInventory();
+        }
+
         async function fetchAdminAirlinesAndInventory() {
             try {
+                let invUrl = "/dashboard/admin/api/flight-inventory/";
+                if (currentAdminFlightTripFilter && currentAdminFlightTripFilter !== 'all') {
+                    invUrl += `?trip_type=${currentAdminFlightTripFilter}`;
+                }
                 const [resA, resF] = await Promise.all([
                     fetch("/dashboard/admin/api/airlines/"),
-                    fetch("/dashboard/admin/api/flight-inventory/")
+                    fetch(invUrl)
                 ]);
                 const dataA = await resA.json();
                 const dataF = await resF.json();
@@ -2831,9 +2936,12 @@
                     windowAllFlightInventoryMaster = dataF.inventory;
                     document.getElementById("badge-flight-inventory-count").textContent = `${dataF.inventory.length} Routes`;
                     if (dataF.inventory.length === 0) {
-                        tbodyF.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-[#567946]">No flight routes configured yet. Click 'Add Flight Route' above.</td></tr>`;
+                        tbodyF.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-[#567946]">No flight routes configured under this ticket type. Click 'Add Flight Route' above.</td></tr>`;
                     } else {
-                        tbodyF.innerHTML = dataF.inventory.map(f => `
+                        tbodyF.innerHTML = dataF.inventory.map(f => {
+                            const tripBadgeClass = f.trip_type === 'oneway' ? 'bg-blue-50 text-blue-700 border border-blue-200' : (f.trip_type === 'multicity' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-purple-50 text-purple-700 border border-purple-200');
+                            const tripBadgeIcon = f.trip_type === 'oneway' ? 'fa-arrow-right' : (f.trip_type === 'multicity' ? 'fa-diagram-project' : 'fa-rotate');
+                            return `
                             <tr class="hover:bg-[#F6FAF3]">
                                 <td class="p-3 font-mono font-bold text-[#2D4424]">#${f.id}</td>
                                 <td class="p-3 font-bold text-[#2D4424]">
@@ -2843,7 +2951,7 @@
                                 <td class="p-3">
                                     <div class="font-bold text-[#1F2E1A]">🛫 ${f.departure_city} ➔ 🛬 ${f.destination_city}</div>
                                     <div class="flex items-center gap-1.5 mt-0.5">
-                                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded ${f.trip_type === 'oneway' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}">${f.trip_type_display || f.trip_type}</span>
+                                        <span class="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded ${tripBadgeClass}"><i class="fa-solid ${tripBadgeIcon} mr-0.5"></i>${f.trip_type_display || f.trip_type}</span>
                                         <span class="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded ${f.route_type === 'via' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">${f.route_type === 'via' ? 'Via ' + f.via_city : 'Direct'}</span>
                                         ${f.has_meal ? '<span class="text-[10px]" title="Meals Included">🍽️</span>' : ''}
                                     </div>
@@ -2877,7 +2985,8 @@
                                     </button>
                                 </td>
                             </tr>
-                        `).join('');
+                        `;
+                        }).join('');
                     }
                 }
             } catch (err) {
@@ -4038,6 +4147,86 @@
             modal.classList.remove('flex');
         }
 
+        function toggleViaFlightRoutes(routeType, existingRouteStr = '') {
+            const wrapper = document.getElementById('via-flight-routes-wrapper');
+            if (!wrapper) return;
+
+            if (routeType === 'via') {
+                wrapper.classList.remove('hidden');
+                const list = document.getElementById('via-routes-list');
+                if (list) {
+                    list.innerHTML = '';
+                    let segments = [];
+                    if (existingRouteStr) {
+                        segments = existingRouteStr.split('|').map(s => s.trim()).filter(Boolean);
+                        if (segments.length === 1 && existingRouteStr.includes('-')) {
+                            const parts = existingRouteStr.split('-').map(s => s.trim()).filter(Boolean);
+                            if (parts.length > 2) {
+                                segments = [];
+                                for (let i = 0; i < parts.length - 1; i++) {
+                                    segments.push(`${parts[i]} - ${parts[i+1]}`);
+                                }
+                            }
+                        }
+                    }
+                    if (segments.length === 0) {
+                        segments = ['KHI - DOH', 'DOH - JED', 'MED - DOH', 'DOH - KHI'];
+                    }
+                    segments.forEach(seg => addViaRouteSegment(seg));
+                    updateCombinedFlightRoute();
+                }
+            } else {
+                wrapper.classList.add('hidden');
+            }
+        }
+
+        function addViaRouteSegment(val = '') {
+            const list = document.getElementById('via-routes-list');
+            if (!list) return;
+            const index = list.children.length + 1;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-1.5 bg-white p-1.5 rounded-lg border border-[#D9CBAC]';
+            row.innerHTML = `
+                <span class="text-[10px] font-bold text-[#567946] w-12 shrink-0">Leg ${index}:</span>
+                <input type="text" value="${val}" placeholder="e.g. KHI - DOH" oninput="updateCombinedFlightRoute()" class="via-route-segment-input w-full p-1.5 text-xs rounded border border-[#D9CBAC] font-semibold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                <button type="button" onclick="removeViaRouteSegment(this)" class="px-2 py-1 bg-rose-100 text-rose-700 hover:bg-rose-200 text-xs font-bold rounded transition-all shrink-0" title="Remove Segment"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            list.appendChild(row);
+            updateCombinedFlightRoute();
+        }
+
+        function removeViaRouteSegment(btn) {
+            const row = btn.closest('div');
+            if (row) {
+                row.remove();
+                const list = document.getElementById('via-routes-list');
+                if (list) {
+                    Array.from(list.children).forEach((child, idx) => {
+                        const span = child.querySelector('span');
+                        if (span) span.textContent = `Leg ${idx + 1}:`;
+                    });
+                }
+                updateCombinedFlightRoute();
+            }
+        }
+
+        function updateCombinedFlightRoute() {
+            const routeTypeSelect = document.getElementById('input-pkg-flight-type');
+            if (!routeTypeSelect || routeTypeSelect.value !== 'via') return;
+
+            const inputs = document.querySelectorAll('.via-route-segment-input');
+            const segments = [];
+            inputs.forEach(inp => {
+                const v = inp.value.trim();
+                if (v) segments.push(v);
+            });
+
+            const routeSummaryInput = document.getElementById('input-pkg-flight-route');
+            if (routeSummaryInput && segments.length > 0) {
+                routeSummaryInput.value = segments.join(' | ');
+            }
+        }
+
         async function openAdminAddAgentPackageModal(pkg = null) {
             const modal = document.getElementById('modal-admin-add-agent-package');
             const form = document.getElementById('form-admin-add-agent-package');
@@ -4061,8 +4250,11 @@
                 if (document.getElementById('input-pkg-price-double')) document.getElementById('input-pkg-price-double').value = pkg.price_double || '';
 
                 if (document.getElementById('input-pkg-flight-name')) document.getElementById('input-pkg-flight-name').value = pkg.flight_name || 'Saudi Airlines';
-                if (document.getElementById('input-pkg-flight-type')) document.getElementById('input-pkg-flight-type').value = pkg.flight_route_type || 'direct';
+                const fType = pkg.flight_route_type || 'direct';
+                if (document.getElementById('input-pkg-flight-type')) document.getElementById('input-pkg-flight-type').value = fType;
                 if (document.getElementById('input-pkg-flight-route')) document.getElementById('input-pkg-flight-route').value = pkg.flight_route || 'KHI - JED - MED - KHI';
+                toggleViaFlightRoutes(fType, pkg.flight_route || '');
+
                 if (document.getElementById('input-pkg-includes-meal')) document.getElementById('input-pkg-includes-meal').value = pkg.includes_meal !== undefined ? String(pkg.includes_meal) : 'true';
                 if (document.getElementById('input-pkg-transport-type')) document.getElementById('input-pkg-transport-type').value = pkg.transport_type || 'Sharing';
 
@@ -4078,6 +4270,7 @@
                 document.getElementById('modal-package-title').innerHTML = '<i class="fa-solid fa-box-archive text-[#E06A26]"></i> Add Agent Wholesale Package';
                 form.reset();
                 document.getElementById('input-pkg-id').value = '';
+                toggleViaFlightRoutes('direct');
             }
 
             try {
@@ -4135,6 +4328,21 @@
         async function submitAdminAddAgentPackage(e) {
             e.preventDefault();
             const form = e.target;
+
+            // Make sure connecting flight route segments are updated
+            if (document.getElementById('input-pkg-flight-type')?.value === 'via') {
+                updateCombinedFlightRoute();
+            }
+
+            // Sync agent_price hidden field with adult or room prices if blank
+            const priceInput = document.getElementById('input-pkg-price');
+            if (priceInput) {
+                const adultP = document.getElementById('input-pkg-price-adult')?.value;
+                const sharingP = document.getElementById('input-pkg-price-sharing')?.value;
+                const quadP = document.getElementById('input-pkg-price-quad')?.value;
+                priceInput.value = adultP || sharingP || quadP || '0.00';
+            }
+
             const formData = new FormData(form);
             const pkgId = document.getElementById('input-pkg-id').value;
             const url = pkgId ? `/dashboard/admin/api/agent-packages/${pkgId}/` : '/dashboard/admin/api/agent-packages/';
@@ -6400,6 +6608,7 @@
                         <select name="trip_type" id="select-modal-trip-type" onchange="toggleAdminFlightTripType(this.value)" required class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                             <option value="return" selected>Return / Round-Trip</option>
                             <option value="oneway">One-Way</option>
+                            <option value="multicity">Multi-City / Connecting</option>
                         </select>
                     </div>
                     <div>
@@ -6709,6 +6918,7 @@
             </div>
             <form id="form-admin-add-agent-package" onsubmit="submitAdminAddAgentPackage(event)" class="space-y-4">
                 <input type="hidden" name="package_id" id="input-pkg-id" value="">
+                <input type="hidden" name="agent_price" id="input-pkg-price" value="">
                 <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Package Type</label>
@@ -6775,8 +6985,11 @@
                 </div>
 
                 <!-- Flight Specifications (Name, Route Type: Direct vs Via, Flight Route) -->
-                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-2">
-                    <label class="block text-xs font-black text-[#2D4424]">Flight Specifications &amp; Flight Route</label>
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <label class="block text-xs font-black text-[#2D4424] flex items-center justify-between">
+                        <span><i class="fa-solid fa-plane-departure text-[#E06A26] mr-1"></i> Flight Specifications &amp; Flight Route</span>
+                        <span class="text-[10px] text-[#567946] font-normal">Direct or Connecting Multi-Leg Routes</span>
+                    </label>
                     <div class="grid grid-cols-3 gap-3 text-xs">
                         <div>
                             <span class="text-[10px] font-bold text-[#567946]">Flight / Airline Name</span>
@@ -6784,14 +6997,30 @@
                         </div>
                         <div>
                             <span class="text-[10px] font-bold text-[#567946]">Flight Route Type</span>
-                            <select name="flight_route_type" id="input-pkg-flight-type" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            <select name="flight_route_type" id="input-pkg-flight-type" onchange="toggleViaFlightRoutes(this.value)" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-bold text-[#2D4424]">
                                 <option value="direct">Direct Flight</option>
                                 <option value="via">Via Flight / Connecting</option>
                             </select>
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-[#567946]">Flight Route</span>
+                            <span class="text-[10px] font-bold text-[#567946]">Flight Route Summary</span>
                             <input type="text" name="flight_route" id="input-pkg-flight-route" value="KHI - JED - MED - KHI" placeholder="e.g. KHI - JED - MED - KHI" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Via Flight Connecting Routes Builder (Shown when 'via' selected) -->
+                    <div id="via-flight-routes-wrapper" class="hidden space-y-2 pt-2 border-t border-[#D9CBAC]">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-extrabold text-[#E06A26] flex items-center gap-1">
+                                <i class="fa-solid fa-route"></i> Connecting Routes / Sectors (Add 3, 4 or more routes)
+                            </span>
+                            <button type="button" onclick="addViaRouteSegment()" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-plus"></i> Add Route Segment
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-[#567946]">Enter route legs for connecting flight (e.g. Leg 1: KHI-DOH, Leg 2: DOH-JED, Leg 3: MED-DOH, Leg 4: DOH-KHI):</p>
+                        <div id="via-routes-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <!-- Route segment rows populated dynamically -->
                         </div>
                     </div>
                 </div>
