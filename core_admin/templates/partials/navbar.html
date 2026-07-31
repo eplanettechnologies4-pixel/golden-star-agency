@@ -87,7 +87,7 @@
             <!-- Auth Actions -->
             <div class="hidden lg:flex items-center gap-3">
                 {% if user.is_authenticated %}
-                    {% if user.role == 'super_admin' %}
+                    {% if user.role == 'super_admin' or user.role == 'admin' or user.is_superuser or user.is_staff %}
                         <a href="{% url 'admin_dashboard' %}"
                            class="flex items-center gap-1.5 px-4 py-2 border border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white rounded-lg text-sm font-semibold transition-all duration-200">
                             <i class="fa-solid fa-shield-halved text-xs"></i> Admin Panel

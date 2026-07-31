@@ -25,6 +25,9 @@ class Package(models.Model):
     airline_logo = models.CharField(max_length=255, blank=True, null=True)
     flight_routes = models.CharField(max_length=255, default='KHI - JED - MED - KHI', blank=True, null=True)
     flight_route_type = models.CharField(max_length=20, default='direct', choices=(('direct', 'Direct Flight'), ('via', 'Via Flight')), blank=True, null=True)
+    flight_dates = models.CharField(max_length=150, default='15 Aug 2026 - 30 Aug 2026', blank=True, null=True)
+    departure_date = models.DateField(null=True, blank=True)
+    return_date = models.DateField(null=True, blank=True)
     
     includes_meal = models.BooleanField(default=True)
     meal_detail = models.CharField(max_length=100, default='Full Board', blank=True, null=True)

@@ -82,162 +82,89 @@
 
 <section class="py-16 bg-slate-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-brand-orange bg-brand-orange/10 px-2.5 py-1 rounded-full border border-brand-orange/20">Official Embassy Packages</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-2">Available Tourist & Visit Visa Services</h2>
+            </div>
+            <span class="text-[11px] font-bold text-slate-600 bg-slate-200/80 px-3 py-1 rounded-full">
+                Showing {{ visa_packages|length }} Visa Country Offer(s)
+            </span>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- 1. Saudi Arabia Card -->
-            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
+            {% for v in visa_packages %}
+            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between hover:shadow-xl transition-all duration-300">
                 <div class="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src="{% static 'images/saudi_visa.png' %}" alt="Saudi Arabia" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
-                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">eVisa</span>
-                </div>
-                <div class="p-6 flex-grow flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">Saudi Arabia Tourist Visa</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Quick e-visa processing for leisure and tourism. Multi-entry valid for 1 year.</p>
-                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
-                            <p><strong>Processing Time:</strong> 2 - 3 Working Days</p>
-                            <p><strong>Required Bank Balance:</strong> None</p>
-                            <p><strong>Requirements:</strong> Passport scan & Photograph</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR 45,000</span>
-                        </div>
-                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
-                    </div>
-                </div>
-            </div>
+                    {% if v.banner_image %}
+                        <img src="{{ v.banner_image }}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    {% else %}
+                        {% if 'saudi' in v.country|lower %}
+                            <img src="{% static 'images/saudi_visa.png' %}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                        {% elif 'turkey' in v.country|lower %}
+                            <img src="{% static 'images/turkey_visa.png' %}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                        {% elif 'malaysia' in v.country|lower %}
+                            <img src="{% static 'images/malaysia_visa.png' %}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                        {% elif 'dubai' in v.country|lower or 'uae' in v.country|lower or 'emirates' in v.country|lower %}
+                            <img src="{% static 'images/dubai_visa.png' %}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                        {% elif 'uk' in v.country|lower or 'kingdom' in v.country|lower or 'britain' in v.country|lower %}
+                            <img src="{% static 'images/uk_visa.png' %}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                        {% elif 'thailand' in v.country|lower %}
+                            <img src="{% static 'images/thailand_visa.png' %}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                        {% else %}
+                            <img src="{% static 'images/visa_banner.png' %}" alt="{{ v.country }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                        {% endif %}
+                    {% endif %}
 
-            <!-- 2. Turkey Card -->
-            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
-                <div class="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src="{% static 'images/turkey_visa.png' %}" alt="Turkey" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
-                    <span class="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Sticker Visa</span>
+                    <span class="absolute top-4 left-4 {% if v.entry_type == 'multiple' %}bg-brand-orange{% else %}bg-blue-600{% endif %} text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm">
+                        {{ v.get_entry_type_display }}
+                    </span>
+                    {% if v.is_popular %}
+                    <span class="absolute top-4 right-4 bg-amber-500 text-slate-950 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase shadow-md flex items-center gap-1">
+                        <i class="fa-solid fa-star text-[9px]"></i> Popular
+                    </span>
+                    {% endif %}
                 </div>
                 <div class="p-6 flex-grow flex flex-col justify-between">
                     <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">Turkey Sticker Visa</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Advisory processing service. Includes appointment booking, form completion and file compilation.</p>
-                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
-                            <p><strong>Processing Time:</strong> 15 - 20 Working Days</p>
-                            <p><strong>Required Bank Balance:</strong> PKR 500,000+</p>
-                            <p><strong>Requirements:</strong> Bank Statement, FRC, Job Letter</p>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[10px] font-extrabold text-brand-orange uppercase tracking-wider">{{ v.country }}</span>
+                            <span class="text-[10px] font-semibold text-slate-400"><i class="fa-solid fa-clock mr-1"></i>{{ v.processing_time }}</span>
                         </div>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR 35,000</span>
-                        </div>
-                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
-                    </div>
-                </div>
-            </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2 leading-tight">{{ v.title }}</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">{{ v.description|default:v.visa_type }}</p>
 
-            <!-- 3. Malaysia Card -->
-            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
-                <div class="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src="{% static 'images/malaysia_visa.png' %}" alt="Malaysia" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
-                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">eVisa</span>
-                </div>
-                <div class="p-6 flex-grow flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">Malaysia eVisa</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Fast and secure visa processing. Requires original scans, returning flight reservation, and hotel voucher.</p>
-                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
-                            <p><strong>Processing Time:</strong> 3 - 5 Working Days</p>
-                            <p><strong>Required Bank Balance:</strong> None</p>
-                            <p><strong>Requirements:</strong> Scan, Ticket, Hotel</p>
+                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4 border border-slate-100">
+                            <p class="flex justify-between"><strong class="text-slate-700">Visa Type:</strong> <span class="text-slate-600 font-medium">{{ v.visa_type }}</span></p>
+                            <p class="flex justify-between"><strong class="text-slate-700">Validity:</strong> <span class="text-slate-600 font-medium">{{ v.visa_validity }}</span></p>
+                            <p class="flex justify-between"><strong class="text-slate-700">Stay Duration:</strong> <span class="text-slate-600 font-medium">{{ v.stay_validity }}</span></p>
+                            <div class="pt-1 border-t border-slate-200/60">
+                                <strong class="text-slate-700 block mb-0.5">Required Documents:</strong>
+                                <span class="text-slate-500 text-[11px] leading-tight block">{{ v.required_documents }}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
                         <div>
-                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR 15,000</span>
+                            <span class="text-[10px] text-slate-400 block font-semibold uppercase">Total Fee</span>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-lg font-extrabold text-brand-orange">PKR {{ v.price|floatformat:0 }}</span>
+                                {% if v.original_price %}
+                                <span class="text-xs text-slate-400 line-through font-medium">PKR {{ v.original_price|floatformat:0 }}</span>
+                                {% endif %}
+                            </div>
                         </div>
-                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
+                        <a href="{% url 'visa_apply' %}?country={{ v.country|urlencode }}&title={{ v.title|urlencode }}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200 shadow-sm hover:shadow">Apply Now</a>
                     </div>
                 </div>
             </div>
-
-            <!-- 4. Dubai / UAE Card -->
-            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
-                <div class="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src="{% static 'images/dubai_visa.png' %}" alt="UAE/Dubai" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
-                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">eVisa</span>
-                </div>
-                <div class="p-6 flex-grow flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">Dubai / UAE tourist Visa</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed mb-4">30 days single entry visa for shopping, transit, and business travels inside UAE.</p>
-                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
-                            <p><strong>Processing Time:</strong> 24 - 48 Hours</p>
-                            <p><strong>Required Bank Balance:</strong> None</p>
-                            <p><strong>Requirements:</strong> Passport scan & CNIC</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR 35,000</span>
-                        </div>
-                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
-                    </div>
-                </div>
+            {% empty %}
+            <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-passport text-5xl text-slate-300 block mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-800">No Visitor Visa Packages Available</h3>
+                <p class="text-xs text-slate-500 mt-1">Admin will post updated visa package requirements shortly.</p>
             </div>
-
-            <!-- 5. United Kingdom Card -->
-            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
-                <div class="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src="{% static 'images/uk_visa.png' %}" alt="United Kingdom" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
-                    <span class="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Standard Visitor</span>
-                </div>
-                <div class="p-6 flex-grow flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">UK Standard Visitor Visa</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed mb-4">UK tourist visa support. Complete documentation alignment, bio-appointment setup, and cover letter drafts.</p>
-                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
-                            <p><strong>Processing Time:</strong> 3 - 4 Weeks</p>
-                            <p><strong>Required Bank Balance:</strong> PKR 1,500,000+</p>
-                            <p><strong>Requirements:</strong> Source of Income, Tax Returns</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block font-semibold">Advisory Fee</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR 65,000</span>
-                        </div>
-                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. Thailand Card -->
-            <div class="glass-card bg-white rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm flex flex-col justify-between">
-                <div class="relative h-48 bg-slate-100 overflow-hidden">
-                    <img src="{% static 'images/thailand_visa.png' %}" alt="Thailand" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
-                    <span class="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">Sticker Visa</span>
-                </div>
-                <div class="p-6 flex-grow flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800 mb-2">Thailand Tourist Visa</h3>
-                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Sticker tourist visa processing for beaches and historical exploration inside Thailand.</p>
-                        <div class="bg-slate-50 p-4 rounded-xl text-xs space-y-2 mb-4">
-                            <p><strong>Processing Time:</strong> 7 - 10 Working Days</p>
-                            <p><strong>Required Bank Balance:</strong> PKR 350,000+</p>
-                            <p><strong>Requirements:</strong> Bank statement & Original Passport</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                        <div>
-                            <span class="text-[10px] text-slate-400 block font-semibold">Total Fee</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR 25,000</span>
-                        </div>
-                        <a href="{% url 'visa_apply' %}" class="px-4 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-lg text-xs font-bold transition-all duration-200">Apply Now</a>
-                    </div>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>

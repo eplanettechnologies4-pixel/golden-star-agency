@@ -19,6 +19,7 @@ from apps.packages.models import Package, CustomPackageInquiry
 from apps.visa.models import VisaApplication
 from apps.flights.models import FlightQuoteRequest
 from apps.bookings.models import Booking
+from apps.airline_ticketing.models import AgentTicketOrder
 from django.conf import settings
 try:
     from ai_chatbot.embeddings import EmbeddingsService
@@ -1063,20 +1064,32 @@ def admin_b2b_overview_api(request):
     events.sort(key=lambda x: x['timestamp'], reverse=True)
     recent_activity = events[:15]
 
-    # 5. MINI TREND CHART
+    # 5. MINI TREND CHART & STATUS BREAKDOWN
     seven_days_ago = today - timedelta(days=6)
     daily_counts_dict = {}
+    daily_revenue_dict = {}
     for i in range(7):
         d = seven_days_ago + timedelta(days=i)
-        daily_counts_dict[d.strftime('%b %d')] = 0
+        d_str = d.strftime('%b %d')
+        daily_counts_dict[d_str] = 0
+        daily_revenue_dict[d_str] = 0.0
 
     orders_7days = AgentTicketOrder.objects.filter(created_at__date__gte=seven_days_ago)
     for o in orders_7days:
         d_str = o.created_at.strftime('%b %d')
         if d_str in daily_counts_dict:
             daily_counts_dict[d_str] += 1
+            if o.status == 'paid':
+                daily_revenue_dict[d_str] += float(o.total_fare or 0)
 
-    trend = [{"date": d_str, "count": count} for d_str, count in daily_counts_dict.items()]
+    trend = [{"date": d_str, "count": count, "revenue": daily_revenue_dict.get(d_str, 0.0)} for d_str, count in daily_counts_dict.items()]
+
+    status_breakdown = {
+        'paid': AgentTicketOrder.objects.filter(status='paid').count(),
+        'hold': AgentTicketOrder.objects.filter(status='hold').count(),
+        'paid_pending': AgentTicketOrder.objects.filter(status='paid_pending').count(),
+        'cancelled': AgentTicketOrder.objects.filter(status='cancelled').count(),
+    }
 
     return JsonResponse({
         'success': True,
@@ -1093,7 +1106,8 @@ def admin_b2b_overview_api(request):
             'low_balance_agents': low_balance_agents_list
         },
         'recent_activity': recent_activity,
-        'trend': trend
+        'trend': trend,
+        'status_breakdown': status_breakdown
     })
 
 @csrf_exempt
@@ -1421,19 +1435,24 @@ def admin_visa_packages_api(request):
         return JsonResponse({'visa_packages': v_data})
 
     elif request.method == 'POST':
-        country = request.POST.get('country', 'Saudi Arabia').strip()
-        title = request.POST.get('title', 'Saudi 1-Year Tourist eVisa').strip()
-        visa_type = request.POST.get('visa_type', 'Tourist / Visitor Visa').strip()
-        processing_time = request.POST.get('processing_time', '3 to 5 Working Days').strip()
-        stay_validity = request.POST.get('stay_validity', '90 Days Stay').strip()
-        visa_validity = request.POST.get('visa_validity', '1 Year Validity').strip()
-        entry_type = request.POST.get('entry_type', 'multiple').strip()
-        price = request.POST.get('price', '45000.00')
-        original_price = request.POST.get('original_price', None)
-        required_documents = request.POST.get('required_documents', 'Passport Copy (6 Months Validity), Passport Size Photo, CNIC Copy')
-        description = request.POST.get('description', '')
-        banner_image = request.POST.get('banner_image', '')
-        is_popular = request.POST.get('is_popular', 'false').lower() == 'true'
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            body = request.POST
+
+        country = (body.get('country') or 'Saudi Arabia').strip()
+        title = (body.get('title') or 'Saudi 1-Year Tourist eVisa').strip()
+        visa_type = (body.get('visa_type') or 'Tourist / Visitor Visa').strip()
+        processing_time = (body.get('processing_time') or '3 to 5 Working Days').strip()
+        stay_validity = (body.get('stay_validity') or '90 Days Stay').strip()
+        visa_validity = (body.get('visa_validity') or '1 Year Validity').strip()
+        entry_type = (body.get('entry_type') or 'multiple').strip()
+        price = body.get('price') or '45000.00'
+        original_price = body.get('original_price') or None
+        required_documents = body.get('required_documents') or 'Passport Copy (6 Months Validity), Passport Size Photo, CNIC Copy'
+        description = body.get('description') or ''
+        banner_image = body.get('banner_image') or ''
+        is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
 
         vp = VisaPackage.objects.create(
             country=country,
@@ -1460,22 +1479,27 @@ def admin_visa_package_detail_api(request, pk):
     from apps.visa.models import VisaPackage
     vp = get_object_or_404(VisaPackage, pk=pk)
     if request.method == 'POST':
-        vp.country = request.POST.get('country', vp.country)
-        vp.title = request.POST.get('title', vp.title)
-        vp.visa_type = request.POST.get('visa_type', vp.visa_type)
-        vp.processing_time = request.POST.get('processing_time', vp.processing_time)
-        vp.stay_validity = request.POST.get('stay_validity', vp.stay_validity)
-        vp.visa_validity = request.POST.get('visa_validity', vp.visa_validity)
-        vp.entry_type = request.POST.get('entry_type', vp.entry_type)
-        vp.price = request.POST.get('price', vp.price)
-        if 'original_price' in request.POST:
-            vp.original_price = request.POST.get('original_price') or None
-        vp.required_documents = request.POST.get('required_documents', vp.required_documents)
-        vp.description = request.POST.get('description', vp.description)
-        if 'banner_image' in request.POST:
-            vp.banner_image = request.POST.get('banner_image')
-        if 'is_popular' in request.POST:
-            vp.is_popular = request.POST.get('is_popular', 'false').lower() == 'true'
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            body = request.POST
+
+        vp.country = body.get('country', vp.country)
+        vp.title = body.get('title', vp.title)
+        vp.visa_type = body.get('visa_type', vp.visa_type)
+        vp.processing_time = body.get('processing_time', vp.processing_time)
+        vp.stay_validity = body.get('stay_validity', vp.stay_validity)
+        vp.visa_validity = body.get('visa_validity', vp.visa_validity)
+        vp.entry_type = body.get('entry_type', vp.entry_type)
+        vp.price = body.get('price', vp.price)
+        if 'original_price' in body:
+            vp.original_price = body.get('original_price') or None
+        vp.required_documents = body.get('required_documents', vp.required_documents)
+        vp.description = body.get('description', vp.description)
+        if 'banner_image' in body:
+            vp.banner_image = body.get('banner_image')
+        if 'is_popular' in body:
+            vp.is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
         vp.save()
         return JsonResponse({'success': True})
 
@@ -1558,32 +1582,49 @@ def admin_flight_tickets_api(request):
         return JsonResponse({'flight_tickets': t_data})
 
     elif request.method == 'POST':
-        airline_name = request.POST.get('airline_name', 'PIA').strip()
-        airline_code = request.POST.get('airline_code', 'PK').strip()
-        airline_logo = request.POST.get('airline_logo', '').strip()
-        flight_number = request.POST.get('flight_number', 'PK-731').strip()
-        departure_city = request.POST.get('departure_city', 'Karachi (KHI)').strip()
-        departure_airport_code = request.POST.get('departure_airport_code', 'KHI').strip()
-        destination_city = request.POST.get('destination_city', 'Jeddah (JED)').strip()
-        destination_airport_code = request.POST.get('destination_airport_code', 'JED').strip()
-        departure_time_str = request.POST.get('departure_time_str', '03:30 AM').strip()
-        arrival_time_str = request.POST.get('arrival_time_str', '06:45 AM').strip()
-        duration_str = request.POST.get('duration_str', '4h 15m').strip()
-        flight_type = request.POST.get('flight_type', 'direct').strip()
-        ticket_class = request.POST.get('ticket_class', 'economy').strip()
-        price = request.POST.get('price', '145000.00')
-        price_20kg = request.POST.get('price_20kg', None)
-        price_30kg = request.POST.get('price_30kg', None)
-        price_40kg = request.POST.get('price_40kg', None)
-        original_price = request.POST.get('original_price', None)
-        baggage_checkin = request.POST.get('baggage_checkin', '30 kg').strip()
-        baggage_hand = request.POST.get('baggage_hand', '7 kg').strip()
-        is_refundable = request.POST.get('is_refundable', 'true').lower() == 'true'
-        cancellation_fee = request.POST.get('cancellation_fee', '15000.00')
-        total_seats = int(request.POST.get('total_seats', '50'))
-        available_seats = int(request.POST.get('available_seats', total_seats))
-        is_popular = request.POST.get('is_popular', 'false').lower() == 'true'
-        description = request.POST.get('description', '').strip()
+        import re
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            body = request.POST
+
+        def extract_code(city_str, fallback):
+            if not city_str:
+                return fallback
+            match = re.search(r'\(([A-Za-z]{3})\)', city_str)
+            if match:
+                return match.group(1).upper()
+            cleaned = re.sub(r'[^A-Za-z]', '', city_str)
+            return cleaned[:3].upper() if len(cleaned) >= 3 else fallback
+
+        airline_name = str(body.get('airline_name') or 'PIA').strip()
+        airline_code = str(body.get('airline_code') or '').strip()
+        if not airline_code and airline_name:
+            airline_code = airline_name[:2].upper()
+        airline_logo = str(body.get('airline_logo') or '').strip()
+        flight_number = str(body.get('flight_number') or 'PK-731').strip()
+        departure_city = str(body.get('departure_city') or 'Karachi (KHI)').strip()
+        departure_airport_code = str(body.get('departure_airport_code') or '').strip().upper() or extract_code(departure_city, 'KHI')
+        destination_city = str(body.get('destination_city') or 'Jeddah (JED)').strip()
+        destination_airport_code = str(body.get('destination_airport_code') or '').strip().upper() or extract_code(destination_city, 'JED')
+        departure_time_str = str(body.get('departure_time_str') or '03:30 AM').strip()
+        arrival_time_str = str(body.get('arrival_time_str') or '06:45 AM').strip()
+        duration_str = str(body.get('duration_str') or '4h 15m').strip()
+        flight_type = str(body.get('flight_type') or 'direct').strip()
+        ticket_class = str(body.get('ticket_class') or 'economy').strip()
+        price = body.get('price') or '145000.00'
+        price_20kg = body.get('price_20kg', None)
+        price_30kg = body.get('price_30kg', None)
+        price_40kg = body.get('price_40kg', None)
+        original_price = body.get('original_price', None)
+        baggage_checkin = str(body.get('baggage_checkin') or '30 kg').strip()
+        baggage_hand = str(body.get('baggage_hand') or '7 kg').strip()
+        is_refundable = str(body.get('is_refundable', 'true')).lower() in ('true', '1', 'on')
+        cancellation_fee = body.get('cancellation_fee') or '15000.00'
+        total_seats = int(body.get('total_seats') or 50)
+        available_seats = int(body.get('available_seats') or total_seats)
+        is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
+        description = str(body.get('description') or '').strip()
 
         ft = FlightTicketOffer.objects.create(
             airline_name=airline_name,
@@ -1620,45 +1661,63 @@ def admin_flight_tickets_api(request):
 @csrf_exempt
 @user_passes_test(is_admin)
 def admin_flight_ticket_detail_api(request, pk):
+    import re
     from apps.flights.models import FlightTicketOffer
     ft = get_object_or_404(FlightTicketOffer, pk=pk)
     if request.method == 'POST':
-        ft.airline_name = request.POST.get('airline_name', ft.airline_name)
-        ft.airline_code = request.POST.get('airline_code', ft.airline_code)
-        if 'airline_logo' in request.POST:
-            ft.airline_logo = request.POST.get('airline_logo')
-        ft.flight_number = request.POST.get('flight_number', ft.flight_number)
-        ft.departure_city = request.POST.get('departure_city', ft.departure_city)
-        ft.departure_airport_code = request.POST.get('departure_airport_code', ft.departure_airport_code)
-        ft.destination_city = request.POST.get('destination_city', ft.destination_city)
-        ft.destination_airport_code = request.POST.get('destination_airport_code', ft.destination_airport_code)
-        ft.departure_time_str = request.POST.get('departure_time_str', ft.departure_time_str)
-        ft.arrival_time_str = request.POST.get('arrival_time_str', ft.arrival_time_str)
-        ft.duration_str = request.POST.get('duration_str', ft.duration_str)
-        ft.flight_type = request.POST.get('flight_type', ft.flight_type)
-        ft.ticket_class = request.POST.get('ticket_class', ft.ticket_class)
-        ft.price = request.POST.get('price', ft.price)
-        if 'price_20kg' in request.POST:
-            ft.price_20kg = request.POST.get('price_20kg') or None
-        if 'price_30kg' in request.POST:
-            ft.price_30kg = request.POST.get('price_30kg') or None
-        if 'price_40kg' in request.POST:
-            ft.price_40kg = request.POST.get('price_40kg') or None
-        if 'original_price' in request.POST:
-            ft.original_price = request.POST.get('original_price') or None
-        ft.baggage_checkin = request.POST.get('baggage_checkin', ft.baggage_checkin)
-        ft.baggage_hand = request.POST.get('baggage_hand', ft.baggage_hand)
-        if 'is_refundable' in request.POST:
-            ft.is_refundable = request.POST.get('is_refundable', 'true').lower() == 'true'
-        if request.POST.get('cancellation_fee'):
-            ft.cancellation_fee = request.POST.get('cancellation_fee')
-        if request.POST.get('total_seats'):
-            ft.total_seats = int(request.POST.get('total_seats'))
-        if request.POST.get('available_seats'):
-            ft.available_seats = int(request.POST.get('available_seats'))
-        if 'is_popular' in request.POST:
-            ft.is_popular = request.POST.get('is_popular', 'false').lower() == 'true'
-        ft.description = request.POST.get('description', ft.description)
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            body = request.POST
+
+        def extract_code(city_str, fallback):
+            if not city_str:
+                return fallback
+            match = re.search(r'\(([A-Za-z]{3})\)', city_str)
+            if match:
+                return match.group(1).upper()
+            cleaned = re.sub(r'[^A-Za-z]', '', city_str)
+            return cleaned[:3].upper() if len(cleaned) >= 3 else fallback
+
+        ft.airline_name = body.get('airline_name', ft.airline_name)
+        ft.airline_code = body.get('airline_code', ft.airline_code)
+        if 'airline_logo' in body:
+            ft.airline_logo = body.get('airline_logo')
+        ft.flight_number = body.get('flight_number', ft.flight_number)
+        if 'departure_city' in body:
+            ft.departure_city = body.get('departure_city')
+            ft.departure_airport_code = str(body.get('departure_airport_code') or '').strip().upper() or extract_code(ft.departure_city, ft.departure_airport_code)
+        if 'destination_city' in body:
+            ft.destination_city = body.get('destination_city')
+            ft.destination_airport_code = str(body.get('destination_airport_code') or '').strip().upper() or extract_code(ft.destination_city, ft.destination_airport_code)
+        ft.departure_time_str = body.get('departure_time_str', ft.departure_time_str)
+        ft.arrival_time_str = body.get('arrival_time_str', ft.arrival_time_str)
+        ft.duration_str = body.get('duration_str', ft.duration_str)
+        ft.flight_type = body.get('flight_type', ft.flight_type)
+        ft.ticket_class = body.get('ticket_class', ft.ticket_class)
+        ft.price = body.get('price', ft.price)
+        if 'price_20kg' in body:
+            ft.price_20kg = body.get('price_20kg') or None
+        if 'price_30kg' in body:
+            ft.price_30kg = body.get('price_30kg') or None
+        if 'price_40kg' in body:
+            ft.price_40kg = body.get('price_40kg') or None
+        if 'original_price' in body:
+            ft.original_price = body.get('original_price') or None
+        ft.baggage_checkin = body.get('baggage_checkin', ft.baggage_checkin)
+        ft.baggage_hand = body.get('baggage_hand', ft.baggage_hand)
+        if 'is_refundable' in body:
+            ft.is_refundable = str(body.get('is_refundable', 'true')).lower() in ('true', '1', 'on')
+        if body.get('cancellation_fee'):
+            ft.cancellation_fee = body.get('cancellation_fee')
+        if body.get('total_seats'):
+            ft.total_seats = int(body.get('total_seats'))
+        if body.get('available_seats'):
+            ft.available_seats = int(body.get('available_seats'))
+        if 'is_popular' in body:
+            ft.is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
+        if 'description' in body:
+            ft.description = body.get('description')
         ft.save()
         return JsonResponse({'success': True})
 

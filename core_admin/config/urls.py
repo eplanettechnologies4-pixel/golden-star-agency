@@ -222,6 +222,7 @@ urlpatterns = [
     # Group Ticketing (B2B) — Admin APIs
     path('dashboard/admin/api/group-fare-policies/', airline_ticketing_views.admin_group_fare_policies_api, name='admin_group_fare_policies_api'),
     path('dashboard/admin/api/group-fare-policies/<int:pk>/', airline_ticketing_views.admin_group_fare_policy_detail_api, name='admin_group_fare_policy_detail_api'),
+    path('dashboard/admin/api/group-fare-policies/<int:pk>/adjust-seats/', airline_ticketing_views.admin_adjust_group_seats_api, name='admin_adjust_group_seats_api'),
 
     # Agent Packages (B2B) — Admin APIs
     path('dashboard/admin/api/agent-packages/', airline_ticketing_views.admin_agent_packages_api, name='admin_agent_packages_api'),
@@ -231,7 +232,9 @@ urlpatterns = [
     path('dashboard/admin/api/hotels/', airline_ticketing_views.admin_hotels_api, name='admin_hotels_api'),
     path('dashboard/admin/api/hotels/<int:pk>/', airline_ticketing_views.admin_hotel_detail_api, name='admin_hotel_detail_api'),
 
+
     # B2B Inventory & Booking — Read-Only Agent APIs
+    path('dashboard/agent/api/sectors/', airline_ticketing_views.agent_sectors_api, name='agent_sectors_api'),
     path('dashboard/agent/api/airlines/', airline_ticketing_views.agent_airlines_api, name='agent_airlines_api'),
     path('dashboard/agent/api/flight-inventory/', airline_ticketing_views.agent_flight_inventory_api, name='agent_flight_inventory_api'),
     path('dashboard/agent/api/group-policies/', airline_ticketing_views.agent_group_fare_policies_api, name='agent_group_fare_policies_api'),
@@ -244,16 +247,18 @@ urlpatterns = [
     # B2B Ticket Orders — Admin APIs
     path('dashboard/admin/api/ticket-orders/', airline_ticketing_views.admin_ticket_orders_api, name='admin_ticket_orders_api'),
     path('dashboard/admin/api/ticket-orders/<str:pk>/confirm-payment/', airline_ticketing_views.admin_confirm_ticket_payment_api, name='admin_confirm_ticket_payment_api'),
+    path('dashboard/admin/api/ticket-orders/<str:pk>/cancel/', airline_ticketing_views.admin_cancel_ticket_order_api, name='admin_cancel_ticket_order_api'),
     path('dashboard/admin/api/ticket-orders/<str:pk>/allot-tickets/', airline_ticketing_views.admin_allot_tickets_api, name='admin_allot_tickets_api'),
 
     # B2B Ticket Orders — Agent APIs & Printable Ticket
     path('dashboard/agent/api/my-orders/', airline_ticketing_views.agent_my_orders_api, name='agent_my_orders_api'),
+    path('dashboard/agent/api/my-orders/<str:pk>/cancel/', airline_ticketing_views.agent_cancel_ticket_order_api, name='agent_cancel_ticket_order_api'),
+    path('dashboard/agent/api/my-orders/<str:pk>/delete/', airline_ticketing_views.agent_delete_ticket_order_api, name='agent_delete_ticket_order_api'),
     path('dashboard/agent/api/my-activity/', airline_ticketing_views.agent_my_activity_api, name='agent_my_activity_api'),
     path('dashboard/agent/api/ledger/', airline_ticketing_views.agent_wallet_ledger_api, name='agent_wallet_ledger_api'),
     path('dashboard/agent/api/reports/export/<str:report_type>/<str:fmt>/', accounts_views.agent_export_report_api, name='agent_export_report_api'),
     path('dashboard/agent/ticket-orders/<str:reference_number>/print/', airline_ticketing_views.agent_ticket_order_print_view, name='agent_ticket_order_print_view'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

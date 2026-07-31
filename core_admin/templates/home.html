@@ -829,6 +829,7 @@
                 </div>
                 
                 <form id="review-submit-form" class="space-y-4 text-left">
+                    {% csrf_token %}
                     <!-- Rating Stars Selection -->
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Your Rating</label>

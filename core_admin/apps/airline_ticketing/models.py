@@ -10,7 +10,7 @@ class Sector(models.Model):
     name = models.CharField(max_length=100)
     origin_city = models.CharField(max_length=100)
     destination_city = models.CharField(max_length=100)
-    is_round_trip = models.BooleanField(default=True)
+    is_round_trip = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -122,7 +122,8 @@ class BaggageFareTier(models.Model):
 
 class GroupFarePolicy(models.Model):
     """
-    Group-specific pricing and discount rules linked to an AirlineFlightInventory entry.
+    Group-specific pricing and ticket entries. Supports both standalone Group Flight Tickets
+    and policies linked to an existing AirlineFlightInventory entry.
     """
     DISCOUNT_TYPE_CHOICES = (
         ('percentage', 'Percentage (%)'),
@@ -132,12 +133,37 @@ class GroupFarePolicy(models.Model):
     flight_inventory = models.ForeignKey(
         AirlineFlightInventory,
         on_delete=models.CASCADE,
-        related_name='group_policies'
+        related_name='group_policies',
+        null=True,
+        blank=True
     )
-    min_group_size = models.PositiveIntegerField(help_text='Minimum seats to qualify for group fare (e.g. 10)')
+    airline = models.ForeignKey(
+        Airline,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='standalone_group_policies'
+    )
+    airline_name_custom = models.CharField(max_length=100, null=True, blank=True)
+    departure_city = models.CharField(max_length=100, null=True, blank=True)
+    destination_city = models.CharField(max_length=100, null=True, blank=True)
+    departure_time = models.CharField(max_length=100, null=True, blank=True)
+    arrival_time = models.CharField(max_length=100, null=True, blank=True)
+    return_departure_time = models.CharField(max_length=100, null=True, blank=True)
+    return_arrival_time = models.CharField(max_length=100, null=True, blank=True)
+    trip_type = models.CharField(max_length=20, default='oneway') # oneway, return
+    route_type = models.CharField(max_length=20, default='direct') # direct, via
+    via_city = models.CharField(max_length=100, null=True, blank=True)
+    has_meal = models.BooleanField(default=True)
+    total_seats = models.PositiveIntegerField(default=50)
+    available_seats = models.PositiveIntegerField(default=50)
+    min_group_size = models.PositiveIntegerField(default=10, help_text='Minimum seats to qualify for group fare (e.g. 10)')
     discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, default='percentage')
-    discount_value = models.DecimalField(max_digits=10, decimal_places=2, help_text='Discount percentage (0-100) or flat amount in PKR')
-    baggage_weight_kg = models.PositiveIntegerField(default=20, help_text='Baggage allowance tier this policy applies to (e.g. 20, 30, 40)')
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Discount percentage (0-100) or flat amount in PKR')
+    baggage_weight_kg = models.PositiveIntegerField(default=30, help_text='Outbound Baggage allowance in KG')
+    return_baggage_weight_kg = models.PositiveIntegerField(default=30, help_text='Return Baggage allowance in KG')
+    base_fare = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    group_fare_override = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text='Override calculated net group fare directly')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -147,8 +173,10 @@ class GroupFarePolicy(models.Model):
         verbose_name_plural = 'Group Fare Policies'
 
     def __str__(self):
-        val_str = f"{self.discount_value}%" if self.discount_type == 'percentage' else f"PKR {self.discount_value}"
-        return f"{self.flight_inventory} — Min {self.min_group_size} seats ({val_str} off)"
+        air = self.airline.name if self.airline else (self.airline_name_custom or (self.flight_inventory.airline.name if self.flight_inventory else 'Group Ticket'))
+        dep = self.departure_city or (self.flight_inventory.departure_city if self.flight_inventory else '')
+        dest = self.destination_city or (self.flight_inventory.destination_city if self.flight_inventory else '')
+        return f"Group Ticket: {air} ({dep} ➔ {dest}) — Min {self.min_group_size} seats"
 
 
 class AgentPackage(models.Model):
@@ -279,6 +307,13 @@ class AgentTicketOrder(models.Model):
         blank=True,
         related_name='orders'
     )
+    group_policy = models.ForeignKey(
+        GroupFarePolicy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders'
+    )
     selected_hotel = models.ForeignKey(
         'Hotel',
         on_delete=models.SET_NULL,
@@ -340,8 +375,18 @@ class OrderPassenger(models.Model):
 
 class Hotel(models.Model):
     CITY_CHOICES = [('makkah', 'Makkah'), ('madinah', 'Madinah')]
+    CATEGORY_CHOICES = [
+        ('economy', 'Economy Class'),
+        ('economy_plus', 'Economy Plus'),
+        ('1star', '1 Star Hotel'),
+        ('2star', '2 Star Hotel'),
+        ('3star', '3 Star Hotel'),
+        ('4star', '4 Star Hotel'),
+        ('5star', '5 Star Hotel'),
+    ]
 
     name = models.CharField(max_length=200)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='economy', blank=True)
     city = models.CharField(max_length=20, choices=CITY_CHOICES)
     location = models.CharField(max_length=255, blank=True, default='', help_text='e.g. Ibrahim Khalil Road, Hijra Road')
     distance_from_haram = models.CharField(max_length=100, help_text='e.g. 500 meters or 350m from Haram')

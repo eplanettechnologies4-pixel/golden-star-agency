@@ -34,33 +34,31 @@ def submit_review_api(request):
         return JsonResponse({'success': False, 'message': 'Only POST requests allowed.'}, status=405)
     
     try:
-        # Try loading json
-        data = json.loads(request.body)
+        data = json.loads(request.body.decode('utf-8'))
     except Exception:
-        # Fallback to standard POST parameters if JSON decoding fails
         data = request.POST
 
-    name = data.get('name', '').strip()
-    email = data.get('email', '').strip()
+    name = str(data.get('name') or '').strip()
+    email = str(data.get('email') or '').strip()
+    comment = str(data.get('comment') or '').strip()
     rating_val = data.get('rating')
-    comment = data.get('comment', '').strip()
 
-    if not name or not rating_val or not comment:
-        return JsonResponse({'success': False, 'message': 'Name, rating, and comment are required fields.'}, status=400)
+    if not name or not comment:
+        return JsonResponse({'success': False, 'message': 'Name and review comment are required.'}, status=400)
 
     try:
-        rating = int(rating_val)
+        rating = int(rating_val) if rating_val is not None else 5
         if rating < 1 or rating > 5:
-            raise ValueError()
-    except ValueError:
-        return JsonResponse({'success': False, 'message': 'Rating must be an integer between 1 and 5.'}, status=400)
+            rating = 5
+    except Exception:
+        rating = 5
 
     review = PlatformReview.objects.create(
         name=name,
         email=email,
         rating=rating,
         comment=comment,
-        is_approved=True # Auto-approved by default for real-time presentation
+        is_approved=True
     )
 
     return JsonResponse({
@@ -76,7 +74,9 @@ def submit_review_api(request):
     })
 
 def is_admin(user):
-    return user.is_authenticated and (user.is_superuser or user.role == 'super_admin')
+    if not user or not user.is_authenticated:
+        return False
+    return user.is_superuser or user.is_staff or getattr(user, 'role', '') in ['super_admin', 'admin']
 
 @user_passes_test(is_admin)
 def admin_reviews_list_api(request):

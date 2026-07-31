@@ -266,6 +266,14 @@
                             {% endwith %}
                         </div>
 
+                        <!-- Duration & Flight Dates -->
+                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                            <span><i class="fa-solid fa-clock text-brand-orange mr-1.5"></i>{{ pkg.duration_days }} Days Package</span>
+                            {% if pkg.flight_dates %}
+                            <span class="text-brand-orange"><i class="fa-solid fa-calendar-days mr-1"></i>{{ pkg.flight_dates }}</span>
+                            {% endif %}
+                        </div>
+
                         <!-- Flight Route -->
                         <p class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-route text-brand-orange mr-1.5"></i>Route: {{ pkg.flight_routes|default:"KHI - JED - MED - KHI" }}</p>
 

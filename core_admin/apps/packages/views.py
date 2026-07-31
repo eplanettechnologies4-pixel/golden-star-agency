@@ -58,6 +58,9 @@ def admin_packages_list_api(request):
             'airline': pkg.airline or 'Saudi Airlines',
             'flight_routes': pkg.flight_routes or 'KHI - JED - MED - KHI',
             'flight_route_type': pkg.flight_route_type or 'direct',
+            'flight_dates': pkg.flight_dates or '',
+            'departure_date': pkg.departure_date.strftime('%Y-%m-%d') if pkg.departure_date else '',
+            'return_date': pkg.return_date.strftime('%Y-%m-%d') if pkg.return_date else '',
             'price_sharing': float(pkg.price_sharing),
             'price_quad': float(pkg.price_quad),
             'price_triple': float(pkg.price_triple),
@@ -114,6 +117,9 @@ def admin_package_detail_api(request, pk):
                 'airline': pkg.airline or '',
                 'flight_routes': pkg.flight_routes or '',
                 'flight_route_type': pkg.flight_route_type or 'direct',
+                'flight_dates': pkg.flight_dates or '',
+                'departure_date': pkg.departure_date.strftime('%Y-%m-%d') if pkg.departure_date else '',
+                'return_date': pkg.return_date.strftime('%Y-%m-%d') if pkg.return_date else '',
                 'meal_detail': pkg.meal_detail or 'Full Board',
                 'transport_type': pkg.transport_type or 'Sharing',
                 'luggage_weight': pkg.luggage_weight or '20 kg + 7 kg Hand Carry',
@@ -147,6 +153,9 @@ def admin_package_detail_api(request, pk):
         if body.get('airline'):          pkg.airline          = body['airline']
         if body.get('flight_routes'):    pkg.flight_routes    = body['flight_routes']
         if body.get('flight_route_type'): pkg.flight_route_type = body['flight_route_type']
+        if body.get('flight_dates'):     pkg.flight_dates     = body['flight_dates']
+        if body.get('departure_date'):  pkg.departure_date   = body['departure_date'] or None
+        if body.get('return_date'):     pkg.return_date      = body['return_date'] or None
         if body.get('meal_detail'):      pkg.meal_detail      = body['meal_detail']
         if body.get('transport_type'):   pkg.transport_type   = body['transport_type']
         if body.get('luggage_weight'):   pkg.luggage_weight   = body['luggage_weight']
@@ -201,6 +210,9 @@ def admin_package_create_api(request):
         airline=body.get('airline') or 'Saudi Airlines',
         flight_routes=body.get('flight_routes') or 'KHI - JED - MED - KHI',
         flight_route_type=body.get('flight_route_type') or 'direct',
+        flight_dates=body.get('flight_dates') or '15 Aug 2026 - 30 Aug 2026',
+        departure_date=body.get('departure_date') or None,
+        return_date=body.get('return_date') or None,
         meal_detail=body.get('meal_detail') or 'Full Board',
         transport_type=body.get('transport_type') or 'Sharing',
         luggage_weight=body.get('luggage_weight') or '20 kg + 7 kg Hand Carry',

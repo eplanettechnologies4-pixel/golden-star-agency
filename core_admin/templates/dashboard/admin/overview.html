@@ -444,10 +444,57 @@
             </div>
             <div class="flex items-center space-x-3 sm:space-x-4">
                 <!-- Islamabad Live Clock Badge -->
-                <div class="hidden md:flex items-center space-x-2 bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#567946] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm border border-[#38522D]">
+                <div class="hidden lg:flex items-center space-x-2 bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#567946] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold shadow-sm border border-[#38522D]">
                     <i class="fa-regular fa-clock text-[#90B576]"></i>
                     <span id="admin-live-header-date">Loading Islamabad Time...</span>
                 </div>
+
+                <!-- Real-time Admin Notification Bell & Popover Dropdown -->
+                <div class="relative inline-block text-left" id="admin-notification-wrapper">
+                    <button onclick="toggleAdminNotificationDropdown(event)" id="btn-admin-noti-bell"
+                        class="relative p-2.5 rounded-xl bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] hover:text-[#E06A26] transition-all flex items-center justify-center cursor-pointer shadow-xs group"
+                        title="Admin Alerts & Notifications">
+                        <i class="fa-solid fa-bell text-sm text-[#E06A26] group-hover:scale-110 transition-transform"></i>
+                        <span id="admin-noti-badge"
+                            class="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded-full text-[9px] font-black bg-rose-600 text-white border-2 border-white shadow-md animate-pulse hidden">0</span>
+                    </button>
+
+                    <!-- Dropdown Menu Popover -->
+                    <div id="admin-noti-dropdown"
+                        class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white border-2 border-[#E7DCB9] rounded-3xl shadow-2xl z-50 overflow-hidden animate-fade-in divide-y divide-[#E7DCB9]">
+                        <!-- Header -->
+                        <div class="p-4 bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#567946] text-white flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg bg-white/20 text-[#90B576] flex items-center justify-center text-xs border border-white/20">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-black uppercase tracking-wider block">Admin Alerts</span>
+                                    <span id="admin-noti-unread-count-text" class="text-[9px] text-[#90B576] font-bold">0 unread alerts</span>
+                                </div>
+                            </div>
+                            <button onclick="markAllAdminNotificationsRead()"
+                                class="text-[10px] font-black text-[#90B576] hover:text-white bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-lg border border-white/20 transition-all">
+                                <i class="fa-solid fa-check-double mr-1"></i> Mark All Read
+                            </button>
+                        </div>
+
+                        <!-- Notification List -->
+                        <div id="admin-noti-dropdown-items" class="max-h-80 overflow-y-auto divide-y divide-[#E7DCB9]/60">
+                            <div class="p-6 text-center text-xs text-[#567946] font-medium">Loading admin alerts...</div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="p-3 bg-[#FAF7F2] text-center border-t border-[#E7DCB9]">
+                            <button onclick="openAdminFullNotificationsModal()"
+                                class="text-xs font-black text-[#E06A26] hover:underline flex items-center justify-center gap-1.5 mx-auto">
+                                <i class="fa-solid fa-list-check"></i>
+                                <span>View All Admin Notification History</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <button onclick="openPortalSelectionModal()" class="px-3.5 py-1.5 rounded-xl bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-extrabold transition-all flex items-center gap-1.5">
                     <i class="fa-solid fa-right-left text-[#E06A26]"></i>
                     <span class="hidden sm:inline">Switch Admin Portal</span>
@@ -476,8 +523,9 @@
                 <!-- B2B Header Banner -->
                 <div class="bg-gradient-to-r from-white via-[#F0F6EC] to-[#E7DCB9]/40 border-2 border-[#567946] p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span class="px-3 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#2D4424] text-white">B2B WHOLESALE CONTROL</span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> LIVE REAL-TIME</span>
                             <h2 class="text-xl font-black text-[#2D4424]">B2B Agent Network Overview</h2>
                         </div>
                         <p class="text-xs text-[#567946] font-semibold mt-1">Live operational monitor for agency accounts, ticket holds, low balance alerts &amp; wholesale revenue.</p>
@@ -655,20 +703,51 @@
                         </div>
                     </div>
 
-                    <!-- Section 5: Mini Trend Chart (Col-span-2) -->
-                    <div class="lg:col-span-2 bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="border-b border-[#E7DCB9] pb-4 mb-4">
-                                <h3 class="font-black text-[#2D4424] text-sm flex items-center gap-2">
-                                    <span class="h-7 w-7 rounded-lg bg-[#F0F6EC] text-[#567946] flex items-center justify-center border border-[#C6DCB4]">
-                                        <i class="fa-solid fa-chart-column text-xs"></i>
+                    <!-- Section 5: Real-Time B2B Trend & Status Charts -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Chart 1: 7-Day Order Volume & Revenue Trend -->
+                        <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="border-b border-[#E7DCB9] pb-4 mb-4 flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-black text-[#2D4424] text-sm flex items-center gap-2">
+                                            <span class="h-7 w-7 rounded-lg bg-[#F0F6EC] text-[#567946] flex items-center justify-center border border-[#C6DCB4]">
+                                                <i class="fa-solid fa-chart-column text-xs"></i>
+                                            </span>
+                                            7-Day Volume &amp; Revenue Trend
+                                        </h3>
+                                        <p class="text-[10px] text-[#567946] mt-0.5">Daily B2B ticket order count &amp; sales volume</p>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span> LIVE
                                     </span>
-                                    7-Day Ticket Volume Trend
-                                </h3>
-                                <p class="text-[10px] text-[#567946] mt-0.5">Daily B2B ticket order count</p>
+                                </div>
+                                <div class="p-2" style="height:210px;position:relative;">
+                                    <canvas id="b2b-trend-chart"></canvas>
+                                </div>
                             </div>
-                            <div class="p-2" style="height:200px;position:relative;">
-                                <canvas id="b2b-trend-chart"></canvas>
+                        </div>
+
+                        <!-- Chart 2: Order Status Distribution Doughnut -->
+                        <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="border-b border-[#E7DCB9] pb-4 mb-4 flex justify-between items-center">
+                                    <div>
+                                        <h3 class="font-black text-[#2D4424] text-sm flex items-center gap-2">
+                                            <span class="h-7 w-7 rounded-lg bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center border border-[#FCE2D2]">
+                                                <i class="fa-solid fa-chart-pie text-xs"></i>
+                                            </span>
+                                            Real-Time Order Status Distribution
+                                        </h3>
+                                        <p class="text-[10px] text-[#567946] mt-0.5">Live ticket status breakdown</p>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-black bg-blue-50 text-blue-700 border border-blue-200">
+                                        AUTO SYNC
+                                    </span>
+                                </div>
+                                <div class="p-2" style="height:200px;position:relative;">
+                                    <canvas id="b2b-status-chart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1038,13 +1117,13 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-[#E7DCB9] p-6 rounded-3xl shadow-sm">
                     <div>
                         <h2 class="text-lg font-black text-[#2D4424] flex items-center gap-2">
-                            <i class="fa-solid fa-users text-[#E06A26]"></i> Group Flight Fare Discount Policies
+                            <i class="fa-solid fa-plane-up text-[#E06A26]"></i> Standalone B2B Group Tickets Inventory
                         </h2>
-                        <p class="text-xs text-[#567946] font-semibold mt-1">Configure minimum passenger seat thresholds and group discount pricing for flight routes.</p>
+                        <p class="text-xs text-[#567946] font-semibold mt-1">Add, configure, and manage bulk group ticket seats directly with custom airline, flight timings, baggage allowances, and net group fares.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button onclick="openAdminAddGroupPolicyModal()" class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5">
-                            <i class="fa-solid fa-plus"></i> Add Group Policy
+                        <button id="btn-add-group-ticket" type="button" data-admin-action="add-group-ticket" onclick="openAddGroupTicketModal()" class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Add Standalone Group Ticket
                         </button>
                         <button onclick="fetchAdminGroupPolicies()" class="px-3 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-bold rounded-xl transition-all" title="Refresh List">
                             <i class="fa-solid fa-rotate"></i>
@@ -1052,13 +1131,13 @@
                     </div>
                 </div>
 
-                <!-- Group Policies List Table -->
+                <!-- Group Tickets Table -->
                 <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm space-y-4">
                     <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
                         <h3 class="text-sm font-extrabold text-[#2D4424] flex items-center gap-2">
-                            <i class="fa-solid fa-tags text-[#E06A26]"></i> Active Group Discount Policies
+                            <i class="fa-solid fa-layer-group text-[#E06A26]"></i> Standalone Group Tickets Inventory
                         </h3>
-                        <span id="badge-group-policies-count" class="text-[10px] font-black uppercase bg-[#FDF2EA] text-[#E06A26] px-2.5 py-0.5 rounded-full border border-[#FCE2D2]">0 Policies</span>
+                        <span id="badge-group-policies-count" class="text-[10px] font-black uppercase bg-[#FDF2EA] text-[#E06A26] px-2.5 py-0.5 rounded-full border border-[#FCE2D2]">0 Group Tickets</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
@@ -1066,14 +1145,17 @@
                                 <tr class="bg-[#2D4424] text-white text-[10px] uppercase font-extrabold">
                                     <th class="p-3">ID</th>
                                     <th class="p-3">Airline &amp; Route</th>
-                                    <th class="p-3">Min Group Size</th>
-                                    <th class="p-3">Discount Type &amp; Value</th>
-                                    <th class="p-3">Baggage Tier</th>
+                                    <th class="p-3">Outbound Flight</th>
+                                    <th class="p-3">Return Flight</th>
+                                    <th class="p-3">Group Seats</th>
+                                    <th class="p-3">Meal &amp; Details</th>
+                                    <th class="p-3">Net Group Fare</th>
                                     <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-admin-group-policies" class="divide-y divide-[#E7DCB9]">
-                                <tr><td colspan="6" class="p-4 text-center text-[#567946]">Loading group fare policies...</td></tr>
+                                <tr><td colspan="9" class="p-4 text-center text-[#567946]">Loading standalone group tickets...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1238,6 +1320,7 @@
                                     <th class="p-3">ID</th>
                                     <th class="p-3">Image</th>
                                     <th class="p-3">Hotel Name</th>
+                                    <th class="p-3">Category / Rating</th>
                                     <th class="p-3">City</th>
                                     <th class="p-3">Haram Distance</th>
                                     <th class="p-3">Room Sharing Prices (PKR)</th>
@@ -1348,6 +1431,9 @@
                             <h3 class="text-sm font-extrabold text-[#2D4424] flex items-center gap-2">
                                 <i class="fa-solid fa-pie-chart text-[#E06A26]"></i> Department Breakdown
                             </h3>
+                        </div>
+                        <div class="h-44 relative mb-3">
+                            <canvas id="chart-fin-dept-doughnut"></canvas>
                         </div>
                         <div class="space-y-3 text-xs">
                             <div class="p-3 rounded-xl bg-[#F7F3E9] border border-[#D9CBAC] flex justify-between items-center">
@@ -1481,7 +1567,7 @@
                         <p class="text-xs text-[#567946] mt-1">Manage official company bank accounts displayed to B2B travel agents for wallet deposits and top-up payments.</p>
                     </div>
                     <div class="mt-4 md:mt-0">
-                        <button id="btn-add-bank-account" type="button" onclick="openAddBankAccountModal()" class="px-4 py-2 bg-[#2D4424] hover:bg-[#22381b] text-white text-xs font-bold rounded-xl shadow"><i class="fa-solid fa-plus mr-1.5"></i>Add New Bank Account</button>
+                        <button id="btn-add-bank-account" type="button" data-admin-action="add-bank-account" onclick="openAddBankAccountModal()" class="px-4 py-2 bg-[#2D4424] hover:bg-[#22381b] text-white text-xs font-bold rounded-xl shadow"><i class="fa-solid fa-plus mr-1.5"></i>Add New Bank Account</button>
                     </div>
                 </div>
 
@@ -1518,7 +1604,7 @@
                         <p class="text-xs text-[#567946] mt-1">Create and manage department-wise contacts (Name, Description, Phone/WhatsApp Number, Email) displayed on the Agent Portal Contact Us page.</p>
                     </div>
                     <div class="mt-4 md:mt-0">
-                        <button id="btn-add-department-contact" type="button" onclick="openAddDepartmentContactModal()" class="px-4 py-2 bg-[#2D4424] hover:bg-[#22381b] text-white text-xs font-bold rounded-xl shadow"><i class="fa-solid fa-plus mr-1.5"></i>Add New Department Contact</button>
+                        <button id="btn-add-department-contact" type="button" data-admin-action="add-department-contact" onclick="openAddDepartmentContactModal()" class="px-4 py-2 bg-[#2D4424] hover:bg-[#22381b] text-white text-xs font-bold rounded-xl shadow"><i class="fa-solid fa-plus mr-1.5"></i>Add New Department Contact</button>
                     </div>
                 </div>
 
@@ -2748,6 +2834,10 @@
         }
 
         function openAdminAddSectorModal() {
+            const form = document.getElementById("form-admin-add-sector");
+            if (form) form.reset();
+            const chk = document.getElementById("sector-chk-roundtrip");
+            if (chk) chk.checked = false;
             const modal = document.getElementById("modal-admin-add-sector");
             if (modal) {
                 modal.style.display = "flex";
@@ -2807,8 +2897,20 @@
             if (sec) {
                 const elDep = document.getElementById("input-modal-dep-city");
                 const elDest = document.getElementById("input-modal-dest-city");
-                if (elDep && !elDep.value) elDep.value = sec.origin_city;
-                if (elDest && !elDest.value) elDest.value = sec.destination_city;
+                if (elDep) elDep.value = sec.origin_city;
+                if (elDest) elDest.value = sec.destination_city;
+
+                const elTripType = document.getElementById("select-modal-trip-type");
+                if (elTripType) {
+                    if (sec.is_round_trip) {
+                        elTripType.value = "return";
+                    } else {
+                        elTripType.value = "oneway";
+                    }
+                    if (typeof toggleAdminFlightTripType === 'function') {
+                        toggleAdminFlightTripType(elTripType.value);
+                    }
+                }
             }
         }
 
@@ -3001,26 +3103,57 @@
                 const tbody = document.getElementById("tbody-admin-group-policies");
                 if (tbody && data.policies) {
                     windowAllGroupPoliciesMaster = data.policies;
-                    document.getElementById("badge-group-policies-count").textContent = `${data.policies.length} Policies`;
+                    document.getElementById("badge-group-policies-count").textContent = `${data.policies.length} Group Tickets`;
                     if (data.policies.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-[#567946]">No group fare policies created yet. Click 'Add Group Policy' above.</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-[#567946]">No standalone group tickets created yet. Click 'Add Standalone Group Ticket' above.</td></tr>`;
                     } else {
                         tbody.innerHTML = data.policies.map(p => `
-                            <tr class="hover:bg-[#F6FAF3]">
+                            <tr class="hover:bg-[#F6FAF3]" data-policy-id="${p.id}">
                                 <td class="p-3 font-mono font-bold text-[#2D4424]">#${p.id}</td>
-                                <td class="p-3 font-bold text-[#2D4424]">${p.route_display}</td>
-                                <td class="p-3 font-mono font-black text-[#E06A26]">${p.min_group_size} Passengers</td>
-                                <td class="p-3 font-bold text-emerald-700">
-                                    ${p.discount_type === 'percentage' ? `${p.discount_value}% OFF` : `PKR ${p.discount_value} OFF`}
+                                <td class="p-3">
+                                    <div class="font-extrabold text-[#2D4424] flex items-center gap-2">
+                                        ${p.airline_logo_url ? `<img src="${p.airline_logo_url}" class="h-5 w-auto object-contain">` : `<i class="fa-solid fa-plane-up text-[#E06A26]"></i>`}
+                                        <span>${escapeHTML(p.airline_name)}</span>
+                                    </div>
+                                    <div class="text-[11px] font-bold text-[#E06A26] mt-0.5">
+                                        🛫 ${escapeHTML(p.departure_city)} ➔ 🛬 ${escapeHTML(p.destination_city)}
+                                    </div>
                                 </td>
-                                <td class="p-3 font-mono text-[#567946]">${p.baggage_weight_kg} KG</td>
+                                <td class="p-3 text-[11px]">
+                                    <div class="font-semibold text-[#2D4424]"><i class="fa-solid fa-plane-departure text-amber-600 mr-1"></i>${escapeHTML(p.departure_time || 'N/A')}</div>
+                                    <div class="font-semibold text-[#567946]"><i class="fa-solid fa-plane-arrival text-emerald-600 mr-1"></i>${escapeHTML(p.arrival_time || 'N/A')}</div>
+                                    <div class="text-[10px] font-mono text-gray-500 mt-0.5"><i class="fa-solid fa-suitcase-rolling mr-1"></i>${p.baggage_weight_kg} KG</div>
+                                </td>
+                                <td class="p-3 text-[11px]">
+                                    ${p.trip_type === 'return' || p.return_departure_time ? `
+                                        <div class="font-semibold text-[#2D4424]"><i class="fa-solid fa-plane-departure text-amber-600 mr-1"></i>${escapeHTML(p.return_departure_time || p.departure_time)}</div>
+                                        <div class="font-semibold text-[#567946]"><i class="fa-solid fa-plane-arrival text-emerald-600 mr-1"></i>${escapeHTML(p.return_arrival_time || p.arrival_time)}</div>
+                                        <div class="text-[10px] font-mono text-gray-500 mt-0.5"><i class="fa-solid fa-suitcase-rolling mr-1"></i>${p.return_baggage_weight_kg || p.baggage_weight_kg} KG</div>
+                                    ` : `<span class="text-gray-400 font-bold">— One Way —</span>`}
+                                </td>
+                                <td class="p-3 text-[11px]">
+                                    <div class="font-black text-[#E06A26] mb-1"><i class="fa-solid fa-users mr-1"></i>Min: ${p.min_group_size} Seats</div>
+                                    <div class="flex items-center gap-1.5 bg-[#F7F3E9] px-2 py-1 rounded-xl border border-[#D9CBAC] w-fit">
+                                        <button type="button" onclick="adminAdjustGroupSeats(${p.id}, 'decrement', 1)" class="w-5 h-5 rounded-md bg-rose-100 hover:bg-rose-600 hover:text-white text-rose-700 font-black text-xs transition-all flex items-center justify-center shadow-2xs" title="Decrement 1 Seat">-</button>
+                                        <span class="font-black text-[#2D4424] text-[11px] px-1 seat-counter">${p.available_seats} / ${p.total_seats}</span>
+                                        <button type="button" onclick="adminAdjustGroupSeats(${p.id}, 'increment', 1)" class="w-5 h-5 rounded-md bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-700 font-black text-xs transition-all flex items-center justify-center shadow-2xs" title="Increment 1 Seat">+</button>
+                                    </div>
+                                </td>
+                                <td class="p-3 text-[11px]">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase ${p.has_meal ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}">
+                                        <i class="fa-solid ${p.has_meal ? 'fa-utensils' : 'fa-ban'} mr-1"></i>${p.has_meal ? 'Meal Included' : 'No Meal'}
+                                    </span>
+                                </td>
+                                <td class="p-3 font-mono font-black text-[#E06A26]">
+                                    PKR ${Number(p.group_fare || p.base_fare).toLocaleString()}
+                                </td>
                                 <td class="p-3">
                                     <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${p.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
                                         ${p.is_active ? 'Active' : 'Inactive'}
                                     </span>
                                 </td>
-                                <td class="p-3 text-right space-x-1">
-                                    <button type="button" onclick="openAdminAddGroupPolicyModal(${p.id})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all">
+                                <td class="p-3 text-right space-x-1 whitespace-nowrap">
+                                    <button type="button" onclick="openAddGroupTicketModal(${p.id})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all">
                                         Edit
                                     </button>
                                     <button type="button" onclick="adminDeleteGroupPolicy(${p.id})" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all">
@@ -3033,6 +3166,171 @@
                 }
             } catch (err) {
                 console.error("Error fetching admin group policies:", err);
+            }
+        }
+
+        async function openAddGroupTicketModal(editId = null) {
+            const modal = document.getElementById('modal-admin-group-policy');
+            if (!modal) return;
+
+            // Populate Airlines Dropdown
+            const airSelect = document.getElementById('gpm-airline');
+            if (airSelect) {
+                try {
+                    const res = await fetch("/dashboard/admin/api/airlines/");
+                    const data = await res.json();
+                    if (data.airlines) {
+                        airSelect.innerHTML = `<option value="">-- Custom / Other Airline --</option>` +
+                            data.airlines.map(a => `<option value="${a.id}">${escapeHTML(a.name)}</option>`).join('');
+                    }
+                } catch (e) {}
+            }
+
+            if (editId) {
+                document.getElementById('gpm-modal-title').textContent = "Edit Standalone Group Ticket";
+                document.getElementById('gpm-edit-id').value = editId;
+
+                try {
+                    const res = await fetch(`/dashboard/admin/api/group-fare-policies/${editId}/`);
+                    const data = await res.json();
+                    if (data.success && data.policy) {
+                        const p = data.policy;
+                        if (airSelect && p.airline_id) airSelect.value = p.airline_id;
+                        document.getElementById('gpm-airline-custom').value = p.airline_name_custom || '';
+                        document.getElementById('gpm-departure-city').value = p.departure_city || '';
+                        document.getElementById('gpm-destination-city').value = p.destination_city || '';
+                        document.getElementById('gpm-departure-time').value = p.departure_time || '';
+                        document.getElementById('gpm-arrival-time').value = p.arrival_time || '';
+                        document.getElementById('gpm-return-departure-time').value = p.return_departure_time || '';
+                        document.getElementById('gpm-return-arrival-time').value = p.return_arrival_time || '';
+                        document.getElementById('gpm-trip-type').value = p.trip_type || 'oneway';
+                        document.getElementById('gpm-route-type').value = p.route_type || 'direct';
+                        document.getElementById('gpm-via-city').value = p.via_city || '';
+                        document.getElementById('gpm-has-meal').value = p.has_meal ? 'true' : 'false';
+                        document.getElementById('gpm-total-seats').value = p.total_seats || 50;
+                        document.getElementById('gpm-available-seats').value = p.available_seats || 50;
+                        document.getElementById('gpm-min-group-size').value = p.min_group_size || 10;
+                        document.getElementById('gpm-discount-type').value = p.discount_type || 'percentage';
+                        document.getElementById('gpm-discount-value').value = p.discount_value || 0;
+                        document.getElementById('gpm-baggage-kg').value = p.baggage_weight_kg || 30;
+                        document.getElementById('gpm-return-baggage-kg').value = p.return_baggage_weight_kg || 30;
+                        document.getElementById('gpm-base-fare').value = p.base_fare || 0;
+                        document.getElementById('gpm-group-fare-override').value = p.group_fare_override !== null ? p.group_fare_override : '';
+                        document.getElementById('gpm-is-active').checked = p.is_active;
+                    }
+                } catch (e) {}
+            } else {
+                document.getElementById('gpm-modal-title').textContent = "Add Standalone Group Ticket";
+                document.getElementById('gpm-edit-id').value = '';
+                const form = document.getElementById('gpm-form');
+                if (form) form.reset();
+            }
+
+            openModal('modal-admin-group-policy');
+        }
+        window.openAddGroupTicketModal = openAddGroupTicketModal;
+        window.openAdminAddGroupPolicyModal = openAddGroupTicketModal;
+
+        function closeAdminGroupPolicyModal() {
+            closeModal('modal-admin-group-policy');
+        }
+        window.closeAdminGroupPolicyModal = closeAdminGroupPolicyModal;
+
+        async function saveAdminGroupPolicy(e) {
+            if (e) e.preventDefault();
+            const editId = document.getElementById('gpm-edit-id').value;
+            const payload = {
+                airline_id: document.getElementById('gpm-airline').value || null,
+                airline_name_custom: document.getElementById('gpm-airline-custom').value,
+                departure_city: document.getElementById('gpm-departure-city').value,
+                destination_city: document.getElementById('gpm-destination-city').value,
+                departure_time: document.getElementById('gpm-departure-time').value,
+                arrival_time: document.getElementById('gpm-arrival-time').value,
+                return_departure_time: document.getElementById('gpm-return-departure-time').value,
+                return_arrival_time: document.getElementById('gpm-return-arrival-time').value,
+                trip_type: document.getElementById('gpm-trip-type').value,
+                route_type: document.getElementById('gpm-route-type').value,
+                via_city: document.getElementById('gpm-via-city').value,
+                has_meal: document.getElementById('gpm-has-meal').value === 'true',
+                total_seats: parseInt(document.getElementById('gpm-total-seats').value || 50),
+                available_seats: parseInt(document.getElementById('gpm-available-seats').value || 50),
+                min_group_size: parseInt(document.getElementById('gpm-min-group-size').value || 10),
+                discount_type: document.getElementById('gpm-discount-type').value,
+                discount_value: parseFloat(document.getElementById('gpm-discount-value').value || 0),
+                baggage_weight_kg: parseInt(document.getElementById('gpm-baggage-kg').value || 30),
+                return_baggage_weight_kg: parseInt(document.getElementById('gpm-return-baggage-kg').value || 30),
+                base_fare: parseFloat(document.getElementById('gpm-base-fare').value || 0),
+                group_fare_override: document.getElementById('gpm-group-fare-override').value ? parseFloat(document.getElementById('gpm-group-fare-override').value) : null,
+                is_active: document.getElementById('gpm-is-active').checked
+            };
+
+            const url = editId ? `/dashboard/admin/api/group-fare-policies/${editId}/` : `/dashboard/admin/api/group-fare-policies/`;
+            const method = editId ? 'PUT' : 'POST';
+
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken') || '';
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(editId ? "Group Ticket updated successfully!" : "Group Ticket created successfully!");
+                    closeAdminGroupPolicyModal();
+                    fetchAdminGroupPolicies();
+                } else {
+                    alert(data.error || "Failed to save Group Ticket.");
+                }
+            } catch (err) {
+                alert("Server error saving Group Ticket.");
+            }
+        }
+
+        async function adminDeleteGroupPolicy(id) {
+            if (!confirm(`Are you sure you want to delete Standalone Group Ticket #${id}?`)) return;
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken') || '';
+                const res = await fetch(`/dashboard/admin/api/group-fare-policies/${id}/`, { 
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    fetchAdminGroupPolicies();
+                } else {
+                    alert(data.error || "Failed to delete.");
+                }
+            } catch (err) {
+                alert("Server error deleting ticket.");
+            }
+        }
+
+        async function adminAdjustGroupSeats(id, action, amount = 1) {
+            try {
+                const res = await fetch(`/dashboard/admin/api/group-fare-policies/${id}/adjust-seats/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, amount })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Live-update the seat counter displayed in the table row without full reload
+                    const seatSpan = document.querySelector(`[data-policy-id="${id}"] .seat-counter`);
+                    if (seatSpan) {
+                        seatSpan.textContent = `${data.available_seats} / ${data.total_seats}`;
+                    } else {
+                        // Fallback: reload the whole table
+                        fetchAdminGroupPolicies();
+                    }
+                } else {
+                    alert(data.error || 'Failed to adjust seats.');
+                }
+            } catch (err) {
+                alert('Server error adjusting seats.');
             }
         }
 
@@ -3161,14 +3459,24 @@
                                 </span>
                             </td>
                             <td class="p-3 font-mono font-bold text-[#2D4424]">${escapeHTML(o.pnr || o.reference_number)}</td>
-                            <td class="p-3 text-right space-x-1">
-                                <button type="button" onclick="openAdminViewOrderDetailsModal('${o.id}')" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-800 text-white text-[10px] font-bold rounded-lg transition-all shadow inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-eye"></i> View Data
+                            <td class="p-3 text-right space-x-1 whitespace-nowrap">
+                                <button type="button" onclick="openAdminViewOrderDetailsModal('${o.id}')" class="px-2 py-1 bg-slate-700 hover:bg-slate-800 text-white text-[10px] font-bold rounded-lg transition-all shadow inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-eye"></i> View
                                 </button>
-                                <a href="/dashboard/agent/ticket-orders/${o.reference_number}/print/" target="_blank" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-print"></i> Print Voucher
+                                <a href="/dashboard/agent/ticket-orders/${o.reference_number}/print/" target="_blank" class="px-2 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-print"></i> Print
                                 </a>
-                                <button type="button" onclick="openAdminAllotTicketsModal('${o.id}')" class="px-2.5 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white text-[10px] font-bold rounded-lg transition-all shadow inline-flex items-center gap-1">
+                                ${(o.status === 'hold' || o.status === 'paid_pending') ? `
+                                    <button type="button" onclick="adminConfirmOrderPayment('${o.id}')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-all shadow inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check"></i> Confirm
+                                    </button>
+                                ` : ''}
+                                ${(o.status === 'hold' || o.status === 'paid_pending' || o.status === 'paid') ? `
+                                    <button type="button" onclick="adminCancelTicketOrder('${o.id}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all shadow inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-ban"></i> Cancel
+                                    </button>
+                                ` : ''}
+                                <button type="button" onclick="openAdminAllotTicketsModal('${o.id}')" class="px-2 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white text-[10px] font-bold rounded-lg transition-all shadow inline-flex items-center gap-1">
                                     <i class="fa-solid fa-ticket"></i> Allot PNR
                                 </button>
                             </td>
@@ -3226,7 +3534,16 @@
                         <td class="p-3 font-mono text-xs text-slate-600">${escapeHTML(p.passport_expiry_date || 'N/A')}</td>
                         <td class="p-3 font-mono font-bold text-[#E06A26]">${escapeHTML(p.allotted_ticket_number || 'Pending')}</td>
                         <td class="p-3">
-                            ${p.passport_image_url ? `<a href="${p.passport_image_url}" target="_blank" class="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded hover:underline inline-flex items-center gap-1"><i class="fa-solid fa-file-image"></i>Passport</a>` : '<span class="text-slate-400 text-[10px]">No File</span>'}
+                            ${p.passport_image_url ? `
+                                <div class="flex items-center gap-1.5">
+                                    <button type="button" onclick="openPassportPreviewModal('${escapeHTML(p.passport_image_url)}', '${escapeHTML(p.full_name || 'Passenger')}', '${escapeHTML(p.passport_number || '')}')" class="px-2.5 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white text-[10px] font-bold rounded-lg transition-all inline-flex items-center gap-1 shadow-xs">
+                                        <i class="fa-solid fa-eye"></i> View Photo
+                                    </button>
+                                    <a href="${escapeHTML(p.passport_image_url)}" download target="_blank" class="px-2 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all inline-flex items-center gap-1" title="Download Image">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                </div>
+                            ` : '<span class="text-slate-400 text-[10px] italic">No File Uploaded</span>'}
                         </td>
                     </tr>
                 `).join('');
@@ -3238,6 +3555,24 @@
                 modal.classList.remove("hidden");
                 modal.classList.add("flex");
             }
+        }
+
+        function openPassportPreviewModal(imageUrl, fullName, passportNum) {
+            const imgEl = document.getElementById("passport-preview-img");
+            const nameEl = document.getElementById("passport-preview-name");
+            const numEl = document.getElementById("passport-preview-number");
+            const dlBtn = document.getElementById("passport-preview-download-btn");
+
+            if (imgEl) imgEl.src = imageUrl;
+            if (nameEl) nameEl.textContent = fullName || 'Passenger';
+            if (numEl) numEl.textContent = passportNum ? `Passport #: ${passportNum}` : '';
+            if (dlBtn) dlBtn.href = imageUrl;
+
+            openModal("modal-passport-preview");
+        }
+
+        function closePassportPreviewModal() {
+            closeModal("modal-passport-preview");
         }
 
         function closeAdminViewOrderDetailsModal() {
@@ -3398,6 +3733,29 @@
             }
         }
 
+        async function adminCancelTicketOrder(orderId) {
+            if (!confirm("Are you sure you want to cancel this order? Reserved seats will be released back to inventory.")) return;
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+                const res = await fetch(`/dashboard/admin/api/ticket-orders/${orderId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Order cancelled successfully and reserved seats released!");
+                    fetchAdminTicketOrders();
+                } else {
+                    alert(data.error || data.message || "Failed to cancel order.");
+                }
+            } catch (err) {
+                alert("Server error cancelling order.");
+            }
+        }
+
         // ══════════════════════════════════════════════════
         // FETCH & RENDER B2B OVERVIEW
         // ══════════════════════════════════════════════════
@@ -3495,9 +3853,12 @@
                     `).join('');
                 }
 
-                // 5. MINI TREND CHART
+                // 5. MINI TREND & STATUS CHARTS
                 if (data.trend && data.trend.length > 0) {
                     renderB2BTrendChart(data.trend);
+                }
+                if (data.status_breakdown) {
+                    renderB2BStatusChart(data.status_breakdown);
                 }
 
             } catch (err) {
@@ -3505,37 +3866,177 @@
             }
         }
 
+        let b2bStatusChartInstance = null;
+
         function renderB2BTrendChart(trendData) {
-            const ctx = document.getElementById('b2b-trend-chart');
-            if (!ctx) return;
+            const canvas = document.getElementById('b2b-trend-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
 
             const labels = trendData.map(t => t.date);
             const counts = trendData.map(t => t.count);
+            const revenues = trendData.map(t => t.revenue || 0);
 
             if (b2bTrendChartInstance) {
                 b2bTrendChartInstance.destroy();
             }
 
+            // Vertical gradient for bars
+            const barGrad = ctx.createLinearGradient(0, 0, 0, 200);
+            barGrad.addColorStop(0, '#E06A26');
+            barGrad.addColorStop(1, 'rgba(224, 106, 38, 0.15)');
+
+            // Vertical gradient for line
+            const lineGrad = ctx.createLinearGradient(0, 0, 0, 200);
+            lineGrad.addColorStop(0, 'rgba(37, 99, 235, 0.35)');
+            lineGrad.addColorStop(1, 'rgba(37, 99, 235, 0.01)');
+
             b2bTrendChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Ticket Orders',
+                            data: counts,
+                            backgroundColor: barGrad,
+                            borderColor: '#C45517',
+                            borderWidth: 1.5,
+                            borderRadius: 8,
+                            yAxisID: 'y'
+                        },
+                        {
+                            type: 'line',
+                            label: 'Sales Revenue (PKR)',
+                            data: revenues,
+                            borderColor: '#2563EB',
+                            backgroundColor: lineGrad,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#FFFFFF',
+                            pointBorderColor: '#2563EB',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 10,
+                                font: { size: 10, weight: 'bold' },
+                                color: '#2D4424'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1E293B',
+                            titleColor: '#F8FAFC',
+                            bodyColor: '#F1F5F9',
+                            padding: 10,
+                            cornerRadius: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.dataset.yAxisID === 'y1') {
+                                        label += 'PKR ' + Number(context.parsed.y).toLocaleString('en-PK');
+                                    } else {
+                                        label += context.parsed.y + ' orders';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            grid: { color: 'rgba(231, 220, 185, 0.4)' },
+                            ticks: { stepSize: 1, font: { size: 10 }, color: '#567946' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            beginAtZero: true,
+                            grid: { drawOnChartArea: false },
+                            ticks: {
+                                font: { size: 9 },
+                                color: '#2563EB',
+                                callback: function(val) { return 'PKR ' + (val >= 1000 ? (val/1000).toFixed(0) + 'k' : val); }
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10, weight: 'bold' }, color: '#2D4424' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderB2BStatusChart(statusData) {
+            const canvas = document.getElementById('b2b-status-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            if (b2bStatusChartInstance) {
+                b2bStatusChartInstance.destroy();
+            }
+
+            const paid = statusData?.paid || 0;
+            const hold = statusData?.hold || 0;
+            const pending = statusData?.paid_pending || 0;
+            const cancelled = statusData?.cancelled || 0;
+
+            b2bStatusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Confirmed Paid', 'Active Holds', 'Payment Pending', 'Cancelled'],
                     datasets: [{
-                        label: 'Ticket Orders',
-                        data: counts,
-                        backgroundColor: '#E06A26',
-                        borderRadius: 6
+                        data: [paid, hold, pending, cancelled],
+                        backgroundColor: [
+                            '#10B981', // Paid (Emerald)
+                            '#E06A26', // Hold (Brand Orange)
+                            '#F59E0B', // Pending (Amber)
+                            '#EF4444'  // Cancelled (Rose)
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF',
+                        hoverOffset: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    cutout: '68%',
                     plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                        x: { grid: { display: false } }
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { size: 10, weight: 'bold' },
+                                color: '#2D4424',
+                                boxWidth: 10
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1E293B',
+                            padding: 10,
+                            cornerRadius: 10
+                        }
                     }
                 }
             });
@@ -3604,9 +4105,22 @@
 
                     const chartData = m.chart_data;
                     if (chartData && chartData.labels) {
-                        const ctx = document.getElementById('chart-financial-analytics-monthly')?.getContext('2d');
-                        if (ctx) {
+                        const canvasMonthly = document.getElementById('chart-financial-analytics-monthly');
+                        if (canvasMonthly) {
+                            const ctx = canvasMonthly.getContext('2d');
                             if (finAnalyticsChartInstance) finAnalyticsChartInstance.destroy();
+
+                            const gradTicket = ctx.createLinearGradient(0, 0, 0, 250);
+                            gradTicket.addColorStop(0, 'rgba(224, 106, 38, 0.4)');
+                            gradTicket.addColorStop(1, 'rgba(224, 106, 38, 0.01)');
+
+                            const gradGroup = ctx.createLinearGradient(0, 0, 0, 250);
+                            gradGroup.addColorStop(0, 'rgba(37, 99, 235, 0.35)');
+                            gradGroup.addColorStop(1, 'rgba(37, 99, 235, 0.01)');
+
+                            const gradPkg = ctx.createLinearGradient(0, 0, 0, 250);
+                            gradPkg.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+                            gradPkg.addColorStop(1, 'rgba(16, 185, 129, 0.01)');
 
                             finAnalyticsChartInstance = new Chart(ctx, {
                                 type: 'line',
@@ -3617,42 +4131,131 @@
                                             label: 'Ticket Sales (PKR)',
                                             data: chartData.ticket_series || [],
                                             borderColor: '#E06A26',
-                                            backgroundColor: 'rgba(224, 106, 38, 0.1)',
+                                            backgroundColor: gradTicket,
+                                            borderWidth: 3,
+                                            pointBackgroundColor: '#FFFFFF',
+                                            pointBorderColor: '#E06A26',
+                                            pointBorderWidth: 2,
+                                            pointRadius: 4,
+                                            pointHoverRadius: 7,
                                             fill: true,
-                                            tension: 0.3
+                                            tension: 0.4
                                         },
                                         {
                                             label: 'Group Ticketing (PKR)',
                                             data: chartData.group_series || [],
-                                            borderColor: '#567946',
-                                            backgroundColor: 'rgba(86, 121, 70, 0.1)',
+                                            borderColor: '#2563EB',
+                                            backgroundColor: gradGroup,
+                                            borderWidth: 3,
+                                            pointBackgroundColor: '#FFFFFF',
+                                            pointBorderColor: '#2563EB',
+                                            pointBorderWidth: 2,
+                                            pointRadius: 4,
+                                            pointHoverRadius: 7,
                                             fill: true,
-                                            tension: 0.3
+                                            tension: 0.4
                                         },
                                         {
                                             label: 'Package Sales (PKR)',
                                             data: chartData.pkg_series || [],
-                                            borderColor: '#2D4424',
-                                            backgroundColor: 'rgba(45, 68, 36, 0.1)',
+                                            borderColor: '#10B981',
+                                            backgroundColor: gradPkg,
+                                            borderWidth: 3,
+                                            pointBackgroundColor: '#FFFFFF',
+                                            pointBorderColor: '#10B981',
+                                            pointBorderWidth: 2,
+                                            pointRadius: 4,
+                                            pointHoverRadius: 7,
                                             fill: true,
-                                            tension: 0.3
+                                            tension: 0.4
                                         }
                                     ]
                                 },
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
-                                    plugins: { legend: { position: 'top' } },
+                                    interaction: { mode: 'index', intersect: false },
+                                    plugins: {
+                                        legend: {
+                                            position: 'top',
+                                            labels: { font: { size: 11, weight: 'bold' }, color: '#2D4424', boxWidth: 12 }
+                                        },
+                                        tooltip: {
+                                            backgroundColor: '#1E293B',
+                                            titleColor: '#F8FAFC',
+                                            bodyColor: '#F1F5F9',
+                                            padding: 10,
+                                            cornerRadius: 10,
+                                            callbacks: {
+                                                label: function(context) {
+                                                    return context.dataset.label + ': PKR ' + Number(context.parsed.y).toLocaleString('en-PK');
+                                                }
+                                            }
+                                        }
+                                    },
                                     scales: {
                                         y: {
+                                            beginAtZero: true,
+                                            grid: { color: 'rgba(231, 220, 185, 0.4)' },
                                             ticks: {
-                                                callback: function(val) { return 'PKR ' + val.toLocaleString(); }
+                                                font: { size: 10 },
+                                                color: '#567946',
+                                                callback: function(val) { return 'PKR ' + (val >= 1000 ? (val/1000).toFixed(0) + 'k' : val); }
                                             }
+                                        },
+                                        x: {
+                                            grid: { display: false },
+                                            ticks: { font: { size: 10, weight: 'bold' }, color: '#2D4424' }
                                         }
                                     }
                                 }
                             });
                         }
+                    }
+
+                    // Render Department Breakdown Doughnut Chart
+                    const canvasDept = document.getElementById('chart-fin-dept-doughnut');
+                    if (canvasDept && dept) {
+                        const ctxD = canvasDept.getContext('2d');
+                        if (window._finDeptDoughnutInstance) window._finDeptDoughnutInstance.destroy();
+
+                        const tVol = dept.ticket_orders?.total_volume || 0;
+                        const gVol = dept.group_ticketing?.total_volume || 0;
+                        const uVol = dept.agent_umrah_packages?.total_volume || 0;
+                        const hVol = dept.agent_hajj_packages?.total_volume || 0;
+
+                        window._finDeptDoughnutInstance = new Chart(ctxD, {
+                            type: 'doughnut',
+                            data: {
+                                labels: ['Tickets', 'Group', 'Umrah', 'Hajj'],
+                                datasets: [{
+                                    data: [tVol, gVol, uVol, hVol],
+                                    backgroundColor: ['#E06A26', '#2563EB', '#10B981', '#8B5CF6'],
+                                    borderWidth: 2,
+                                    borderColor: '#FFFFFF',
+                                    hoverOffset: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '65%',
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom',
+                                        labels: { font: { size: 10, weight: 'bold' }, color: '#2D4424', boxWidth: 10 }
+                                    },
+                                    tooltip: {
+                                        backgroundColor: '#1E293B',
+                                        callbacks: {
+                                            label: function(ctx) {
+                                                return ctx.label + ': PKR ' + Number(ctx.parsed).toLocaleString('en-PK');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
                     }
                 }
             } catch (err) {
@@ -3980,7 +4583,7 @@
             }
         }
 
-        async function openAdminAddGroupPolicyModal(pOrId = null) {
+        async function openLegacyGroupPolicyModal(pOrId = null) {
             const form = document.getElementById('form-admin-add-group-policy');
             try {
                 const res = await fetch("/dashboard/admin/api/flight-inventory/");
@@ -4017,7 +4620,7 @@
             if (modal) { modal.style.display = 'flex'; modal.classList.remove('hidden'); }
         }
 
-        function closeAdminAddGroupPolicyModal() {
+        function closeLegacyGroupPolicyModal() {
             const modal = document.getElementById('modal-admin-add-group-policy');
             if (modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
         }
@@ -4039,7 +4642,7 @@
                 const data = await res.json();
                 if (data.success) {
                     alert(policyId ? "Group fare policy updated successfully!" : "Group fare policy created successfully!");
-                    closeAdminAddGroupPolicyModal();
+                    closeLegacyGroupPolicyModal();
                     form.reset();
                     document.getElementById('input-group-policy-id').value = '';
                     fetchAdminGroupPolicies();
@@ -4138,6 +4741,7 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
+        window.openModal = openModal;
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -4146,6 +4750,7 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+        window.closeModal = closeModal;
 
         function toggleViaFlightRoutes(routeType, existingRouteStr = '') {
             const wrapper = document.getElementById('via-flight-routes-wrapper');
@@ -4399,7 +5004,18 @@
                     if (data.hotels.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-[#567946]">No hotels registered yet. Click '+ Add Hotel' above.</td></tr>`;
                     } else {
-                        tbody.innerHTML = data.hotels.map(h => `
+                        tbody.innerHTML = data.hotels.map(h => {
+                            const catBadge = {
+                                '5star': '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">⭐ 5 Star</span>',
+                                '4star': '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-50 text-amber-800 border border-amber-200">⭐ 4 Star</span>',
+                                '3star': '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-blue-50 text-blue-800 border border-blue-200">⭐ 3 Star</span>',
+                                '2star': '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-indigo-50 text-indigo-800 border border-indigo-200">⭐ 2 Star</span>',
+                                '1star': '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-sky-50 text-sky-800 border border-sky-200">⭐ 1 Star</span>',
+                                'economy_plus': '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-teal-50 text-teal-800 border border-teal-200">🏢 Economy Plus</span>',
+                                'economy': '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 text-slate-700 border border-slate-300">🏢 Economy Class</span>'
+                            }[h.category || 'economy'] || '<span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 text-slate-700">Economy</span>';
+
+                            return `
                             <tr class="hover:bg-[#F6FAF3]">
                                 <td class="p-3 font-mono font-bold text-[#2D4424]">#${h.id}</td>
                                 <td class="p-3">
@@ -4408,6 +5024,9 @@
                                 <td class="p-3">
                                     <div class="font-bold text-[#2D4424]">${h.name}</div>
                                     ${h.location ? `<div class="text-[10px] text-[#567946] font-medium">${h.location}</div>` : ''}
+                                </td>
+                                <td class="p-3">
+                                    ${catBadge}
                                 </td>
                                 <td class="p-3">
                                     <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase ${h.city === 'makkah' ? 'bg-[#2D4424] text-white' : 'bg-[#E06A26] text-white'}">
@@ -4437,7 +5056,8 @@
                                     </button>
                                 </td>
                             </tr>
-                        `).join('');
+                        `;
+                        }).join('');
                     }
                 }
             } catch (err) {
@@ -4475,6 +5095,7 @@
                 document.getElementById('modal-hotel-title').innerHTML = '<i class="fa-solid fa-hotel text-[#E06A26]"></i> Edit Hotel Details';
                 document.getElementById('input-hotel-id').value = hotel.id;
                 document.getElementById('input-hotel-name').value = hotel.name || '';
+                if (document.getElementById('input-hotel-category')) document.getElementById('input-hotel-category').value = hotel.category || 'economy';
                 document.getElementById('input-hotel-city').value = hotel.city || 'makkah';
                 if (document.getElementById('input-hotel-location')) document.getElementById('input-hotel-location').value = hotel.location || '';
                 document.getElementById('input-hotel-distance').value = hotel.distance_from_haram || '';
@@ -4487,6 +5108,7 @@
                 document.getElementById('modal-hotel-title').innerHTML = '<i class="fa-solid fa-hotel text-[#E06A26]"></i> Add New Hotel';
                 form.reset();
                 document.getElementById('input-hotel-id').value = '';
+                if (document.getElementById('input-hotel-category')) document.getElementById('input-hotel-category').value = 'economy';
                 document.getElementById('input-hotel-active').checked = true;
             }
             modal.style.display = 'flex';
@@ -4773,6 +5395,7 @@
                     _pkgSetSel('pkg-form-airline', p.airline || 'Saudi Airlines');
                     _pkgSetSel('pkg-form-route-type', p.flight_route_type || 'direct');
                     _pkgSet('pkg-form-routes', p.flight_routes);
+                    _pkgSet('pkg-form-flight-dates', p.flight_dates || '');
                     _pkgSetSel('pkg-form-meal', p.meal_detail || 'Full Board');
                     _pkgSetSel('pkg-form-transport', p.transport_type || 'Sharing');
                     _pkgSet('pkg-form-luggage', p.luggage_weight || '20 kg + 7 kg Hand Carry');
@@ -4819,6 +5442,7 @@
                 airline:            _pkgVal('pkg-form-airline'),
                 flight_route_type:  _pkgVal('pkg-form-route-type'),
                 flight_routes:      _pkgVal('pkg-form-routes'),
+                flight_dates:       _pkgVal('pkg-form-flight-dates'),
                 meal_detail:        _pkgVal('pkg-form-meal'),
                 transport_type:     _pkgVal('pkg-form-transport'),
                 luggage_weight:     _pkgVal('pkg-form-luggage'),
@@ -4917,6 +5541,8 @@
             const modal = document.getElementById('modal-pkg-detail');
             if (modal) { modal.style.display = 'none'; modal.classList.add('hidden'); modal.classList.remove('flex'); }
         }
+        function closeAddB2CPackageModal() { closePackageModal(); }
+        function submitAddB2CPackage(e) { return submitB2CPackageForm(e); }
         function openAddB2CVisaModal() {
             const modal = document.getElementById('modal-add-b2c-visa');
             if (modal) {
@@ -6423,11 +7049,6 @@
                             class="w-full pl-9 pr-4 py-2.5 text-xs border-2 border-[#D9CBAC] focus:border-[#E06A26] rounded-2xl font-semibold text-[#2D4424] outline-none transition-all">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-extrabold text-[#2D4424] uppercase mb-1.5">Description <span class="text-[#567946] font-semibold normal-case">(optional)</span></label>
-                    <textarea id="ach-form-description" rows="3" placeholder="Describe this achievement..."
-                        class="w-full px-4 py-2.5 text-sm border-2 border-[#D9CBAC] focus:border-[#E06A26] rounded-2xl font-semibold text-[#2D4424] outline-none transition-all resize-none"></textarea>
-                </div>
 
                 <!-- Date & Active row -->
                 <div class="grid grid-cols-2 gap-4">
@@ -6563,7 +7184,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" name="is_round_trip" id="sector-chk-roundtrip" value="true" checked class="accent-[#E06A26]">
+                    <input type="checkbox" name="is_round_trip" id="sector-chk-roundtrip" value="true" class="accent-[#E06A26]">
                     <label for="sector-chk-roundtrip" class="text-xs font-bold text-[#2D4424]">Round Trip Sector</label>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t border-[#E7DCB9]">
@@ -6781,7 +7402,7 @@
                 <h3 id="modal-group-policy-title" class="text-lg font-black text-[#2D4424] flex items-center gap-2">
                     <i class="fa-solid fa-users text-[#E06A26]"></i> Add Group Fare Policy
                 </h3>
-                <button type="button" onclick="closeAdminAddGroupPolicyModal()" class="text-[#567946] hover:text-[#2D4424] text-lg font-bold">
+                <button type="button" onclick="closeLegacyGroupPolicyModal()" class="text-[#567946] hover:text-[#2D4424] text-lg font-bold">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -6819,7 +7440,7 @@
                     </select>
                 </div>
                 <div class="flex justify-end gap-3 pt-4 border-t border-[#E7DCB9]">
-                    <button type="button" onclick="closeAdminAddGroupPolicyModal()" class="px-4 py-2 bg-[#F7F3E9] text-[#2D4424] text-xs font-bold rounded-xl border border-[#D9CBAC]">Cancel</button>
+                    <button type="button" onclick="closeLegacyGroupPolicyModal()" class="px-4 py-2 bg-[#F7F3E9] text-[#2D4424] text-xs font-bold rounded-xl border border-[#D9CBAC]">Cancel</button>
                     <button type="submit" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-xl shadow-md">Save Group Policy</button>
                 </div>
             </form>
@@ -6840,10 +7461,22 @@
             <form id="form-admin-add-hotel" onsubmit="submitAdminAddHotel(event)" class="space-y-4">
                 <input type="hidden" name="hotel_id" id="input-hotel-id" value="">
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Hotel Name *</label>
                         <input type="text" name="name" id="input-hotel-name" required placeholder="e.g. Swissotel Makkah" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Hotel Category / Star *</label>
+                        <select name="category" id="input-hotel-category" required class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
+                            <option value="economy">Economy Class</option>
+                            <option value="economy_plus">Economy Plus</option>
+                            <option value="1star">1 Star Hotel ⭐</option>
+                            <option value="2star">2 Star Hotel ⭐⭐</option>
+                            <option value="3star">3 Star Hotel ⭐⭐⭐</option>
+                            <option value="4star">4 Star Hotel ⭐⭐⭐⭐</option>
+                            <option value="5star">5 Star Hotel ⭐⭐⭐⭐⭐</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-extrabold text-[#2D4424] mb-1">City Location *</label>
@@ -7336,6 +7969,87 @@
         </div>
     </div>
 
+    <!-- Modal: Full Admin Notifications & Alerts Center -->
+    <div id="modal-admin-notifications-all" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl max-w-3xl w-full overflow-hidden shadow-2xl z-10 max-h-[90vh] flex flex-col text-[#1F2E1A] animate-fade-in">
+            <!-- Modal Header -->
+            <div class="px-6 py-5 border-b border-[#E7DCB9] flex justify-between items-center bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#567946] text-white shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 text-[#90B576] flex items-center justify-center text-lg border border-white/20 shadow-inner">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-white text-base tracking-tight">Super Admin Notifications &amp; System Alerts</h4>
+                        <p class="text-xs text-[#90B576] font-semibold">Real-time alerts for agent orders, pending accounts, and feedback tickets</p>
+                    </div>
+                </div>
+                <button onclick="closeAdminFullNotificationsModal()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-lg transition-all focus:outline-none">&times;</button>
+            </div>
+
+            <!-- Category Filter Tabs & Toolbar -->
+            <div class="px-6 py-3 bg-[#FAF7F2] border-b border-[#E7DCB9] flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="filterAdminNotifications('all')" id="admin-noti-filter-btn-all" class="admin-noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-black bg-[#E06A26] text-white shadow-xs">All Admin Alerts</button>
+                    <button onclick="filterAdminNotifications('unread')" id="admin-noti-filter-btn-unread" class="admin-noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-[#2D4424] border border-[#E7DCB9] hover:bg-[#F7F3E9]">Unread</button>
+                    <button onclick="filterAdminNotifications('orders')" id="admin-noti-filter-btn-orders" class="admin-noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-[#2D4424] border border-[#E7DCB9] hover:bg-[#F7F3E9]">B2B Orders</button>
+                    <button onclick="filterAdminNotifications('accounts')" id="admin-noti-filter-btn-accounts" class="admin-noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-[#2D4424] border border-[#E7DCB9] hover:bg-[#F7F3E9]">Pending Accounts</button>
+                    <button onclick="filterAdminNotifications('feedbacks')" id="admin-noti-filter-btn-feedbacks" class="admin-noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-[#2D4424] border border-[#E7DCB9] hover:bg-[#F7F3E9]">Feedbacks</button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="markAllAdminNotificationsRead()" class="px-3 py-1.5 bg-[#F0F6EC] hover:bg-[#C6DCB4] text-[#38522D] border border-[#C6DCB4] text-xs font-black rounded-xl transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-check-double text-emerald-600"></i> Mark All Read
+                    </button>
+                </div>
+            </div>
+
+            <!-- Notification List Body -->
+            <div class="p-6 space-y-4 overflow-y-auto flex-grow bg-white" id="admin-full-noti-container">
+                <div class="p-10 text-center text-[#567946] text-xs font-bold">Loading admin notification alerts...</div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-[#E7DCB9] bg-[#FAF7F2] flex justify-end shrink-0">
+                <button onclick="closeAdminFullNotificationsModal()" class="px-6 py-2.5 bg-[#EBD8B3] hover:bg-[#D9CBAC] text-[#2D4424] font-black rounded-xl text-xs transition-all border border-[#D9CBAC]">Close Notifications</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: View & Download Passenger Passport Photo -->
+    <div id="modal-passport-preview" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4" style="display: none;">
+        <div class="bg-white border border-[#E7DCB9] rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto relative animate-fade-in">
+            <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
+                <div>
+                    <h3 class="text-base font-black text-[#2D4424] flex items-center gap-2">
+                        <i class="fa-solid fa-passport text-[#E06A26]"></i> Passenger Passport Document Preview
+                    </h3>
+                    <p class="text-xs text-[#567946] font-bold mt-0.5" id="passport-preview-name">Passenger Name</p>
+                    <p class="text-[11px] font-mono text-[#E06A26] font-semibold" id="passport-preview-number"></p>
+                </div>
+                <button onclick="closePassportPreviewModal()" class="h-8 w-8 rounded-full bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] font-bold text-sm flex items-center justify-center transition-all">✕</button>
+            </div>
+
+            <!-- Image Preview Box -->
+            <div class="bg-slate-900 rounded-2xl p-4 flex items-center justify-center min-h-[280px] border border-[#D9CBAC]/40">
+                <img id="passport-preview-img" src="" alt="Passport Photo" class="max-h-[60vh] w-auto max-w-full object-contain rounded-xl shadow-2xl border border-white/20">
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex justify-between items-center pt-2 border-t border-[#E7DCB9]">
+                <span class="text-[10px] text-[#567946] font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-emerald-600"></i> Verified Official Travel Document Image
+                </span>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="closePassportPreviewModal()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-bold rounded-xl transition-all">
+                        Close
+                    </button>
+                    <a id="passport-preview-download-btn" href="" download target="_blank" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-xl shadow-md transition-all inline-flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Download Passport Image
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: ADD B2C PACKAGE -->
     <div id="modal-add-b2c-package" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4 overflow-y-auto" style="display: none;">
         <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 relative my-8 max-h-[90vh] overflow-y-auto">
@@ -7374,6 +8088,10 @@
                     <div>
                         <label class="block font-extrabold text-[#2D4424] mb-1">Flight Route</label>
                         <input type="text" name="flight_routes" placeholder="KHI - JED - MED - KHI" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                    </div>
+                    <div>
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Flight Dates / Travel Dates</label>
+                        <input type="text" name="flight_dates" placeholder="e.g. 15 Aug 2026 - 30 Aug 2026" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
                     </div>
                     <div>
                         <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Hotel Name</label>
@@ -7495,8 +8213,16 @@
                         <input type="text" name="departure_city" required placeholder="Karachi (KHI)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
                     </div>
                     <div>
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Departure Airport Code (3-Letter)</label>
+                        <input type="text" name="departure_airport_code" placeholder="e.g. KHI (Auto-extracted if blank)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] uppercase">
+                    </div>
+                    <div>
                         <label class="block font-extrabold text-[#2D4424] mb-1">Destination City *</label>
                         <input type="text" name="destination_city" required placeholder="Jeddah (JED)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                    </div>
+                    <div>
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Destination Airport Code (3-Letter)</label>
+                        <input type="text" name="destination_airport_code" placeholder="e.g. JED (Auto-extracted if blank)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] uppercase">
                     </div>
                     <div>
                         <label class="block font-extrabold text-[#2D4424] mb-1">Ticket Price (PKR) *</label>
@@ -7546,6 +8272,7 @@
             </div>
 
             <form id="form-admin-bank-account" onsubmit="submitAdminBankAccountForm(event)" class="space-y-4">
+                {% csrf_token %}
                 <input type="hidden" id="bank-acc-id" name="id" value="">
 
                 <div>
@@ -8114,13 +8841,49 @@
         window.openAddBankAccountModal = openAddBankAccountModal;
         window.openAddDepartmentContactModal = openAddDepartmentContactModal;
 
-        // Fetch feedback count on load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                fetchAdminAgentFeedbacks();
+        // Attach add-button click handlers and fetch feedback count on load
+        function initB2BAddButtons() {
+            const buttons = [
+                ['btn-add-bank-account', openAddBankAccountModal],
+                ['btn-add-department-contact', openAddDepartmentContactModal],
+                ['btn-add-group-ticket', () => openAddGroupTicketModal()]
+            ];
+
+            buttons.forEach(([id, handler]) => {
+                const el = document.getElementById(id);
+                if (!el) {
+                    console.warn(`B2B admin button not found: ${id}`);
+                    return;
+                }
+                if (el.dataset.b2bInit) return;
+                el.addEventListener('click', handler);
+                el.dataset.b2bInit = '1';
             });
-        } else {
+        }
+
+        document.body.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-admin-action]');
+            if (!button) return;
+            const action = button.dataset.adminAction;
+
+            if (action === 'add-bank-account') {
+                openAddBankAccountModal();
+            } else if (action === 'add-department-contact') {
+                openAddDepartmentContactModal();
+            } else if (action === 'add-group-ticket') {
+                openAddGroupTicketModal();
+            }
+        });
+
+        function b2bInit() {
+            initB2BAddButtons();
             fetchAdminAgentFeedbacks();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', b2bInit);
+        } else {
+            b2bInit();
         }
     </script>
 
@@ -8193,134 +8956,6 @@
                 <div class="flex justify-end gap-3 pt-3">
                     <button type="button" onclick="closeDepartmentContactModal()" class="px-4 py-2 bg-[#EBD8B3] hover:bg-[#D9CBAC] text-[#2D4424] font-bold rounded-xl text-xs transition-all">Cancel</button>
                     <button type="submit" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white font-bold rounded-xl text-xs transition-all shadow">Save Department Contact</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ==================== MODAL: CREATE / EDIT BLOG ARTICLE ==================== -->
-    <div id="modal-blog-form" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto" style="display: none;">
-        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 relative my-8 max-h-[92vh] overflow-y-auto">
-            <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-4">
-                <h3 id="blog-modal-title" class="text-base font-black text-[#2D4424] flex items-center gap-2">
-                    <i class="fa-solid fa-newspaper text-[#E06A26]"></i> Create New Blog Post
-                </h3>
-                <button type="button" onclick="closeBlogModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-            </div>
-
-            <div id="blog-modal-error" class="text-rose-600 text-xs font-bold empty:hidden"></div>
-
-            <form id="form-blog-article" onsubmit="submitBlogForm(event)" class="space-y-4 text-xs">
-                <div>
-                    <label class="block font-extrabold text-[#2D4424] mb-1">Article Title *</label>
-                    <input type="text" id="blog-form-title" required placeholder="e.g. Complete Step-by-Step Umrah Guide 2026" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Category</label>
-                        <select id="blog-form-category" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                            <option value="">Uncategorized</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Author Name</label>
-                        <input type="text" id="blog-form-author" value="Golden Star Team" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Read Time (mins)</label>
-                        <input type="number" id="blog-form-readtime" value="5" min="1" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                    </div>
-                    <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Status</label>
-                        <select id="blog-form-status" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                            <option value="published">Published</option>
-                            <option value="draft">Draft</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-2 pt-5">
-                        <input type="checkbox" id="blog-form-featured" class="h-4 w-4 text-[#E06A26] rounded border-[#D9CBAC] focus:ring-[#E06A26]">
-                        <label for="blog-form-featured" class="font-extrabold text-[#2D4424]">Featured Post</label>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
-                        <span>Cover Image Selection</span>
-                        <span class="text-[10px] text-[#567946] font-semibold">Upload file or click preset below</span>
-                    </label>
-
-                    <!-- Preset Cover Thumbnails Grid -->
-                    <div class="mb-3 space-y-1.5">
-                        <span class="text-[10px] font-extrabold text-[#567946] uppercase tracking-wider block">Quick Presets:</span>
-                        <div class="grid grid-cols-4 sm:grid-cols-7 gap-2">
-                            <button type="button" id="preset-thumb-umrah_card-png" onclick="selectPresetCover('umrah_card.png', '/static/images/umrah_card.png')" class="preset-cover-thumb relative group rounded-xl overflow-hidden border-2 border-[#D9CBAC] hover:border-[#E06A26] transition-all aspect-video">
-                                <img src="/static/images/umrah_card.png" alt="Umrah" class="w-full h-full object-cover">
-                                <span class="absolute inset-0 bg-black/40 group-hover:bg-transparent flex items-center justify-center text-[8px] font-black text-white uppercase">Umrah</span>
-                            </button>
-                            <button type="button" id="preset-thumb-hajj_kaaba-png" onclick="selectPresetCover('hajj_kaaba.png', '/static/images/hajj_kaaba.png')" class="preset-cover-thumb relative group rounded-xl overflow-hidden border-2 border-[#D9CBAC] hover:border-[#E06A26] transition-all aspect-video">
-                                <img src="/static/images/hajj_kaaba.png" alt="Hajj" class="w-full h-full object-cover">
-                                <span class="absolute inset-0 bg-black/40 group-hover:bg-transparent flex items-center justify-center text-[8px] font-black text-white uppercase">Hajj</span>
-                            </button>
-                            <button type="button" id="preset-thumb-saudi_visa-png" onclick="selectPresetCover('saudi_visa.png', '/static/images/saudi_visa.png')" class="preset-cover-thumb relative group rounded-xl overflow-hidden border-2 border-[#D9CBAC] hover:border-[#E06A26] transition-all aspect-video">
-                                <img src="/static/images/saudi_visa.png" alt="Visa" class="w-full h-full object-cover">
-                                <span class="absolute inset-0 bg-black/40 group-hover:bg-transparent flex items-center justify-center text-[8px] font-black text-white uppercase">Visa</span>
-                            </button>
-                            <button type="button" id="preset-thumb-flights_banner-png" onclick="selectPresetCover('flights_banner.png', '/static/images/flights_banner.png')" class="preset-cover-thumb relative group rounded-xl overflow-hidden border-2 border-[#D9CBAC] hover:border-[#E06A26] transition-all aspect-video">
-                                <img src="/static/images/flights_banner.png" alt="Flights" class="w-full h-full object-cover">
-                                <span class="absolute inset-0 bg-black/40 group-hover:bg-transparent flex items-center justify-center text-[8px] font-black text-white uppercase">Flights</span>
-                            </button>
-                            <button type="button" id="preset-thumb-blog_banner-png" onclick="selectPresetCover('blog_banner.png', '/static/images/blog_banner.png')" class="preset-cover-thumb relative group rounded-xl overflow-hidden border-2 border-[#D9CBAC] hover:border-[#E06A26] transition-all aspect-video">
-                                <img src="/static/images/blog_banner.png" alt="Blog" class="w-full h-full object-cover">
-                                <span class="absolute inset-0 bg-black/40 group-hover:bg-transparent flex items-center justify-center text-[8px] font-black text-white uppercase">Banner</span>
-                            </button>
-                            <button type="button" id="preset-thumb-hajj_banner-png" onclick="selectPresetCover('hajj_banner.png', '/static/images/hajj_banner.png')" class="preset-cover-thumb relative group rounded-xl overflow-hidden border-2 border-[#D9CBAC] hover:border-[#E06A26] transition-all aspect-video">
-                                <img src="/static/images/hajj_banner.png" alt="Hajj Banner" class="w-full h-full object-cover">
-                                <span class="absolute inset-0 bg-black/40 group-hover:bg-transparent flex items-center justify-center text-[8px] font-black text-white uppercase">Guide</span>
-                            </button>
-                            <button type="button" id="preset-thumb-contact_banner-png" onclick="selectPresetCover('contact_banner.png', '/static/images/contact_banner.png')" class="preset-cover-thumb relative group rounded-xl overflow-hidden border-2 border-[#D9CBAC] hover:border-[#E06A26] transition-all aspect-video">
-                                <img src="/static/images/contact_banner.png" alt="Travel" class="w-full h-full object-cover">
-                                <span class="absolute inset-0 bg-black/40 group-hover:bg-transparent flex items-center justify-center text-[8px] font-black text-white uppercase">Travel</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                        <div>
-                            <input type="file" id="blog-form-cover" accept="image/*" onchange="previewBlogCover(this)" class="w-full text-[#567946] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#F7F3E9] file:text-[#E06A26] hover:file:bg-[#EBD8B3] cursor-pointer">
-                        </div>
-                        <div>
-                            <input type="text" id="blog-form-static-cover" placeholder="Static cover image name (e.g. umrah_card.png)" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] text-xs focus:outline-none focus:border-[#E06A26]">
-                        </div>
-                    </div>
-
-                    <div id="blog-cover-preview-box" class="mt-3 p-3 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl hidden">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-[10px] font-black text-[#567946] uppercase flex items-center gap-1.5">
-                                <i class="fa-solid fa-image text-[#E06A26]"></i> Live Cover Image Preview
-                            </span>
-                            <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[9px] font-black uppercase">Active Image</span>
-                        </div>
-                        <img id="blog-cover-preview" src="" alt="Cover Preview" class="h-32 w-full object-cover rounded-xl border border-[#D9CBAC] shadow-md">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-extrabold text-[#2D4424] mb-1">Short Summary / Excerpt</label>
-                    <textarea id="blog-form-excerpt" rows="2" placeholder="Brief 2-3 sentence summary shown on blog cards..." class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-medium text-[#2D4424] focus:outline-none focus:border-[#E06A26]"></textarea>
-                </div>
-
-                <div>
-                    <label class="block font-extrabold text-[#2D4424] mb-1">Full Article Body (HTML / Markdown)</label>
-                    <textarea id="blog-form-body" rows="8" placeholder="Write full article body text..." class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-mono text-xs text-[#2D4424] focus:outline-none focus:border-[#E06A26]"></textarea>
-                </div>
-
-                <div class="flex justify-end gap-3 pt-4 border-t border-[#E7DCB9]">
-                    <button type="button" onclick="closeBlogModal()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] font-bold rounded-xl text-xs">Cancel</button>
-                    <button type="submit" id="blog-form-submit-btn" class="px-6 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white font-extrabold rounded-xl shadow-md text-xs">Create Post</button>
                 </div>
             </form>
         </div>
@@ -8627,5 +9262,467 @@
         </div>
     </div>
 
+    <!-- ══════════════ ✈️ ADMIN STANDALONE GROUP TICKET MODAL ══════════════ -->
+    <div id="modal-admin-group-policy" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 my-8 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-[#E7DCB9] pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-xl border border-[#FCE2D2]">
+                        <i class="fa-solid fa-plane-up"></i>
+                    </div>
+                    <div>
+                        <h3 id="gpm-modal-title" class="text-base font-black text-[#2D4424]">Add Standalone Group Ticket</h3>
+                        <p class="text-xs text-[#567946] font-semibold">Configure independent group seats, custom flight timings, luggage, and net fare.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAdminGroupPolicyModal()" class="w-8 h-8 rounded-full bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] flex items-center justify-center font-bold transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="gpm-form" onsubmit="saveAdminGroupPolicy(event)" class="space-y-5">
+                {% csrf_token %}
+                <input type="hidden" id="gpm-edit-id" value="">
+
+                <!-- Section 1: Airline & Route -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-plane-departure"></i> Airline & Route Details</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Select Airline</label>
+                            <select id="gpm-airline" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="">-- Custom / Other Airline --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Custom Airline Name (If not in list)</label>
+                            <input type="text" id="gpm-airline-custom" placeholder="e.g. Saudia, PIA, AirBlue" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Departure City</label>
+                            <input type="text" id="gpm-departure-city" placeholder="e.g. Lahore (LHE)" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Destination City</label>
+                            <input type="text" id="gpm-destination-city" placeholder="e.g. Jeddah (JED)" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Flight Leg Timings -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> Flight Timings & Trip Configuration</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Outbound Dep Time</label>
+                            <input type="text" id="gpm-departure-time" placeholder="e.g. 03:30 AM" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Outbound Arr Time</label>
+                            <input type="text" id="gpm-arrival-time" placeholder="e.g. 07:15 AM" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Return Dep Time (Optional)</label>
+                            <input type="text" id="gpm-return-departure-time" placeholder="e.g. 09:00 PM" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Return Arr Time (Optional)</label>
+                            <input type="text" id="gpm-return-arrival-time" placeholder="e.g. 02:30 AM" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Trip Type</label>
+                            <select id="gpm-trip-type" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                                <option value="oneway">One Way Group</option>
+                                <option value="return">Round Trip Group</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Route Type</label>
+                            <select id="gpm-route-type" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                                <option value="direct">Non-Stop Direct</option>
+                                <option value="via">Via Connecting City</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Via City (If Via)</label>
+                            <input type="text" id="gpm-via-city" placeholder="e.g. Riyadh (RUH)" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Baggage, Meals & Seats -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Baggage, Meal & Group Seats</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">In-Flight Meal</label>
+                            <select id="gpm-has-meal" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                                <option value="true">Meal Included</option>
+                                <option value="false">No Meal</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Outbound Baggage (KG)</label>
+                            <input type="number" id="gpm-baggage-kg" value="30" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Coming Baggage (KG)</label>
+                            <input type="number" id="gpm-return-baggage-kg" value="30" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Min Group Seats</label>
+                            <input type="number" id="gpm-min-group-size" value="10" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Total Allocated Group Seats</label>
+                            <input type="number" id="gpm-total-seats" value="50" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Currently Available Group Seats</label>
+                            <input type="number" id="gpm-available-seats" value="50" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Fares & Discounts -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-tags"></i> Base Fare & Group Pricing</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Base Fare per Seat (PKR)</label>
+                            <input type="number" id="gpm-base-fare" placeholder="e.g. 150000" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Discount Type</label>
+                            <select id="gpm-discount-type" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="flat">Flat Amount (PKR)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Discount Value</label>
+                            <input type="number" id="gpm-discount-value" value="0" step="0.01" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <label class="block text-[11px] font-bold text-[#E06A26] mb-1">Override Calculated Net Group Fare (Optional PKR)</label>
+                        <input type="number" id="gpm-group-fare-override" placeholder="Leave empty to use base fare - discount calculation" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="gpm-is-active" checked class="w-4 h-4 text-[#E06A26] rounded border-[#E7DCB9] focus:ring-[#E06A26]">
+                    <label for="gpm-is-active" class="text-xs font-bold text-[#2D4424]">Publish & Activate Group Ticket in Agent B2B Portal</label>
+                </div>
+
+                <div class="flex justify-end items-center gap-3 border-t border-[#E7DCB9] pt-4">
+                    <button type="button" onclick="closeAdminGroupPolicyModal()" class="px-5 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] text-xs font-bold rounded-xl hover:bg-[#EBD8B3] transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-check"></i> Save Standalone Group Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══════════════ ⚡ REAL-TIME SUPER ADMIN NOTIFICATION ENGINE ══════════════ -->
+    <script>
+        let adminNotificationsList = [];
+        let adminNotiFilterCategory = 'all';
+
+        function getAdminReadNotificationIds() {
+            try {
+                return JSON.parse(localStorage.getItem('admin_read_notification_ids') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveAdminReadNotificationIds(ids) {
+            try {
+                localStorage.setItem('admin_read_notification_ids', JSON.stringify(ids));
+            } catch (e) {}
+        }
+
+        function toggleAdminNotificationDropdown(e) {
+            if (e) e.stopPropagation();
+            const dd = document.getElementById('admin-noti-dropdown');
+            if (!dd) return;
+            dd.classList.toggle('hidden');
+            if (!dd.classList.contains('hidden')) {
+                syncAdminNotifications();
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            const wrapper = document.getElementById('admin-notification-wrapper');
+            const dd = document.getElementById('admin-noti-dropdown');
+            if (dd && !dd.classList.contains('hidden') && wrapper && !wrapper.contains(e.target)) {
+                dd.classList.add('hidden');
+            }
+        });
+
+        async function syncAdminNotifications() {
+            try {
+                const readIds = getAdminReadNotificationIds();
+                const fetchedNotis = [];
+
+                // 1. Fetch Orders for B2B Order Alerts
+                try {
+                    const resOrders = await fetch("/dashboard/admin/api/ticket-orders/");
+                    if (resOrders.ok) {
+                        const dataOrders = await resOrders.json();
+                        const orders = dataOrders.orders || [];
+                        orders.forEach(o => {
+                            const st = (o.status || 'hold').toLowerCase();
+                            let icon = '📦';
+                            let msg = `Agent: ${o.agent_name || o.agent_company || 'Agent'} placed order #${o.reference_number || o.id}. Status: ${st.toUpperCase()}`;
+
+                            if (st === 'hold') {
+                                icon = '⏰';
+                                msg = `New B2B Order #${o.reference_number} on HOLD requiring admin review.`;
+                            } else if (st === 'paid') {
+                                icon = '💳';
+                                msg = `Payment confirmed for order #${o.reference_number}. Ready for PNR allotment.`;
+                            }
+
+                            fetchedNotis.push({
+                                id: `admin-order-${o.id}-${st}`,
+                                category: 'orders',
+                                title: `Order #${o.reference_number || o.id}`,
+                                message: msg,
+                                icon: icon,
+                                time: o.created_at || 'Recently',
+                                isRead: readIds.includes(`admin-order-${o.id}-${st}`),
+                                actionOrderId: o.id
+                            });
+                        });
+                    }
+                } catch (e) {}
+
+                // 2. Fetch Pending Agent Accounts
+                try {
+                    const resAgents = await fetch("/dashboard/admin/api/agents/?status=pending");
+                    if (resAgents.ok) {
+                        const dataAgents = await resAgents.json();
+                        const pendingAgents = dataAgents.agents || [];
+                        pendingAgents.forEach(a => {
+                            fetchedNotis.push({
+                                id: `admin-pending-agent-${a.id}`,
+                                category: 'accounts',
+                                title: `New Agent Application: ${a.agency_name || a.username}`,
+                                message: `Agent application from ${a.city || 'Pakistan'} awaiting verification and approval.`,
+                                icon: '👤',
+                                time: a.date_joined || 'Recently',
+                                isRead: readIds.includes(`admin-pending-agent-${a.id}`),
+                                actionTab: 'pending-accounts'
+                            });
+                        });
+                    }
+                } catch (e) {}
+
+                // 3. Fetch Agent Feedbacks
+                try {
+                    const resFb = await fetch("/dashboard/admin/api/feedbacks/");
+                    if (resFb.ok) {
+                        const dataFb = await resFb.json();
+                        const fbs = dataFb.feedbacks || [];
+                        fbs.forEach(f => {
+                            if (!f.admin_reply) {
+                                fetchedNotis.push({
+                                    id: `admin-fb-unreplied-${f.id}`,
+                                    category: 'feedbacks',
+                                    title: `Feedback from Agent: ${f.subject}`,
+                                    message: `Category: ${f.category_display || f.category}. Rating: ${f.rating}★`,
+                                    icon: '💬',
+                                    time: f.created_at || 'Recently',
+                                    isRead: readIds.includes(`admin-fb-unreplied-${f.id}`),
+                                    actionTab: 'agent-feedbacks'
+                                });
+                            }
+                        });
+                    }
+                } catch (e) {}
+
+                if (fetchedNotis.length === 0) {
+                    fetchedNotis.push({
+                        id: 'admin-welcome-noti',
+                        category: 'system',
+                        title: 'Super Admin Operations Center',
+                        message: 'All system services are operational. Real-time B2B alerts will appear here.',
+                        icon: '🛡️',
+                        time: 'Just now',
+                        isRead: readIds.includes('admin-welcome-noti')
+                    });
+                }
+
+                adminNotificationsList = fetchedNotis;
+                updateAdminNotificationUI();
+
+            } catch (err) {
+                console.error("Error syncing admin notifications:", err);
+            }
+        }
+
+        function updateAdminNotificationUI() {
+            const unreadList = adminNotificationsList.filter(n => !n.isRead);
+            const badge = document.getElementById('admin-noti-badge');
+            const unreadText = document.getElementById('admin-noti-unread-count-text');
+
+            if (badge) {
+                if (unreadList.length > 0) {
+                    badge.textContent = unreadList.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            if (unreadText) {
+                unreadText.textContent = `${unreadList.length} unread alert${unreadList.length === 1 ? '' : 's'}`;
+            }
+
+            const dropdownItemsContainer = document.getElementById('admin-noti-dropdown-items');
+            if (dropdownItemsContainer) {
+                if (adminNotificationsList.length === 0) {
+                    dropdownItemsContainer.innerHTML = `<div class="p-6 text-center text-xs text-[#567946]">No notifications found.</div>`;
+                } else {
+                    dropdownItemsContainer.innerHTML = adminNotificationsList.slice(0, 6).map(n => `
+                        <div onclick="handleAdminNotiItemClick('${n.id}', ${n.actionOrderId || 'null'}, '${n.actionTab || ''}')" class="p-3.5 hover:bg-[#FAF7F2] transition-colors cursor-pointer flex items-start space-x-3 ${n.isRead ? 'opacity-70' : 'bg-emerald-50/40'}">
+                            <div class="text-base shrink-0 mt-0.5">${n.icon}</div>
+                            <div class="flex-grow space-y-0.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-[#2D4424] leading-tight">${escapeHTML(n.title)}</span>
+                                    ${!n.isRead ? '<span class="w-2 h-2 rounded-full bg-[#E06A26] shrink-0 animate-pulse"></span>' : ''}
+                                </div>
+                                <p class="text-[11px] text-[#567946] font-medium leading-snug line-clamp-2">${escapeHTML(n.message)}</p>
+                                <span class="text-[9px] font-mono text-gray-400 block pt-0.5">${n.time}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            renderAdminFullNotificationModalItems();
+        }
+
+        function markAllAdminNotificationsRead() {
+            const allIds = adminNotificationsList.map(n => n.id);
+            saveAdminReadNotificationIds(allIds);
+            adminNotificationsList.forEach(n => n.isRead = true);
+            updateAdminNotificationUI();
+        }
+
+        function handleAdminNotiItemClick(id, actionOrderId, actionTab) {
+            const readIds = getAdminReadNotificationIds();
+            if (!readIds.includes(id)) {
+                readIds.push(id);
+                saveAdminReadNotificationIds(readIds);
+            }
+            const found = adminNotificationsList.find(n => n.id === id);
+            if (found) found.isRead = true;
+            updateAdminNotificationUI();
+
+            const dd = document.getElementById('admin-noti-dropdown');
+            if (dd) dd.classList.add('hidden');
+
+            if (actionOrderId) {
+                openAdminViewOrderDetailsModal(actionOrderId);
+            } else if (actionTab) {
+                switchTab(actionTab);
+            }
+        }
+
+        function openAdminFullNotificationsModal() {
+            const dd = document.getElementById('admin-noti-dropdown');
+            if (dd) dd.classList.add('hidden');
+
+            const modal = document.getElementById('modal-admin-notifications-all');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                syncAdminNotifications();
+            }
+        }
+
+        function closeAdminFullNotificationsModal() {
+            const modal = document.getElementById('modal-admin-notifications-all');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        function filterAdminNotifications(cat) {
+            adminNotiFilterCategory = cat;
+            document.querySelectorAll('.admin-noti-filter-btn').forEach(btn => {
+                btn.className = "admin-noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-[#2D4424] border border-[#E7DCB9] hover:bg-[#F7F3E9]";
+            });
+            const activeBtn = document.getElementById(`admin-noti-filter-btn-${cat}`);
+            if (activeBtn) {
+                activeBtn.className = "admin-noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-black bg-[#E06A26] text-white shadow-xs";
+            }
+            renderAdminFullNotificationModalItems();
+        }
+
+        function renderAdminFullNotificationModalItems() {
+            const container = document.getElementById('admin-full-noti-container');
+            if (!container) return;
+
+            let filtered = adminNotificationsList;
+            if (adminNotiFilterCategory === 'unread') {
+                filtered = adminNotificationsList.filter(n => !n.isRead);
+            } else if (adminNotiFilterCategory === 'orders') {
+                filtered = adminNotificationsList.filter(n => n.category === 'orders');
+            } else if (adminNotiFilterCategory === 'accounts') {
+                filtered = adminNotificationsList.filter(n => n.category === 'accounts');
+            } else if (adminNotiFilterCategory === 'feedbacks') {
+                filtered = adminNotificationsList.filter(n => n.category === 'feedbacks');
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="p-12 text-center bg-white border-2 border-dashed border-[#E7DCB9] rounded-3xl space-y-2">
+                        <div class="text-3xl">🔔</div>
+                        <div class="font-black text-sm text-[#2D4424]">No Notifications Found</div>
+                        <p class="text-xs text-[#567946]">There are no admin alerts matching this filter category.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(n => `
+                <div onclick="handleAdminNotiItemClick('${n.id}', ${n.actionOrderId || 'null'}, '${n.actionTab || ''}')" class="p-4 bg-white border-2 border-[#E7DCB9] rounded-2xl shadow-xs hover:border-[#E06A26] hover:shadow-md transition-all cursor-pointer flex items-start justify-between gap-4 ${n.isRead ? 'opacity-75' : 'bg-emerald-50/30 ring-2 ring-emerald-500/20'}">
+                    <div class="flex items-start space-x-3.5">
+                        <div class="w-10 h-10 rounded-2xl bg-[#F7F3E9] text-[#2D4424] flex items-center justify-center text-lg shrink-0 border border-[#D9CBAC]">
+                            ${n.icon}
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h5 class="text-sm font-black text-[#2D4424]">${escapeHTML(n.title)}</h5>
+                                ${!n.isRead ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#E06A26] text-white">NEW</span>' : '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-gray-100 text-gray-600">READ</span>'}
+                            </div>
+                            <p class="text-xs text-[#567946] font-medium leading-relaxed">${escapeHTML(n.message)}</p>
+                            <span class="text-[10px] font-mono text-gray-400 block"><i class="fa-regular fa-clock mr-1"></i>${n.time}</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400 text-xs mt-3"></i>
+                </div>
+            `).join('');
+        }
+
+        // Initialize admin notifications on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(syncAdminNotifications, 1000);
+            setInterval(syncAdminNotifications, 30000);
+        });
+    </script>
 </body>
 </html>

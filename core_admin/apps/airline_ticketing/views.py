@@ -84,7 +84,7 @@ def admin_sectors_api(request):
             name=name,
             origin_city=origin_city,
             destination_city=destination_city,
-            is_round_trip=request.POST.get('is_round_trip', 'true') == 'true',
+            is_round_trip=request.POST.get('is_round_trip', 'false') == 'true',
             is_active=request.POST.get('is_active', 'true') == 'true',
         )
         sector.save()
@@ -117,7 +117,7 @@ def admin_sector_detail_api(request, pk):
         if dest:
             sector.destination_city = dest
 
-        sector.is_round_trip = request.POST.get('is_round_trip', 'true') == 'true'
+        sector.is_round_trip = request.POST.get('is_round_trip', 'false') == 'true'
         sector.is_active = request.POST.get('is_active', 'true') == 'true'
         sector.save()
         return JsonResponse({'success': True, 'message': 'Sector updated.'})
@@ -915,6 +915,8 @@ def admin_hotels_api(request):
             data.append({
                 'id': h.id,
                 'name': h.name,
+                'category': h.category,
+                'category_display': h.get_category_display(),
                 'city': h.city,
                 'location': h.location,
                 'city_display': h.get_city_display(),
@@ -931,6 +933,7 @@ def admin_hotels_api(request):
 
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
+        category = request.POST.get('category', 'economy').strip().lower()
         city = request.POST.get('city', '').strip().lower()
         location = request.POST.get('location', '').strip()
         distance = request.POST.get('distance_from_haram', '').strip()
@@ -949,8 +952,11 @@ def admin_hotels_api(request):
         is_active_val = request.POST.get('is_active')
         is_active = is_active_val in ('on', 'true', '1', 'True', True) if is_active_val is not None else False
 
+        ALLOWED_CATEGORIES = ('economy', 'economy_plus', '1star', '2star', '3star', '4star', '5star')
+
         hotel = Hotel(
             name=name,
+            category=category if category in ALLOWED_CATEGORIES else 'economy',
             city=city,
             location=location,
             distance_from_haram=distance,
@@ -982,12 +988,15 @@ def admin_hotel_detail_api(request, pk):
         return JsonResponse({'success': True, 'message': 'Hotel deleted.'})
 
     if request.method == 'POST':
+        ALLOWED_CATEGORIES = ('economy', 'economy_plus', '1star', '2star', '3star', '4star', '5star')
         name = request.POST.get('name', '').strip()
+        category = request.POST.get('category', '').strip().lower()
         city = request.POST.get('city', '').strip().lower()
         location = request.POST.get('location', '').strip()
         distance = request.POST.get('distance_from_haram', '').strip()
 
         if name: hotel.name = name
+        if category and category in ALLOWED_CATEGORIES: hotel.category = category
         if city: hotel.city = city
         if 'location' in request.POST: hotel.location = location
         if distance: hotel.distance_from_haram = distance
@@ -1112,35 +1121,341 @@ def agent_flight_inventory_api(request):
 @user_passes_test(is_agent)
 def agent_group_fare_policies_api(request):
     """
-    GET → List active group fare policies for agents
+    GET → List active group fare policies / standalone group tickets for agents
     """
     policies = GroupFarePolicy.objects.filter(
-        is_active=True,
-        flight_inventory__is_active=True,
-        flight_inventory__airline__is_active=True
-    ).select_related('flight_inventory', 'flight_inventory__airline').all()
+        is_active=True
+    ).select_related('flight_inventory', 'flight_inventory__airline', 'airline').all()
 
     data = []
     for p in policies:
         fi = p.flight_inventory
+
+        if fi:
+            airline_name = fi.airline.name if fi.airline else 'Airline'
+            airline_logo_url = fi.airline.logo.url if (fi.airline and fi.airline.logo) else None
+            dep_city = fi.departure_city
+            dest_city = fi.destination_city
+            dep_time = fi.departure_time
+            arr_time = fi.arrival_time
+            trip_type = fi.trip_type
+            route_type = fi.route_type
+            via_city = fi.via_city or ''
+            has_meal = fi.has_meal
+            total_seats = fi.total_seats
+            avail_seats = fi.available_seats
+            ret_dep_time = fi.return_departure_time or ''
+            ret_arr_time = fi.return_arrival_time or ''
+            ret_route_type = fi.return_route_type or ''
+            ret_via_city = fi.return_via_city or ''
+
+            tier = fi.baggage_tiers.filter(weight_kg=p.baggage_weight_kg).first() or fi.baggage_tiers.first()
+            base_fare = float(tier.fare) if tier else (float(p.base_fare) if p.base_fare else 0.0)
+        else:
+            airline_name = p.airline.name if p.airline else (p.airline_name_custom or 'Group Ticket')
+            airline_logo_url = p.airline.logo.url if (p.airline and p.airline.logo) else None
+            dep_city = p.departure_city or 'Departure'
+            dest_city = p.destination_city or 'Destination'
+            dep_time = p.departure_time or '00:00'
+            arr_time = p.arrival_time or '00:00'
+            trip_type = p.trip_type or 'oneway'
+            route_type = p.route_type or 'direct'
+            via_city = p.via_city or ''
+            has_meal = p.has_meal
+            total_seats = p.total_seats
+            avail_seats = p.available_seats
+            ret_dep_time = p.return_departure_time or ''
+            ret_arr_time = p.return_arrival_time or ''
+            ret_route_type = p.route_type or ''
+            ret_via_city = p.via_city or ''
+            base_fare = float(p.base_fare) if p.base_fare else 0.0
+
+        if p.group_fare_override is not None and p.group_fare_override > 0:
+            group_fare = float(p.group_fare_override)
+        elif p.discount_type == 'percentage':
+            discount_amount = (base_fare * float(p.discount_value)) / 100.0
+            group_fare = max(0.0, base_fare - discount_amount)
+        else:
+            group_fare = max(0.0, base_fare - float(p.discount_value))
+
         data.append({
-            'id':                   p.id,
-            'flight_inventory_id':  fi.id,
-            'airline_name':         fi.airline.name,
-            'airline_logo_url':     fi.airline.logo.url if fi.airline.logo else None,
-            'departure_city':       fi.departure_city,
-            'destination_city':     fi.destination_city,
-            'departure_time':       fi.departure_time,
-            'arrival_time':         fi.arrival_time,
-            'available_seats':      fi.available_seats,
-            'route_display':        f"{fi.airline.name} — {fi.departure_city} → {fi.destination_city} ({fi.departure_time})",
-            'min_group_size':       p.min_group_size,
-            'discount_type':        p.discount_type,
-            'discount_type_display': p.get_discount_type_display(),
-            'discount_value':       float(p.discount_value),
-            'baggage_weight_kg':    p.baggage_weight_kg,
+            'id':                       p.id,
+            'flight_inventory_id':      fi.id if fi else None,
+            'airline_name':             airline_name,
+            'airline_logo_url':         airline_logo_url,
+            'departure_city':           dep_city,
+            'destination_city':         dest_city,
+            'departure_time':           dep_time,
+            'arrival_time':             arr_time,
+            'trip_type':                trip_type,
+            'trip_type_display':        'Round Trip Group' if trip_type == 'return' else 'One Way Group',
+            'route_type':               route_type,
+            'route_type_display':       'Via ' + via_city if route_type == 'via' else 'Non-Stop Direct',
+            'via_city':                 via_city,
+            'has_meal':                 has_meal,
+            'meal_display':             'In-flight Meal Included' if has_meal else 'No Meal',
+            'return_departure_time':   ret_dep_time,
+            'return_arrival_time':     ret_arr_time,
+            'return_route_type':       ret_route_type,
+            'return_via_city':         ret_via_city,
+            'total_seats':              total_seats,
+            'available_seats':          avail_seats,
+            'min_group_size':           p.min_group_size,
+            'discount_type':            p.discount_type,
+            'discount_type_display':     p.get_discount_type_display(),
+            'discount_value':           float(p.discount_value),
+            'baggage_weight_kg':        p.baggage_weight_kg,
+            'return_baggage_weight_kg': p.return_baggage_weight_kg,
+            'base_fare':                round(base_fare, 2),
+            'group_fare':               round(group_fare, 2),
+            'route_display':            f"{airline_name} — {dep_city} → {dest_city} ({dep_time})",
         })
     return JsonResponse({'success': True, 'policies': data})
+
+
+@user_passes_test(is_admin)
+@csrf_exempt
+def admin_group_fare_policies_api(request):
+    """
+    GET  → List all group fare policies / standalone group tickets for Admin
+    POST → Create a standalone or linked group fare ticket
+    """
+    if request.method == 'GET':
+        policies = GroupFarePolicy.objects.select_related('flight_inventory', 'flight_inventory__airline', 'airline').all()
+        data = []
+        for p in policies:
+            fi = p.flight_inventory
+            if fi:
+                air_name = fi.airline.name if fi.airline else 'Airline'
+                air_logo = fi.airline.logo.url if (fi.airline and fi.airline.logo) else ''
+                dep = fi.departure_city
+                dest = fi.destination_city
+                d_time = fi.departure_time
+                a_time = fi.arrival_time
+                t_type = fi.trip_type
+                r_type = fi.route_type
+                v_city = fi.via_city or ''
+                meal = fi.has_meal
+                t_seats = fi.total_seats
+                a_seats = fi.available_seats
+                ret_d_time = fi.return_departure_time or ''
+                ret_a_time = fi.return_arrival_time or ''
+                # AirlineFlightInventory has no base_fare; use the policy's own base_fare
+                # or fall back to the linked baggage tier fare
+                tier = fi.baggage_tiers.filter(weight_kg=p.baggage_weight_kg).first() or fi.baggage_tiers.first()
+                b_fare = float(tier.fare) if tier else (float(p.base_fare) if p.base_fare else 0.0)
+            else:
+                air_name = p.airline.name if p.airline else (p.airline_name_custom or 'Group Ticket')
+                air_logo = p.airline.logo.url if (p.airline and p.airline.logo) else ''
+                dep = p.departure_city or ''
+                dest = p.destination_city or ''
+                d_time = p.departure_time or ''
+                a_time = p.arrival_time or ''
+                t_type = p.trip_type or 'oneway'
+                r_type = p.route_type or 'direct'
+                v_city = p.via_city or ''
+                meal = p.has_meal
+                t_seats = p.total_seats
+                a_seats = p.available_seats
+                ret_d_time = p.return_departure_time or ''
+                ret_a_time = p.return_arrival_time or ''
+                b_fare = float(p.base_fare) if p.base_fare else 0.0
+
+            if p.group_fare_override is not None and p.group_fare_override > 0:
+                g_fare = float(p.group_fare_override)
+            elif p.discount_type == 'percentage':
+                disc_amt = (b_fare * float(p.discount_value)) / 100.0
+                g_fare = max(0.0, b_fare - disc_amt)
+            else:
+                g_fare = max(0.0, b_fare - float(p.discount_value))
+
+            data.append({
+                'id':                       p.id,
+                'flight_inventory_id':      fi.id if fi else None,
+                'airline_id':               p.airline_id if p.airline else (fi.airline_id if fi else None),
+                'airline_name':             air_name,
+                'airline_logo_url':         air_logo,
+                'airline_name_custom':      p.airline_name_custom or '',
+                'departure_city':           dep,
+                'destination_city':         dest,
+                'departure_time':           d_time,
+                'arrival_time':             a_time,
+                'return_departure_time':   ret_d_time,
+                'return_arrival_time':     ret_a_time,
+                'trip_type':                t_type,
+                'route_type':               r_type,
+                'via_city':                 v_city,
+                'has_meal':                 meal,
+                'total_seats':              t_seats,
+                'available_seats':          a_seats,
+                'min_group_size':           p.min_group_size,
+                'discount_type':            p.discount_type,
+                'discount_value':           float(p.discount_value),
+                'baggage_weight_kg':        p.baggage_weight_kg,
+                'return_baggage_weight_kg': p.return_baggage_weight_kg,
+                'base_fare':                round(b_fare, 2),
+                'group_fare_override':      float(p.group_fare_override) if p.group_fare_override is not None else None,
+                'group_fare':               round(g_fare, 2),
+                'is_active':                p.is_active,
+                'route_display':            f"{air_name} — {dep} → {dest}",
+            })
+        return JsonResponse({'success': True, 'policies': data})
+
+    elif request.method == 'POST':
+        try:
+            payload = json.loads(request.body)
+            airline_id = payload.get('airline_id')
+            airline_obj = Airline.objects.filter(id=airline_id).first() if airline_id else None
+
+            p = GroupFarePolicy.objects.create(
+                airline=airline_obj,
+                airline_name_custom=payload.get('airline_name_custom', ''),
+                departure_city=payload.get('departure_city', ''),
+                destination_city=payload.get('destination_city', ''),
+                departure_time=payload.get('departure_time', ''),
+                arrival_time=payload.get('arrival_time', ''),
+                return_departure_time=payload.get('return_departure_time', ''),
+                return_arrival_time=payload.get('return_arrival_time', ''),
+                trip_type=payload.get('trip_type', 'oneway'),
+                route_type=payload.get('route_type', 'direct'),
+                via_city=payload.get('via_city', ''),
+                has_meal=bool(payload.get('has_meal', True)),
+                total_seats=int(payload.get('total_seats', 50)),
+                available_seats=int(payload.get('available_seats', 50)),
+                min_group_size=int(payload.get('min_group_size', 10)),
+                discount_type=payload.get('discount_type', 'percentage'),
+                discount_value=Decimal(str(payload.get('discount_value', 0))),
+                baggage_weight_kg=int(payload.get('baggage_weight_kg', 30)),
+                return_baggage_weight_kg=int(payload.get('return_baggage_weight_kg', 30)),
+                base_fare=Decimal(str(payload.get('base_fare', 0))),
+                group_fare_override=Decimal(str(payload.get('group_fare_override'))) if payload.get('group_fare_override') not in [None, ''] else None,
+                is_active=bool(payload.get('is_active', True))
+            )
+            return JsonResponse({'success': True, 'policy_id': p.id, 'message': 'Group ticket created successfully!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+
+@user_passes_test(is_admin)
+@csrf_exempt
+def admin_group_fare_policy_detail_api(request, pk):
+    """
+    GET    → Get single GroupFarePolicy detail
+    PUT    → Update GroupFarePolicy
+    DELETE → Delete GroupFarePolicy
+    """
+    policy = get_object_or_404(GroupFarePolicy, pk=pk)
+
+    if request.method == 'GET':
+        fi = policy.flight_inventory
+        return JsonResponse({
+            'success': True,
+            'policy': {
+                'id':                       policy.id,
+                'airline_id':               policy.airline_id if policy.airline else (fi.airline_id if fi else None),
+                'airline_name_custom':      policy.airline_name_custom or '',
+                'departure_city':           policy.departure_city or (fi.departure_city if fi else ''),
+                'destination_city':         policy.destination_city or (fi.destination_city if fi else ''),
+                'departure_time':           policy.departure_time or (fi.departure_time if fi else ''),
+                'arrival_time':             policy.arrival_time or (fi.arrival_time if fi else ''),
+                'return_departure_time':   policy.return_departure_time or (fi.return_departure_time if fi else ''),
+                'return_arrival_time':     policy.return_arrival_time or (fi.return_arrival_time if fi else ''),
+                'trip_type':                policy.trip_type or (fi.trip_type if fi else 'oneway'),
+                'route_type':               policy.route_type or (fi.route_type if fi else 'direct'),
+                'via_city':                 policy.via_city or (fi.via_city if fi else ''),
+                'has_meal':                 policy.has_meal if fi is None else fi.has_meal,
+                'total_seats':              policy.total_seats if fi is None else fi.total_seats,
+                'available_seats':          policy.available_seats if fi is None else fi.available_seats,
+                'min_group_size':           policy.min_group_size,
+                'discount_type':            policy.discount_type,
+                'discount_value':           float(policy.discount_value),
+                'baggage_weight_kg':        policy.baggage_weight_kg,
+                'return_baggage_weight_kg': policy.return_baggage_weight_kg,
+                'base_fare':                float(policy.base_fare or (fi.base_fare if fi else 0)),
+                'group_fare_override':      float(policy.group_fare_override) if policy.group_fare_override is not None else None,
+                'is_active':                policy.is_active,
+            }
+        })
+
+    elif request.method == 'PUT':
+        try:
+            payload = json.loads(request.body)
+            airline_id = payload.get('airline_id')
+            if airline_id:
+                policy.airline = Airline.objects.filter(id=airline_id).first()
+            if 'airline_name_custom' in payload: policy.airline_name_custom = payload['airline_name_custom']
+            if 'departure_city' in payload: policy.departure_city = payload['departure_city']
+            if 'destination_city' in payload: policy.destination_city = payload['destination_city']
+            if 'departure_time' in payload: policy.departure_time = payload['departure_time']
+            if 'arrival_time' in payload: policy.arrival_time = payload['arrival_time']
+            if 'return_departure_time' in payload: policy.return_departure_time = payload['return_departure_time']
+            if 'return_arrival_time' in payload: policy.return_arrival_time = payload['return_arrival_time']
+            if 'trip_type' in payload: policy.trip_type = payload['trip_type']
+            if 'route_type' in payload: policy.route_type = payload['route_type']
+            if 'via_city' in payload: policy.via_city = payload['via_city']
+            if 'has_meal' in payload: policy.has_meal = bool(payload['has_meal'])
+            if 'total_seats' in payload: policy.total_seats = int(payload['total_seats'])
+            if 'available_seats' in payload: policy.available_seats = int(payload['available_seats'])
+            if 'min_group_size' in payload: policy.min_group_size = int(payload['min_group_size'])
+            if 'discount_type' in payload: policy.discount_type = payload['discount_type']
+            if 'discount_value' in payload: policy.discount_value = Decimal(str(payload['discount_value']))
+            if 'baggage_weight_kg' in payload: policy.baggage_weight_kg = int(payload['baggage_weight_kg'])
+            if 'return_baggage_weight_kg' in payload: policy.return_baggage_weight_kg = int(payload['return_baggage_weight_kg'])
+            if 'base_fare' in payload: policy.base_fare = Decimal(str(payload['base_fare']))
+            if 'group_fare_override' in payload:
+                policy.group_fare_override = Decimal(str(payload['group_fare_override'])) if payload['group_fare_override'] not in [None, ''] else None
+            if 'is_active' in payload: policy.is_active = bool(payload['is_active'])
+
+            policy.save()
+            return JsonResponse({'success': True, 'message': 'Group ticket updated successfully!'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+    elif request.method == 'DELETE':
+        policy.delete()
+        return JsonResponse({'success': True, 'message': 'Group ticket deleted successfully!'})
+
+
+@user_passes_test(is_admin)
+@csrf_exempt
+def admin_adjust_group_seats_api(request, pk):
+    """
+    POST → Quickly increment (+) or decrement (-) available_seats & total_seats for a Standalone / Linked Group Ticket
+    Payload: { "action": "increment" | "decrement", "amount": 1 }
+    """
+    policy = get_object_or_404(GroupFarePolicy, pk=pk)
+    if request.method == 'POST':
+        try:
+            payload = json.loads(request.body)
+            action = payload.get('action', 'increment')
+            amount = int(payload.get('amount', 1))
+
+            if action == 'increment':
+                policy.available_seats += amount
+                policy.total_seats += amount
+            elif action == 'decrement':
+                policy.available_seats = max(0, policy.available_seats - amount)
+                policy.total_seats = max(0, policy.total_seats - amount)
+
+            if policy.flight_inventory:
+                if action == 'increment':
+                    policy.flight_inventory.available_seats += amount
+                    policy.flight_inventory.total_seats += amount
+                elif action == 'decrement':
+                    policy.flight_inventory.available_seats = max(0, policy.flight_inventory.available_seats - amount)
+                    policy.flight_inventory.total_seats = max(0, policy.flight_inventory.total_seats - amount)
+                policy.flight_inventory.save()
+
+            policy.save()
+            return JsonResponse({
+                'success': True,
+                'available_seats': policy.available_seats,
+                'total_seats': policy.total_seats,
+                'message': f"Seats {action}ed by {amount}. New available: {policy.available_seats}"
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
 
 
 @user_passes_test(is_agent)
@@ -1161,7 +1476,7 @@ def agent_packages_api(request):
             'package_type':             p.package_type,
             'package_type_display':     p.get_package_type_display(),
             'sector_id':                p.sector_id,
-            'sector_name':              p.sector.name if p.sector else None,
+            'sector_name':              p.sector.name if (p.sector and p.sector.name) else (f"{p.sector.origin_city} ➔ {p.sector.destination_city}" if p.sector else (p.flight_route or None)),
             'title':                    p.title,
             'description':              p.description,
             'duration_days':            p.duration_days,
@@ -1197,6 +1512,24 @@ def agent_packages_api(request):
             'images':                   p.images or [],
         })
     return JsonResponse({'success': True, 'packages': data})
+
+
+@user_passes_test(is_agent)
+def agent_sectors_api(request):
+    """
+    GET → List active flight/package sectors defined by admin for agent portal
+    """
+    sectors = Sector.objects.filter(is_active=True).order_by('name')
+    data = []
+    for s in sectors:
+        data.append({
+            'id': s.id,
+            'name': s.name or f"{s.origin_city} ➔ {s.destination_city}",
+            'origin_city': s.origin_city,
+            'destination_city': s.destination_city,
+            'is_round_trip': s.is_round_trip,
+        })
+    return JsonResponse({'success': True, 'sectors': data})
 
 
 def get_agent_wallet_balance(agent):
@@ -1385,6 +1718,7 @@ def agent_create_ticket_order_api(request):
     booking_type = data.get('booking_type', 'ticket')
     item_id = data.get('item_id')
     route_id = data.get('route_id')
+    group_policy_id = data.get('group_policy_id')  # standalone group ticket ID
     passengers = data.get('passengers', [])
     if isinstance(passengers, str) and passengers.strip():
         try:
@@ -1419,35 +1753,57 @@ def agent_create_ticket_order_api(request):
             if selected_hotel_id:
                 selected_hotel = Hotel.objects.filter(id=selected_hotel_id).first()
 
+            standalone_policy = None
             if booking_type in ['ticket', 'group']:
-                inv_id = route_id or item_id
-                # LOCK the row so no other agent can overbook these seats
-                inventory = AirlineFlightInventory.objects.select_for_update().get(id=inv_id)
-
-                if booking_type == 'group':
-                    matching_policy_exists = GroupFarePolicy.objects.filter(
-                        flight_inventory=inventory,
-                        is_active=True,
-                        min_group_size__lte=total_seats_requested
-                    ).exists()
-                    if not matching_policy_exists:
-                        min_required = GroupFarePolicy.objects.filter(
-                            flight_inventory=inventory, is_active=True
-                        ).order_by('min_group_size').values_list('min_group_size', flat=True).first()
+                # ── Standalone Group Ticket path (no linked flight inventory) ──
+                if booking_type == 'group' and group_policy_id and not (route_id or item_id):
+                    standalone_policy = GroupFarePolicy.objects.select_for_update().filter(
+                        id=group_policy_id, is_active=True, flight_inventory__isnull=True
+                    ).first()
+                    if not standalone_policy:
+                        return JsonResponse({'success': False, 'error': 'Standalone group ticket not found or inactive.'}, status=404)
+                    if total_seats_requested < standalone_policy.min_group_size:
                         return JsonResponse({
                             'success': False,
-                            'error': f'Group bookings require at least {min_required or "the minimum"} passengers for this route. Please book as an individual ticket instead.'
+                            'error': f'Minimum group size for this ticket is {standalone_policy.min_group_size} seats.'
+                        }, status=400)
+                    if total_seats_requested > standalone_policy.available_seats:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Only {standalone_policy.available_seats} seats available for this group ticket.'
+                        }, status=400)
+                    standalone_policy.available_seats -= total_seats_requested
+                    standalone_policy.save()
+                    # inventory stays None; we'll compute fare from the policy
+                else:
+                    inv_id = route_id or item_id
+                    # LOCK the row so no other agent can overbook these seats
+                    inventory = AirlineFlightInventory.objects.select_for_update().get(id=inv_id)
+
+                    if booking_type == 'group':
+                        matching_policy_exists = GroupFarePolicy.objects.filter(
+                            flight_inventory=inventory,
+                            is_active=True,
+                            min_group_size__lte=total_seats_requested
+                        ).exists()
+                        if not matching_policy_exists:
+                            min_required = GroupFarePolicy.objects.filter(
+                                flight_inventory=inventory, is_active=True
+                            ).order_by('min_group_size').values_list('min_group_size', flat=True).first()
+                            return JsonResponse({
+                                'success': False,
+                                'error': f'Group bookings require at least {min_required or "the minimum"} passengers for this route. Please book as an individual ticket instead.'
+                            }, status=400)
+
+                    available = inventory.total_seats - inventory.booked_seats
+                    if total_seats_requested > available:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Only {available} seats available for this flight.'
                         }, status=400)
 
-                available = inventory.total_seats - inventory.booked_seats
-                if total_seats_requested > available:
-                    return JsonResponse({
-                        'success': False,
-                        'error': f'Only {available} seats available for this flight.'
-                    }, status=400)
-
-                inventory.booked_seats += total_seats_requested
-                inventory.save()
+                    inventory.booked_seats += total_seats_requested
+                    inventory.save()
 
             elif booking_type in ['umrah', 'hajj']:
                 # LOCK the package row
@@ -1462,16 +1818,27 @@ def agent_create_ticket_order_api(request):
                 pkg.booked_seats += total_seats_requested
                 pkg.save()
 
-            calculated_total_fare = calculate_order_total_fare(
-                order_type=booking_type,
-                flight_inventory=inventory,
-                agent_package=pkg,
-                baggage_weight_kg=baggage_weight_kg,
-                passenger_count=total_seats_requested,
-                booking_type=booking_type,
-                passengers_data=passengers,
-                selected_sharing_type=selected_sharing_type
-            )
+            # ── Fare calculation: standalone policy uses its own group_fare ──
+            if standalone_policy:
+                if standalone_policy.group_fare_override is not None and standalone_policy.group_fare_override > 0:
+                    per_seat = float(standalone_policy.group_fare_override)
+                elif standalone_policy.discount_type == 'percentage':
+                    base = float(standalone_policy.base_fare or 0)
+                    per_seat = max(0.0, base - (base * float(standalone_policy.discount_value) / 100.0))
+                else:
+                    per_seat = max(0.0, float(standalone_policy.base_fare or 0) - float(standalone_policy.discount_value))
+                calculated_total_fare = Decimal(str(round(per_seat * total_seats_requested, 2)))
+            else:
+                calculated_total_fare = calculate_order_total_fare(
+                    order_type=booking_type,
+                    flight_inventory=inventory,
+                    agent_package=pkg,
+                    baggage_weight_kg=baggage_weight_kg,
+                    passenger_count=total_seats_requested,
+                    booking_type=booking_type,
+                    passengers_data=passengers,
+                    selected_sharing_type=selected_sharing_type
+                )
 
             # Check wallet balance if pay_now
             if decision == 'pay_now':
@@ -1492,6 +1859,7 @@ def agent_create_ticket_order_api(request):
                 order_type=booking_type,
                 flight_inventory=inventory,
                 agent_package=pkg,
+                group_policy=standalone_policy,
                 selected_hotel=selected_hotel,
                 selected_sharing_type=selected_sharing_type,
                 baggage_weight_kg=baggage_weight_kg,
@@ -1633,12 +2001,63 @@ def is_agent_or_admin(user):
     return user.is_superuser or role in ['admin', 'super_admin', 'agent']
 
 
+def restore_order_seats_and_update_status(order, new_status='cancelled'):
+    """
+    Restores reserved seats to FlightInventory, AgentPackage, or GroupFarePolicy when an order is cancelled or expired.
+    """
+    if order.status in ('expired', 'cancelled'):
+        order.status = new_status
+        order.save()
+        return
+
+    with transaction.atomic():
+        seat_count = order.passengers.count() or 1
+
+        if order.flight_inventory:
+            fi = AirlineFlightInventory.objects.select_for_update().filter(id=order.flight_inventory.id).first()
+            if fi:
+                fi.booked_seats = max(0, fi.booked_seats - seat_count)
+                fi.save()
+
+        if order.agent_package:
+            pkg = AgentPackage.objects.select_for_update().filter(id=order.agent_package.id).first()
+            if pkg:
+                pkg.booked_seats = max(0, pkg.booked_seats - seat_count)
+                pkg.save()
+
+        if order.group_policy:
+            pol = GroupFarePolicy.objects.select_for_update().filter(id=order.group_policy.id).first()
+            if pol:
+                pol.available_seats += seat_count
+                pol.save()
+
+        order.status = new_status
+        order.save()
+
+
+def auto_expire_hold_orders_helper():
+    """
+    Automatically expires hold orders older than 2 hours (or past hold_expires_at) and releases reserved seats.
+    """
+    now = timezone.now()
+    expired_orders = AgentTicketOrder.objects.filter(
+        status='hold',
+        hold_expires_at__lte=now
+    )
+    for order in expired_orders:
+        try:
+            restore_order_seats_and_update_status(order, new_status='expired')
+        except Exception as e:
+            print(f"Error auto-expiring hold order #{order.id}: {e}")
+
+
 @csrf_exempt
 @user_passes_test(is_admin)
 def admin_ticket_orders_api(request):
     """
     GET → List all AgentTicketOrder records AND Booking records for admin view with status filter.
     """
+    auto_expire_hold_orders_helper()
     status_filter = request.GET.get('status', 'all').strip().lower()
     orders = AgentTicketOrder.objects.select_related('agent', 'flight_inventory__airline', 'agent_package').prefetch_related('passengers').all()
 
@@ -1852,11 +2271,87 @@ def admin_confirm_ticket_payment_api(request, pk):
 
 
 @csrf_exempt
+@user_passes_test(is_admin)
+def admin_cancel_ticket_order_api(request, pk):
+    """
+    POST → Admin cancels an AgentTicketOrder or Booking record and restores reserved seats.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
+
+    str_pk = str(pk)
+    if str_pk.startswith('bkg_'):
+        from apps.bookings.models import Booking
+        real_id = int(str_pk.replace('bkg_', ''))
+        booking = get_object_or_404(Booking, pk=real_id)
+        booking.status = 'cancelled'
+        booking.save()
+        return JsonResponse({
+            'success': True,
+            'message': f'Package booking #{booking.id} cancelled successfully.',
+            'status': 'cancelled'
+        })
+
+    order = get_object_or_404(AgentTicketOrder, pk=pk)
+    restore_order_seats_and_update_status(order, new_status='cancelled')
+    return JsonResponse({
+        'success': True,
+        'message': f'Order #{order.reference_number} cancelled successfully by Admin. Reserved seats released.',
+        'status': 'cancelled'
+    })
+
+
+@csrf_exempt
+@user_passes_test(is_agent)
+def agent_cancel_ticket_order_api(request, pk):
+    """
+    POST → Agent cancels their own order (if status is 'hold' or 'paid_pending').
+    Restores reserved seats back to inventory / package / group ticket.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
+
+    order = get_object_or_404(AgentTicketOrder, pk=pk, agent=request.user)
+    if order.status not in ('hold', 'paid_pending'):
+        return JsonResponse({
+            'success': False,
+            'message': f'Cannot cancel order with status "{order.get_status_display()}". Only hold or pending orders can be cancelled.'
+        }, status=400)
+
+    restore_order_seats_and_update_status(order, new_status='cancelled')
+    return JsonResponse({
+        'success': True,
+        'message': f'Order #{order.reference_number} has been cancelled successfully. Reserved seats released.',
+        'status': 'cancelled'
+    })
+
+
+@csrf_exempt
+@user_passes_test(is_agent)
+def agent_delete_ticket_order_api(request, pk):
+    """
+    DELETE / POST → Agent deletes an order record (if cancelled, expired, or hold).
+    If order is on hold, restores seats before deletion.
+    """
+    order = get_object_or_404(AgentTicketOrder, pk=pk, agent=request.user)
+
+    if order.status == 'hold':
+        restore_order_seats_and_update_status(order, new_status='cancelled')
+
+    order.delete()
+    return JsonResponse({
+        'success': True,
+        'message': 'Order deleted successfully.'
+    })
+
+
+@csrf_exempt
 @user_passes_test(is_agent)
 def agent_my_orders_api(request):
     """
     GET → List all AgentTicketOrder records belonging to the logged-in agent.
     """
+    auto_expire_hold_orders_helper()
     orders = AgentTicketOrder.objects.filter(agent=request.user).select_related('flight_inventory__airline', 'agent_package').prefetch_related('passengers').all()
 
     data = []
