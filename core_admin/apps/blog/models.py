@@ -70,5 +70,10 @@ class BlogPost(models.Model):
     @property
     def cover_url(self):
         if self.cover_image:
-            return self.cover_image.url
-        return None
+            try:
+                return self.cover_image.url
+            except Exception:
+                pass
+        if self.static_cover:
+            return f"/static/images/{self.static_cover}"
+        return "/static/images/blog_banner.png"

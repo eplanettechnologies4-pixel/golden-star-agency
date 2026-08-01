@@ -337,8 +337,11 @@
             {% for pkg in featured_packages %}
             <div class="glass-card bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-200/60 shadow-sm transition-all hover:shadow-lg">
                 <div class="relative h-56 bg-slate-100 overflow-hidden group">
-                    <img src="{% if pkg.images %}{{ pkg.images.0 }}{% else %}{% static 'images/umrah_card.png' %}{% endif %}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <img src="{{ pkg.cover_url }}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                     <span class="absolute top-4 left-4 bg-brand-orange text-white text-xs font-bold px-2.5 py-1 rounded-md uppercase shadow">{{ pkg.category }}</span>
+                    {% if pkg.is_featured %}
+                    <span class="absolute top-4 right-4 bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase shadow flex items-center gap-1"><i class="fa-solid fa-star text-[9px]"></i> Featured</span>
+                    {% endif %}
                 </div>
                 <div class="p-6 flex-grow flex flex-col bg-white">
                     <div class="flex items-center justify-between text-xs text-slate-500 mb-2 font-semibold">
@@ -696,11 +699,11 @@
                 
                 <!-- Photo/Image Area -->
                 <div class="relative h-48 bg-slate-950 overflow-hidden shrink-0">
-                    {% if achievement.photo %}
-                        <img src="{{ achievement.photo.url }}" alt="{{ achievement.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    {% if achievement.photo_url %}
+                        <img src="{{ achievement.photo_url }}" alt="{{ achievement.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                     {% else %}
                         <div class="w-full h-full bg-slate-900 flex items-center justify-center text-slate-700">
-                            <i class="fa-solid fa-image text-3xl"></i>
+                            <i class="fa-solid fa-trophy text-3xl text-amber-500"></i>
                         </div>
                     {% endif %}
                     

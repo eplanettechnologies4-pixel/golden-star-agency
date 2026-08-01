@@ -223,12 +223,23 @@
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-650">
                         <p><i class="fa-solid fa-plane text-brand-orange mr-2"></i>Airline: <strong>{{ package.airline }}</strong></p>
-                        <p><i class="fa-solid fa-route text-emerald-500 mr-2"></i>Flight Route: <strong>{{ package.flight_routes }}</strong></p>
+                        <p>
+                            <i class="fa-solid fa-route text-emerald-500 mr-2"></i>Flight Type:
+                            {% if package.flight_route_type == 'via' %}
+                                <span class="inline-flex items-center gap-1 text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full text-[11px] font-extrabold">✈ Via / Connecting</span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full text-[11px] font-extrabold">✈ Direct Flight</span>
+                            {% endif %}
+                        </p>
+                        <p class="sm:col-span-2"><i class="fa-solid fa-map-pin text-brand-orange mr-2"></i>Route: <strong>{{ package.flight_routes }}</strong></p>
                         <p><i class="fa-solid fa-suitcase-rolling text-emerald-500 mr-2"></i>Luggage: <strong>{{ package.luggage_weight }}</strong></p>
+                        <p><i class="fa-solid fa-bus text-emerald-500 mr-2"></i>Transport: <strong>{{ package.transport_type|default:"Sharing Bus" }}</strong></p>
                         <p><i class="fa-solid fa-hotel text-emerald-500 mr-2"></i>Makkah Hotel: <strong>{{ package.makkah_hotel_name }}</strong> ({{ package.makkah_hotel_distance }})</p>
                         <p><i class="fa-solid fa-mosque text-emerald-500 mr-2"></i>Madinah Hotel: <strong>{{ package.madinah_hotel_name }}</strong> ({{ package.madinah_hotel_distance }})</p>
+                        {% if package.category|lower != 'umrah' and package.meal_detail %}
+                        <p><i class="fa-solid fa-utensils text-amber-500 mr-2"></i>Meal Plan: <strong>{{ package.meal_detail }}</strong></p>
+                        {% endif %}
                         <p><i class="fa-solid fa-passport text-emerald-500 mr-2"></i>Saudi Tourist / Umrah Visa Processing</p>
-                        <p><i class="fa-solid fa-bus text-emerald-500 mr-2"></i>Luxury AC Transportation Included</p>
                     </div>
                 </div>
             </div>
@@ -294,48 +305,25 @@
                         </div>
 
                         <!-- Optional Add-ons Checkboxes Configured by Admin -->
+                        {% if package.addons %}
                         <div class="pt-2 border-t border-slate-100">
                             <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center justify-between">
                                 <span><i class="fa-solid fa-sliders text-brand-orange mr-1"></i> Optional Add-ons</span>
                                 <span class="text-[10px] text-slate-400 font-normal lowercase">(adds to total)</span>
                             </label>
-                            
                             <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200/60" id="addons-container">
-                                {% if package.addons %}
-                                    {% for addon in package.addons %}
-                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
-                                        <div class="flex items-center gap-2">
-                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="{{ addon.name }}" data-price="{{ addon.price }}" onchange="recalculatePackagePrice()">
-                                            <span class="font-medium">{{ addon.name }}</span>
-                                        </div>
-                                        <span class="font-bold text-brand-orange text-[11px]">+PKR {{ addon.price }}</span>
-                                    </label>
-                                    {% endfor %}
-                                {% else %}
-                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
-                                        <div class="flex items-center gap-2">
-                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="VIP Haramain High-Speed Train" data-price="25000" onchange="recalculatePackagePrice()">
-                                            <span class="font-medium">VIP High-Speed Train</span>
-                                        </div>
-                                        <span class="font-bold text-brand-orange text-[11px]">+PKR 25,000</span>
-                                    </label>
-                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
-                                        <div class="flex items-center gap-2">
-                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="Full Board Buffet Meals" data-price="15000" onchange="recalculatePackagePrice()">
-                                            <span class="font-medium">Full Board Buffet Meals</span>
-                                        </div>
-                                        <span class="font-bold text-brand-orange text-[11px]">+PKR 15,000</span>
-                                    </label>
-                                    <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
-                                        <div class="flex items-center gap-2">
-                                            <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="Guided Historical Ziyarat" data-price="10000" onchange="recalculatePackagePrice()">
-                                            <span class="font-medium">Guided Historical Ziyarat</span>
-                                        </div>
-                                        <span class="font-bold text-brand-orange text-[11px]">+PKR 10,000</span>
-                                    </label>
-                                {% endif %}
+                                {% for addon in package.addons %}
+                                <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer hover:text-slate-900 select-none">
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" class="addon-checkbox rounded border-slate-300 text-brand-orange focus:ring-brand-orange" data-name="{{ addon.name }}" data-price="{{ addon.price }}" onchange="recalculatePackagePrice()">
+                                        <span class="font-medium">{{ addon.name }}</span>
+                                    </div>
+                                    <span class="font-bold text-brand-orange text-[11px]">+PKR {{ addon.price|floatformat:0 }}</span>
+                                </label>
+                                {% endfor %}
                             </div>
                         </div>
+                        {% endif %}
 
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[11px] text-slate-500 space-y-1">
                             <p><i class="fa-solid fa-child text-brand-orange mr-1"></i>Child (2-11 Yrs): <strong>PKR {{ package.price_child|default:180000 }}</strong> | Infant (0-2 Yrs): <strong>PKR {{ package.price_infant|default:65000 }}</strong></p>

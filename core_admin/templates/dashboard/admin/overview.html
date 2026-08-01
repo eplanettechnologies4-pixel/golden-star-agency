@@ -1677,12 +1677,14 @@
                             <thead>
                                 <tr class="text-[10px] uppercase font-extrabold">
                                     <th class="p-3">ID</th>
+                                    <th class="p-3">Cover</th>
                                     <th class="p-3">Package Title</th>
                                     <th class="p-3">Category</th>
                                     <th class="p-3">Price (PKR)</th>
                                     <th class="p-3">Seats</th>
+                                    <th class="p-3 text-center">Featured</th>
                                     <th class="p-3">Hotel (Makkah)</th>
-                                    <th class="p-3">Actions</th>
+                                    <th class="p-3 text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-b2c-packages" class="divide-y divide-[#E7DCB9]">
@@ -1844,9 +1846,15 @@
                         <h2 class="text-xl font-black text-[#2D4424]">Flight Quotes &amp; Ticket Catalog</h2>
                         <p class="text-xs text-[#567946] font-semibold mt-1">Manage customer flight quote requests and the public flight ticket offers.</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
                         <button type="button" onclick="openAddB2CFlightModal()" class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md">
-                            <i class="fa-solid fa-plus"></i> + Add Flight Offer
+                            <i class="fa-solid fa-plus"></i> Add Flight Offer
+                        </button>
+                        <button onclick="openAddAirlineModal()" class="px-4 py-2 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-plane-departure"></i> Add Airline
+                        </button>
+                        <button onclick="openAddSectorModal()" class="px-4 py-2 bg-[#567946] hover:bg-[#2D4424] text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-md transition-all">
+                            <i class="fa-solid fa-route"></i> Add Sector
                         </button>
                         <button onclick="fetchAdminB2CFlights()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-extrabold rounded-xl flex items-center gap-2 transition-all">
                             <i id="icon-refresh-flights" class="fa-solid fa-rotate-right text-[#E06A26]"></i> Refresh
@@ -1854,9 +1862,11 @@
                     </div>
                 </div>
                 <!-- Sub-tabs -->
-                <div class="flex gap-2 bg-[#F7F3E9] p-1.5 rounded-2xl w-fit border border-[#E7DCB9]">
+                <div class="flex flex-wrap gap-2 bg-[#F7F3E9] p-1.5 rounded-2xl w-fit border border-[#E7DCB9]">
                     <button id="flights-subtab-btn-quotes" onclick="switchFlightsSubTab('quotes')" class="px-4 py-1.5 rounded-xl text-xs font-black bg-white text-[#2D4424] shadow-sm border border-[#D9CBAC] transition-all">Quote Requests</button>
                     <button id="flights-subtab-btn-tickets" onclick="switchFlightsSubTab('tickets')" class="px-4 py-1.5 rounded-xl text-xs font-black text-[#567946] hover:bg-white/60 transition-all">Ticket Catalog</button>
+                    <button id="flights-subtab-btn-airlines" onclick="switchFlightsSubTab('airlines')" class="px-4 py-1.5 rounded-xl text-xs font-black text-[#567946] hover:bg-white/60 transition-all"><i class="fa-solid fa-plane-departure mr-1"></i>Airlines</button>
+                    <button id="flights-subtab-btn-sectors" onclick="switchFlightsSubTab('sectors')" class="px-4 py-1.5 rounded-xl text-xs font-black text-[#567946] hover:bg-white/60 transition-all"><i class="fa-solid fa-route mr-1"></i>Sectors</button>
                 </div>
                 <!-- Quotes Sub-tab -->
                 <div id="flights-subtab-quotes" class="space-y-4">
@@ -1870,7 +1880,7 @@
                             <div id="stat-flights-quoted" class="text-2xl font-black text-emerald-700 mt-1">0</div>
                         </div>
                         <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-[#2D4424] p-4 rounded-2xl shadow-sm">
-                            <span class="text-[10px] font-extrabold text-[#567946] uppercase">Total</span>
+                            <span class="text-[10px] font-extrabold text-[#567946] uppercase">Total Requests</span>
                             <div id="stat-flights-total" class="text-2xl font-black text-[#2D4424] mt-1">0</div>
                         </div>
                     </div>
@@ -1887,16 +1897,64 @@
                         </div>
                     </div>
                 </div>
-                <!-- Tickets Catalog Sub-tab -->
-                <div id="flights-subtab-tickets" class="space-y-4 hidden">
+                <!-- Tickets Catalog Sub-tab - Rich Boarding Pass Cards -->
+                <div id="flights-subtab-tickets" class="space-y-5 hidden">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-[#E06A26] p-4 rounded-2xl shadow-sm">
+                            <span class="text-[10px] font-extrabold text-[#567946] uppercase">Total Offers</span>
+                            <div id="stat-tickets-total" class="text-2xl font-black text-[#2D4424] mt-1">0</div>
+                        </div>
+                        <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-emerald-500 p-4 rounded-2xl shadow-sm">
+                            <span class="text-[10px] font-extrabold text-[#567946] uppercase">Total Seats</span>
+                            <div id="stat-tickets-seats" class="text-2xl font-black text-emerald-700 mt-1">0</div>
+                        </div>
+                        <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-blue-500 p-4 rounded-2xl shadow-sm">
+                            <span class="text-[10px] font-extrabold text-[#567946] uppercase">Popular</span>
+                            <div id="stat-tickets-popular" class="text-2xl font-black text-blue-700 mt-1">0</div>
+                        </div>
+                        <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-amber-500 p-4 rounded-2xl shadow-sm">
+                            <span class="text-[10px] font-extrabold text-[#567946] uppercase">Min Fare</span>
+                            <div id="stat-tickets-minprice" class="text-lg font-black text-amber-600 mt-1">---</div>
+                        </div>
+                    </div>
+                    <div id="grid-b2c-flight-tickets" class="space-y-4">
+                        <div class="p-8 text-center text-[#567946]"><i class="fa-solid fa-circle-notch animate-spin mr-2 text-[#E06A26]"></i>Loading ticket catalog...</div>
+                    </div>
+                </div>
+                <!-- Airlines Sub-tab -->
+                <div id="flights-subtab-airlines" class="space-y-4 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-black text-[#2D4424]">Airline Partners Catalog</h3>
+                            <p class="text-xs text-[#567946]">Add and manage airline partners used in the B2C flights system.</p>
+                        </div>
+                        <button onclick="fetchAdminB2CAirlines()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-extrabold rounded-xl flex items-center gap-2 transition-all">
+                            <i id="icon-refresh-airlines" class="fa-solid fa-rotate-right text-[#E06A26]"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="grid-b2c-airlines" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div class="col-span-full p-8 text-center text-[#567946]"><i class="fa-solid fa-circle-notch animate-spin mr-2 text-[#E06A26]"></i>Loading airlines...</div>
+                    </div>
+                </div>
+                <!-- Sectors Sub-tab -->
+                <div id="flights-subtab-sectors" class="space-y-4 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-black text-[#2D4424]">Flight Sectors / Routes</h3>
+                            <p class="text-xs text-[#567946]">Manage route sectors. Sectors group multiple flight offers under a single route identifier.</p>
+                        </div>
+                        <button onclick="fetchAdminB2CSectors()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-extrabold rounded-xl flex items-center gap-2 transition-all">
+                            <i id="icon-refresh-sectors" class="fa-solid fa-rotate-right text-[#E06A26]"></i> Refresh
+                        </button>
+                    </div>
                     <div class="bg-white border border-[#E7DCB9] rounded-3xl shadow-sm overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs border-collapse">
                                 <thead><tr class="text-[10px] uppercase font-extrabold">
-                                    <th class="p-3">ID</th><th class="p-3">Airline</th><th class="p-3">Flight #</th><th class="p-3">Route</th><th class="p-3">Times</th><th class="p-3">Class</th><th class="p-3">Price</th><th class="p-3">Seats</th><th class="p-3">Popular</th>
+                                    <th class="p-3">ID</th><th class="p-3">Sector Name</th><th class="p-3">Origin City</th><th class="p-3">Destination City</th><th class="p-3">Round Trip</th><th class="p-3">Status</th><th class="p-3">Created</th><th class="p-3">Actions</th>
                                 </tr></thead>
-                                <tbody id="tbody-b2c-flight-tickets" class="divide-y divide-[#E7DCB9]">
-                                    <tr><td colspan="9" class="p-6 text-center text-[#567946]"><i class="fa-solid fa-circle-notch animate-spin mr-2 text-[#E06A26]"></i>Loading ticket catalog...</td></tr>
+                                <tbody id="tbody-b2c-sectors" class="divide-y divide-[#E7DCB9]">
+                                    <tr><td colspan="8" class="p-6 text-center text-[#567946]"><i class="fa-solid fa-circle-notch animate-spin mr-2 text-[#E06A26]"></i>Loading sectors...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -3517,8 +3575,26 @@
             document.getElementById("admin-view-agent-phone").textContent = order.agent_phone_number || 'N/A';
             document.getElementById("admin-view-traveler-email").textContent = order.traveler_contact_email || order.agent_email || 'N/A';
 
+            const origFare = Number(order.original_fare || order.total_fare || 0);
+            const netFare = Number(order.total_fare || 0);
+            const disc = Number(order.admin_discount || 0);
+
             document.getElementById("admin-view-route-title").textContent = order.route_title || 'N/A';
-            document.getElementById("admin-view-total-fare").textContent = `PKR ${Number(order.total_fare || 0).toLocaleString()}`;
+            if (document.getElementById("admin-view-original-fare")) {
+                document.getElementById("admin-view-original-fare").textContent = `PKR ${origFare.toLocaleString()}`;
+            }
+            document.getElementById("admin-view-total-fare").textContent = `PKR ${netFare.toLocaleString()}`;
+            
+            const discBadge = document.getElementById("admin-view-discount-badge");
+            if (discBadge) {
+                if (disc > 0) {
+                    discBadge.textContent = `Includes PKR ${disc.toLocaleString()} Special Discount`;
+                    discBadge.classList.remove('hidden');
+                } else {
+                    discBadge.classList.add('hidden');
+                }
+            }
+
             document.getElementById("admin-view-pnr").textContent = order.pnr || 'Pending';
             document.getElementById("admin-view-created-at").textContent = order.created_at || 'N/A';
 
@@ -3631,20 +3707,9 @@
             if (pnrInput) pnrInput.value = order.pnr || '';
             const statusSelect = document.getElementById("admin-allot-status-select");
             if (statusSelect) statusSelect.value = order.status === 'paid' ? 'ticketed' : (order.status || 'ticketed');
-
-            const tbody = document.getElementById("tbody-admin-allot-passengers");
-            if (tbody) {
-                tbody.innerHTML = (order.passengers || []).map((p, idx) => `
-                    <tr>
-                        <td class="p-3 font-mono font-bold text-[#567946]">${idx + 1}</td>
-                        <td class="p-3 font-bold text-[#2D4424]">${escapeHTML(p.full_name || 'Passenger ' + (idx + 1))}</td>
-                        <td class="p-3 font-mono text-[#567946]">${escapeHTML(p.passport_number || 'Pending')}</td>
-                        <td class="p-3">
-                            <input type="text" id="admin-tnum-${p.id}" value="${escapeHTML(p.allotted_ticket_number || '')}" placeholder="e.g. 235-9018239012" class="w-full bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg px-2.5 py-1 text-xs font-mono font-bold text-[#1F2E1A] focus:outline-none focus:border-[#E06A26]">
-                        </td>
-                    </tr>
-                `).join('');
-            }
+            
+            const discInput = document.getElementById("admin-allot-discount-input");
+            if (discInput) discInput.value = order.admin_discount || '0.00';
 
             const modal = document.getElementById("modal-admin-allot-tickets");
             if (modal) {
@@ -3673,14 +3738,7 @@
 
             const pnrVal = document.getElementById("admin-allot-pnr-input").value.trim();
             const statusVal = document.getElementById("admin-allot-status-select").value;
-
-            const passengersPayload = (order.passengers || []).map(p => {
-                const inputEl = document.getElementById(`admin-tnum-${p.id}`);
-                return {
-                    id: p.id,
-                    ticket_number: inputEl ? inputEl.value.trim() : ''
-                };
-            });
+            const discountVal = document.getElementById("admin-allot-discount-input") ? document.getElementById("admin-allot-discount-input").value.trim() : '0.00';
 
             try {
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
@@ -3693,20 +3751,21 @@
                     body: JSON.stringify({
                         pnr: pnrVal,
                         status: statusVal,
-                        passengers: passengersPayload
+                        admin_discount: discountVal,
+                        passengers: []
                     })
                 });
 
                 const data = await res.json();
                 if (data.success) {
-                    alert("Ticket numbers allotted and status updated successfully!");
+                    alert("PNR Code allotted, discount applied & Agent Ledger updated successfully!");
                     closeAdminAllotTicketsModal();
                     fetchAdminTicketOrders();
                 } else {
-                    alert(data.error || "Failed to allot ticket numbers.");
+                    alert(data.error || "Failed to allot PNR Code.");
                 }
             } catch (err) {
-                alert("Server error allotting tickets.");
+                alert("Server error allotting PNR Code.");
             }
         }
 
@@ -5294,11 +5353,39 @@
             }
         }
 
+        function previewPkgCover(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('pkg-cover-preview-img');
+                    if (img) img.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function toggleB2CPackageFeatured(id) {
+            try {
+                const res = await fetch(`/dashboard/admin/api/packages/${id}/toggle-featured/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    fetchAdminB2CPackages();
+                } else {
+                    alert('Failed to toggle featured status: ' + (data.message || 'Error'));
+                }
+            } catch(err) {
+                alert('Network error updating featured status.');
+            }
+        }
+
         function renderB2CPackagesTable() {
             const tbody = document.getElementById('tbody-b2c-packages');
             if (!tbody) return;
             if (!_b2cPackagesData.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-[#567946] font-bold">No packages found. Click "+ Create New Package" to add one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-[#567946] font-bold">No packages found. Click "+ Create New Package" to add one.</td></tr>';
                 return;
             }
             tbody.innerHTML = _b2cPackagesData.map(pkg => {
@@ -5306,9 +5393,14 @@
                 const seats = pkg.available_seats;
                 const seatColor = seats <= 5 ? 'text-rose-600 font-black' : seats <= 10 ? 'text-amber-600 font-bold' : 'text-emerald-700 font-bold';
                 const seatsBar = Math.min(100, Math.round((seats / Math.max(pkg.total_seats, 1)) * 100));
+                const coverImg = pkg.cover_url || (pkg.category === 'hajj' ? '/static/images/hajj_card.png' : '/static/images/umrah_card.png');
+                const isFeatured = !!pkg.is_featured;
                 return `
                 <tr class="hover:bg-[#F6FAF3] transition-colors border-b border-[#E7DCB9]">
                     <td class="p-3 font-bold text-[#2D4424]">#${pkg.id}</td>
+                    <td class="p-3">
+                        <img src="${coverImg}" class="w-12 h-9 object-cover rounded-lg border border-[#D9CBAC] shadow-xs shrink-0" alt="Cover" onerror="this.src='/static/images/umrah_card.png'">
+                    </td>
                     <td class="p-3">
                         <div class="font-black text-[#2D4424] text-xs max-w-xs truncate">${escapeHTML(pkg.title)}</div>
                         <div class="text-[10px] text-[#567946] font-semibold mt-0.5">${escapeHTML(pkg.airline || 'Saudi Airlines')} &bull; ${pkg.duration_days} Days</div>
@@ -5318,6 +5410,11 @@
                     <td class="p-3">
                         <span class="${seatColor}">${seats}/${pkg.total_seats}</span>
                         <div class="w-16 h-1.5 bg-[#E7DCB9] rounded-full mt-1"><div class="h-1.5 rounded-full ${seats > 10 ? 'bg-emerald-500' : 'bg-[#E06A26]'}" style="width:${seatsBar}%"></div></div>
+                    </td>
+                    <td class="p-3 text-center">
+                        <button type="button" onclick="toggleB2CPackageFeatured(${pkg.id})" title="Click to toggle homepage featured status" class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase transition-all border flex items-center justify-center gap-1 mx-auto ${isFeatured ? 'bg-amber-500 text-white border-amber-600 shadow-xs hover:bg-amber-600' : 'bg-slate-100 text-slate-500 border-slate-300 hover:bg-amber-100 hover:text-amber-700'}">
+                            <i class="fa-solid fa-star ${isFeatured ? 'text-white' : 'text-amber-500'}"></i> ${isFeatured ? 'Featured' : 'Standard'}
+                        </button>
                     </td>
                     <td class="p-3 text-xs text-[#567946] font-semibold max-w-[120px] truncate">${escapeHTML(pkg.makkah_hotel_name || 'N/A')}</td>
                     <td class="p-3 text-center">
@@ -5335,6 +5432,158 @@
         function _pkgSet(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
         function _pkgSetSel(id, val) { const el = document.getElementById(id); if (el && val) { for(let o of el.options) { if(o.value === val) { o.selected=true; break; } } } }
 
+        /* ── Category change: show/hide Meal Plan ── */
+        function onPkgCategoryChange(cat) {
+            const mealRow  = document.getElementById('pkg-meal-row');
+            const mealNote = document.getElementById('pkg-meal-umrah-note');
+            if (!mealRow) return;
+            const isUmrah  = (cat || '').toLowerCase() === 'umrah';
+            mealRow.classList.toggle('hidden', isUmrah);
+            if (mealNote) mealNote.classList.toggle('hidden', !isUmrah);
+        }
+
+        /* ── Route type change: show 2-stop or 4-stop builder ── */
+        function onPkgRouteTypeChange(type) {
+            const direct = document.getElementById('pkg-routes-direct');
+            const via    = document.getElementById('pkg-routes-via');
+            if (!direct || !via) return;
+            const isVia = (type || '') === 'via';
+            direct.classList.toggle('hidden', isVia);
+            via.classList.toggle('hidden', !isVia);
+            _syncRouteString();
+        }
+
+        /* ── Assemble hidden route string from individual stop inputs ── */
+        function _syncRouteString() {
+            const type = _pkgVal('pkg-form-route-type');
+            let parts = [];
+            if (type === 'via') {
+                ['pkg-route-v1','pkg-route-v2','pkg-route-v3','pkg-route-v4'].forEach(id => {
+                    const v = _pkgVal(id).trim();
+                    if (v) parts.push(v);
+                });
+            } else {
+                ['pkg-route-d1','pkg-route-d2'].forEach(id => {
+                    const v = _pkgVal(id).trim();
+                    if (v) parts.push(v);
+                });
+            }
+            const route = parts.join(' - ');
+            _pkgSet('pkg-form-routes', route);
+            const preview = document.getElementById('pkg-route-preview');
+            if (preview) preview.innerHTML = `<i class="fa-solid fa-route mr-1"></i> Route: <strong>${route || '—'}</strong>`;
+        }
+
+        /* ── Parse a saved route string back into individual stop inputs ── */
+        function _parseRouteToInputs(routeStr, type) {
+            const stops = (routeStr || '').split(/\s*-\s*/).map(s => s.trim()).filter(Boolean);
+            if (type === 'via') {
+                _pkgSet('pkg-route-v1', stops[0] || '');
+                _pkgSet('pkg-route-v2', stops[1] || '');
+                _pkgSet('pkg-route-v3', stops[2] || '');
+                _pkgSet('pkg-route-v4', stops[3] || '');
+            } else {
+                _pkgSet('pkg-route-d1', stops[0] || '');
+                _pkgSet('pkg-route-d2', stops[stops.length - 1] || '');
+            }
+            _syncRouteString();
+        }
+
+        /* ── Airline combobox helpers ── */
+        function onPkgAirlineSelect(val) {
+            const customInput = document.getElementById('pkg-form-airline-custom');
+            const hint = document.getElementById('pkg-airline-custom-hint');
+            const isCustom = val === '__custom__';
+            if (customInput) customInput.classList.toggle('hidden', !isCustom);
+            if (hint) hint.classList.toggle('hidden', !isCustom);
+            if (isCustom && customInput) customInput.focus();
+        }
+        function _syncCustomAirline(val) {
+            // Nothing extra needed; _pkgGetAirlineVal reads it at submit time
+        }
+        function _pkgGetAirlineVal() {
+            const sel = document.getElementById('pkg-form-airline');
+            if (!sel) return '';
+            if (sel.value === '__custom__') {
+                const ci = document.getElementById('pkg-form-airline-custom');
+                return ci ? ci.value.trim() : '';
+            }
+            return sel.value;
+        }
+        function _pkgSetAirlineVal(airline) {
+            const sel = document.getElementById('pkg-form-airline');
+            const customInput = document.getElementById('pkg-form-airline-custom');
+            const hint = document.getElementById('pkg-airline-custom-hint');
+            if (!sel || !airline) return;
+            // Check if airline is in the predefined list
+            let found = false;
+            for (let o of sel.options) {
+                if (o.value === airline) { o.selected = true; found = true; break; }
+            }
+            if (!found) {
+                // Set to custom
+                for (let o of sel.options) {
+                    if (o.value === '__custom__') { o.selected = true; break; }
+                }
+                if (customInput) { customInput.value = airline; customInput.classList.remove('hidden'); }
+                if (hint) hint.classList.remove('hidden');
+            } else {
+                if (customInput) { customInput.value = ''; customInput.classList.add('hidden'); }
+                if (hint) hint.classList.add('hidden');
+            }
+        }
+
+
+        /* ── Addon rows helpers ── */
+        let _addonRows = [];  // [{name, price}]
+
+        function _addAddonRow(name='', price='') {
+            _addonRows.push({ name: name || '', price: price || '' });
+            _renderAddonRows();
+        }
+
+        function _removeAddonRow(index) {
+            _addonRows.splice(index, 1);
+            _renderAddonRows();
+        }
+
+        function _renderAddonRows() {
+            const container = document.getElementById('pkg-addons-list');
+            if (!container) return;
+            if (_addonRows.length === 0) {
+                container.innerHTML = `<p class="text-[9px] text-[#9CAA94] italic py-1">No add-ons added yet. Click "+ Add Item" to create optional upgrades.</p>`;
+                return;
+            }
+            container.innerHTML = _addonRows.map((row, i) => `
+                <div class="flex items-center gap-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl px-3 py-2">
+                    <i class="fa-solid fa-grip-dots-vertical text-[#D9CBAC] text-[10px]"></i>
+                    <input type="text" placeholder="Add-on name (e.g. VIP Train Ticket)" value="${_escHtml(row.name)}"
+                        onchange="_addonRows[${i}].name=this.value"
+                        class="flex-1 bg-transparent font-semibold text-[#2D4424] text-xs focus:outline-none placeholder-[#B0A88A]">
+                    <span class="text-[9px] font-bold text-[#567946] shrink-0">PKR</span>
+                    <input type="number" placeholder="Price" value="${row.price || ''}"
+                        onchange="_addonRows[${i}].price=parseInt(this.value)||0"
+                        min="0" step="500"
+                        class="w-24 bg-transparent font-extrabold text-[#E06A26] text-xs focus:outline-none text-right placeholder-[#B0A88A]">
+                    <button type="button" onclick="_removeAddonRow(${i})" class="w-6 h-6 flex items-center justify-center rounded-full bg-rose-100 hover:bg-rose-200 text-rose-500 text-[10px] font-black transition-all shrink-0">&times;</button>
+                </div>`).join('');
+        }
+
+        function _escHtml(str) {
+            return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function _buildAddonsArray() {
+            return _addonRows
+                .filter(r => r.name && r.name.trim())
+                .map(r => ({ name: r.name.trim(), price: parseInt(r.price) || 0 }));
+        }
+
+        function _loadAddonsIntoForm(addons) {
+            _addonRows = (Array.isArray(addons) ? addons : []).map(a => ({ name: a.name || '', price: a.price || 0 }));
+            _renderAddonRows();
+        }
+
         function openAddB2CPackageModal() {
             _editingPackageId = null;
             const modal = document.getElementById('modal-b2c-package-form');
@@ -5351,9 +5600,10 @@
             _pkgSet('pkg-form-price-double',  '320000');
             _pkgSet('pkg-form-price-child',   '180000');
             _pkgSet('pkg-form-price-infant',  '65000');
-            _pkgSetSel('pkg-form-airline', 'Saudi Airlines');
+            _pkgSetAirlineVal('Saudi Airlines');
             _pkgSetSel('pkg-form-route-type', 'direct');
-            _pkgSet('pkg-form-routes', 'KHI - JED - MED - KHI');
+            _pkgSet('pkg-form-route-d1', 'KHI');
+            _pkgSet('pkg-form-route-d2', 'JED');
             _pkgSetSel('pkg-form-meal', 'Full Board');
             _pkgSetSel('pkg-form-transport', 'Sharing');
             _pkgSet('pkg-form-luggage', '20 kg + 7 kg Hand Carry');
@@ -5362,12 +5612,23 @@
             _pkgSet('pkg-form-madinah-hotel', 'Pullman Zamzam Madinah');
             _pkgSet('pkg-form-madinah-dist',  "150m from Prophet's Mosque");
             _pkgSet('pkg-form-description', '');
+            const coverInput = document.getElementById('pkg-form-cover-image');
+            if (coverInput) coverInput.value = '';
+            const coverImg = document.getElementById('pkg-cover-preview-img');
+            if (coverImg) coverImg.src = '/static/images/umrah_card.png';
+            const featChk = document.getElementById('pkg-form-featured');
+            if (featChk) featChk.checked = false;
+            onPkgCategoryChange('umrah');
+            onPkgRouteTypeChange('direct');
+            _syncRouteString();
+            _loadAddonsIntoForm([]);
             document.getElementById('pkg-form-error').textContent = '';
             const btn = document.getElementById('pkg-form-submit-btn');
             if (btn) { btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Create Package'; btn.disabled = false; }
             modal.style.display = 'flex';
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
+
 
         async function editB2CPackage(id) {
             _editingPackageId = id;
@@ -5392,9 +5653,11 @@
                     _pkgSet('pkg-form-price-double',  p.price_double  || '');
                     _pkgSet('pkg-form-price-child',   p.price_child   || '');
                     _pkgSet('pkg-form-price-infant',  p.price_infant  || '');
-                    _pkgSetSel('pkg-form-airline', p.airline || 'Saudi Airlines');
-                    _pkgSetSel('pkg-form-route-type', p.flight_route_type || 'direct');
-                    _pkgSet('pkg-form-routes', p.flight_routes);
+                    _pkgSetAirlineVal(p.airline || 'Saudi Airlines');
+                    const routeType = p.flight_route_type || 'direct';
+                    _pkgSetSel('pkg-form-route-type', routeType);
+                    onPkgRouteTypeChange(routeType);
+                    _parseRouteToInputs(p.flight_routes, routeType);
                     _pkgSet('pkg-form-flight-dates', p.flight_dates || '');
                     _pkgSetSel('pkg-form-meal', p.meal_detail || 'Full Board');
                     _pkgSetSel('pkg-form-transport', p.transport_type || 'Sharing');
@@ -5404,6 +5667,14 @@
                     _pkgSet('pkg-form-madinah-hotel', p.madinah_hotel_name);
                     _pkgSet('pkg-form-madinah-dist',  p.madinah_hotel_distance);
                     _pkgSet('pkg-form-description',   p.description);
+                    const coverInput = document.getElementById('pkg-form-cover-image');
+                    if (coverInput) coverInput.value = '';
+                    const coverImg = document.getElementById('pkg-cover-preview-img');
+                    if (coverImg) coverImg.src = p.cover_url || '/static/images/umrah_card.png';
+                    const featChk = document.getElementById('pkg-form-featured');
+                    if (featChk) featChk.checked = !!p.is_featured;
+                    onPkgCategoryChange(p.category || 'umrah');
+                    _loadAddonsIntoForm(p.addons || []);
                     document.getElementById('pkg-form-error').textContent = '';
                     const btn = document.getElementById('pkg-form-submit-btn');
                     if (btn) { btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Changes'; btn.disabled = false; }
@@ -5425,33 +5696,41 @@
             const title = _pkgVal('pkg-form-title').trim();
             if (!title) { errEl.textContent = 'Package title is required.'; return; }
             const sharing = parseFloat(_pkgVal('pkg-form-price-sharing')) || 210000;
-            const body = {
-                title,
-                category:           _pkgVal('pkg-form-category'),
-                price:              sharing,   // base price = sharing price
-                price_sharing:      sharing,
-                price_quad:         parseFloat(_pkgVal('pkg-form-price-quad'))   || sharing + 35000,
-                price_triple:       parseFloat(_pkgVal('pkg-form-price-triple')) || sharing + 65000,
-                price_double:       parseFloat(_pkgVal('pkg-form-price-double')) || sharing + 110000,
-                price_child:        parseFloat(_pkgVal('pkg-form-price-child'))  || 180000,
-                price_infant:       parseFloat(_pkgVal('pkg-form-price-infant')) || 65000,
-                discount_percentage: parseFloat(_pkgVal('pkg-form-discount'))   || 0,
-                duration_days:      parseInt(_pkgVal('pkg-form-duration'))        || 15,
-                available_seats:    parseInt(_pkgVal('pkg-form-seats'))           || 30,
-                total_seats:        parseInt(_pkgVal('pkg-form-seats'))           || 30,
-                airline:            _pkgVal('pkg-form-airline'),
-                flight_route_type:  _pkgVal('pkg-form-route-type'),
-                flight_routes:      _pkgVal('pkg-form-routes'),
-                flight_dates:       _pkgVal('pkg-form-flight-dates'),
-                meal_detail:        _pkgVal('pkg-form-meal'),
-                transport_type:     _pkgVal('pkg-form-transport'),
-                luggage_weight:     _pkgVal('pkg-form-luggage'),
-                makkah_hotel_name:       _pkgVal('pkg-form-makkah-hotel'),
-                makkah_hotel_distance:   _pkgVal('pkg-form-makkah-dist'),
-                madinah_hotel_name:      _pkgVal('pkg-form-madinah-hotel'),
-                madinah_hotel_distance:  _pkgVal('pkg-form-madinah-dist'),
-                description:        _pkgVal('pkg-form-description')
-            };
+
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('category', _pkgVal('pkg-form-category'));
+            formData.append('is_featured', document.getElementById('pkg-form-featured')?.checked ? 'true' : 'false');
+            formData.append('price', sharing);
+            formData.append('price_sharing', sharing);
+            formData.append('price_quad', parseFloat(_pkgVal('pkg-form-price-quad')) || sharing + 35000);
+            formData.append('price_triple', parseFloat(_pkgVal('pkg-form-price-triple')) || sharing + 65000);
+            formData.append('price_double', parseFloat(_pkgVal('pkg-form-price-double')) || sharing + 110000);
+            formData.append('price_child', parseFloat(_pkgVal('pkg-form-price-child')) || 180000);
+            formData.append('price_infant', parseFloat(_pkgVal('pkg-form-price-infant')) || 65000);
+            formData.append('discount_percentage', parseFloat(_pkgVal('pkg-form-discount')) || 0);
+            formData.append('duration_days', parseInt(_pkgVal('pkg-form-duration')) || 15);
+            formData.append('available_seats', parseInt(_pkgVal('pkg-form-seats')) || 30);
+            formData.append('total_seats', parseInt(_pkgVal('pkg-form-seats')) || 30);
+            formData.append('airline', _pkgGetAirlineVal());
+            formData.append('flight_route_type', _pkgVal('pkg-form-route-type'));
+            formData.append('flight_routes', _pkgVal('pkg-form-routes'));
+            formData.append('flight_dates', _pkgVal('pkg-form-flight-dates'));
+            formData.append('meal_detail', (_pkgVal('pkg-form-category') === 'umrah') ? '' : _pkgVal('pkg-form-meal'));
+            formData.append('transport_type', _pkgVal('pkg-form-transport'));
+            formData.append('luggage_weight', _pkgVal('pkg-form-luggage'));
+            formData.append('makkah_hotel_name', _pkgVal('pkg-form-makkah-hotel'));
+            formData.append('makkah_hotel_distance', _pkgVal('pkg-form-makkah-dist'));
+            formData.append('madinah_hotel_name', _pkgVal('pkg-form-madinah-hotel'));
+            formData.append('madinah_hotel_distance', _pkgVal('pkg-form-madinah-dist'));
+            formData.append('description', _pkgVal('pkg-form-description'));
+            formData.append('addons', JSON.stringify(_buildAddonsArray()));
+
+            const coverFileInput = document.getElementById('pkg-form-cover-image');
+            if (coverFileInput && coverFileInput.files && coverFileInput.files[0]) {
+                formData.append('cover_image', coverFileInput.files[0]);
+            }
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin mr-1"></i> Saving...';
             try {
@@ -5460,19 +5739,14 @@
                     : '/dashboard/admin/api/packages/create/';
                 const res = await fetch(url, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: JSON.stringify(body)
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' },
+                    body: formData
                 });
                 const data = await res.json();
                 if (data.success) { closePackageModal(); fetchAdminB2CPackages(); }
                 else { errEl.textContent = data.message || 'Failed to save package.'; }
-            } catch(err) { errEl.textContent = 'Network error. Please try again.'; console.error(err); }
-            finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = _editingPackageId
-                    ? '<i class="fa-solid fa-floppy-disk"></i> Save Changes'
-                    : '<i class="fa-solid fa-floppy-disk"></i> Create Package';
-            }
+            } catch(err) { errEl.textContent = 'Network error saving package.'; console.error(err); }
+            finally { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Package'; }
         }
 
         async function deleteB2CPackage(id) {
@@ -5499,19 +5773,31 @@
             if (!modal) return;
 
             const fmtPKR = v => 'PKR ' + Number(v || 0).toLocaleString();
+            const cat = (pkg.category || 'umrah').toLowerCase();
             document.getElementById('pkgd-title').textContent = pkg.title;
-            document.getElementById('pkgd-cat').textContent = (pkg.category || 'umrah').toUpperCase() + ' Package';
+            document.getElementById('pkgd-cat').textContent = cat.toUpperCase() + ' Package';
             document.getElementById('pkgd-duration').textContent = (pkg.duration_days || '—') + ' Days';
             document.getElementById('pkgd-seats').textContent = (pkg.available_seats || '—') + ' / ' + (pkg.total_seats || '—');
             document.getElementById('pkgd-airline').textContent = pkg.airline || '—';
             document.getElementById('pkgd-route').textContent = pkg.flight_routes || '—';
-            document.getElementById('pkgd-meal').textContent = pkg.meal_detail || 'Full Board';
+            document.getElementById('pkgd-transport').textContent = pkg.transport_type || 'Sharing';
             document.getElementById('pkgd-luggage').textContent = pkg.luggage_weight || '20 kg + 7 kg';
             document.getElementById('pkgd-makkah-hotel').textContent = pkg.makkah_hotel_name || '—';
             document.getElementById('pkgd-makkah-dist').textContent = pkg.makkah_hotel_distance || '—';
             document.getElementById('pkgd-madinah-hotel').textContent = pkg.madinah_hotel_name || '—';
             document.getElementById('pkgd-madinah-dist').textContent = pkg.madinah_hotel_distance || '—';
             document.getElementById('pkgd-description').textContent = pkg.description || 'No description provided.';
+
+            // Show Meal Plan only for Hajj / Tour, hide for Umrah
+            const mealWrapper = document.getElementById('pkgd-meal-wrapper');
+            if (mealWrapper) {
+                if (cat === 'umrah') {
+                    mealWrapper.classList.add('hidden');
+                } else {
+                    mealWrapper.classList.remove('hidden');
+                    document.getElementById('pkgd-meal').textContent = pkg.meal_detail || 'Full Board';
+                }
+            }
 
             const pricesGrid = document.getElementById('pkgd-prices');
             const priceDefs = [
@@ -5604,9 +5890,10 @@
             const form = e.target;
             const formData = new FormData(form);
             try {
+                const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : '') || (document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
                 const res = await fetch('/dashboard/admin/api/flight-tickets/', {
                     method: 'POST',
-                    headers: { 'X-CSRFToken': getCSRFToken() },
+                    headers: { 'X-CSRFToken': csrfToken },
                     body: formData
                 });
                 const data = await res.json();
@@ -5619,7 +5906,8 @@
                     alert('Error creating flight offer: ' + (data.message || data.error || 'Unknown error'));
                 }
             } catch(err) {
-                alert('Network error publishing flight offer.');
+                console.error('Error publishing flight ticket offer:', err);
+                alert('Error publishing flight offer: ' + (err.message || err));
             }
         }
 
@@ -5813,6 +6101,8 @@
         // ══════════════════════════════════════════════════════════
         let _b2cFlightQuotesData = [];
         let _b2cFlightTicketsData = [];
+        let _b2cAirlinesData = [];
+        let _b2cSectorsData = [];
 
         async function fetchAdminB2CFlights() {
             const icon = document.getElementById('icon-refresh-flights');
@@ -5825,18 +6115,54 @@
                 const quotesData = await quotesRes.json();
                 const ticketsData = await ticketsRes.json();
                 if (quotesData.flights) { _b2cFlightQuotesData = quotesData.flights; renderB2CFlightQuotes(); }
-                if (ticketsData.tickets || ticketsData.flight_tickets) { _b2cFlightTicketsData = ticketsData.tickets || ticketsData.flight_tickets; renderB2CFlightTickets(); }
+                if (ticketsData.tickets || ticketsData.flight_tickets) {
+                    _b2cFlightTicketsData = ticketsData.tickets || ticketsData.flight_tickets;
+                    renderB2CFlightTickets();
+                }
             } catch(err) { console.error('B2C flights error:', err); }
             finally { if (icon) icon.classList.remove('fa-spin'); }
         }
 
+        async function fetchAdminB2CAirlines() {
+            const icon = document.getElementById('icon-refresh-airlines');
+            if (icon) icon.classList.add('fa-spin');
+            try {
+                const res = await fetch('/dashboard/admin/api/airlines/');
+                const data = await res.json();
+                if (data.airlines) { _b2cAirlinesData = data.airlines; renderB2CAirlines(); }
+            } catch(err) { console.error('Airlines error:', err); }
+            finally { if (icon) icon.classList.remove('fa-spin'); }
+        }
+
+        async function fetchAdminB2CSectors() {
+            const icon = document.getElementById('icon-refresh-sectors');
+            if (icon) icon.classList.add('fa-spin');
+            try {
+                const res = await fetch('/dashboard/admin/api/sectors/');
+                const data = await res.json();
+                if (data.sectors) { _b2cSectorsData = data.sectors; renderB2CSectors(); }
+            } catch(err) { console.error('Sectors error:', err); }
+            finally { if (icon) icon.classList.remove('fa-spin'); }
+        }
+
         function switchFlightsSubTab(tab) {
-            document.getElementById('flights-subtab-quotes').classList.toggle('hidden', tab !== 'quotes');
-            document.getElementById('flights-subtab-tickets').classList.toggle('hidden', tab !== 'tickets');
-            const qBtn = document.getElementById('flights-subtab-btn-quotes');
-            const tBtn = document.getElementById('flights-subtab-btn-tickets');
-            if (qBtn) { qBtn.classList.toggle('bg-white', tab==='quotes'); qBtn.classList.toggle('shadow-sm', tab==='quotes'); qBtn.classList.toggle('border', tab==='quotes'); qBtn.classList.toggle('border-[#D9CBAC]', tab==='quotes'); }
-            if (tBtn) { tBtn.classList.toggle('bg-white', tab==='tickets'); tBtn.classList.toggle('shadow-sm', tab==='tickets'); tBtn.classList.toggle('border', tab==='tickets'); tBtn.classList.toggle('border-[#D9CBAC]', tab==='tickets'); }
+            const allTabs = ['quotes','tickets','airlines','sectors'];
+            allTabs.forEach(t => {
+                const el = document.getElementById('flights-subtab-' + t);
+                if (el) el.classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById('flights-subtab-btn-' + t);
+                if (btn) {
+                    if (t === tab) {
+                        btn.classList.add('bg-white','shadow-sm','border','border-[#D9CBAC]','text-[#2D4424]');
+                        btn.classList.remove('text-[#567946]');
+                    } else {
+                        btn.classList.remove('bg-white','shadow-sm','border','border-[#D9CBAC]','text-[#2D4424]');
+                        btn.classList.add('text-[#567946]');
+                    }
+                }
+            });
+            if (tab === 'airlines' && !_b2cAirlinesData.length) fetchAdminB2CAirlines();
+            if (tab === 'sectors' && !_b2cSectorsData.length) fetchAdminB2CSectors();
         }
 
         function renderB2CFlightQuotes() {
@@ -5858,7 +6184,7 @@
                         <div class="font-bold text-[#2D4424]">${f.username}</div>
                         <div class="text-[10px] text-[#567946]">${f.email}</div>
                     </td>
-                    <td class="p-3 font-bold text-[#2D4424]">${f.departure_city} → ${f.destination_city}</td>
+                    <td class="p-3 font-bold text-[#2D4424]">${f.departure_city} &rarr; ${f.destination_city}</td>
                     <td class="p-3 text-[11px] text-[#567946]">${f.departure_date}${f.return_date && f.return_date!=='N/A'?'<br>Return: '+f.return_date:''}</td>
                     <td class="p-3"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border ${sc(f.status)}">${f.status}</span></td>
                     <td class="p-3 font-mono font-black text-[#2D4424]">${f.price_quote !== 'N/A' ? 'PKR '+Number(f.price_quote).toLocaleString('en-PK') : '<span class="text-[#567946] font-semibold">Pending</span>'}</td>
@@ -5873,29 +6199,383 @@
         }
 
         function renderB2CFlightTickets() {
-            const tbody = document.getElementById('tbody-b2c-flight-tickets');
-            if (!tbody) return;
+            const grid = document.getElementById('grid-b2c-flight-tickets');
+            if (!grid) return;
+            const el = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+
+            const totalSeats = _b2cFlightTicketsData.reduce((s,t)=>s+(t.available_seats||0),0);
+            const popular = _b2cFlightTicketsData.filter(t=>t.is_popular).length;
+            const prices = _b2cFlightTicketsData.map(t=>Number(t.price)).filter(p=>p>0);
+            const minPrice = prices.length ? Math.min(...prices) : null;
+
+            el('stat-tickets-total', _b2cFlightTicketsData.length);
+            el('stat-tickets-seats', totalSeats);
+            el('stat-tickets-popular', popular);
+            el('stat-tickets-minprice', minPrice ? 'PKR ' + minPrice.toLocaleString('en-PK') : '---');
+
             if (!_b2cFlightTicketsData.length) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-[#567946]">No flight tickets in catalog.</td></tr>`;
+                grid.innerHTML = `<div class="p-12 text-center bg-white rounded-3xl border border-[#E7DCB9]">
+                    <i class="fa-solid fa-plane-slash text-5xl text-[#D9CBAC] block mb-4"></i>
+                    <div class="font-black text-[#2D4424] text-base">No Ticket Offers Yet</div>
+                    <p class="text-xs text-[#567946] mt-1">Click "+ Add Flight Offer" to publish the first ticket.</p>
+                </div>`;
                 return;
             }
-            const classColor = c => c==='business'?'bg-blue-100 text-blue-800':c==='first'?'bg-[#FDF2EA] text-[#E06A26]':'bg-[#F0F6EC] text-[#567946]';
-            tbody.innerHTML = _b2cFlightTicketsData.map(ft => `
+
+            const typeColor = t => t==='direct'?'bg-emerald-100 text-emerald-700 border-emerald-200':'bg-amber-100 text-amber-700 border-amber-200';
+            const classColor = c => c==='business'?'bg-blue-100 text-blue-800 border-blue-200':c==='first'?'bg-[#FDF2EA] text-[#E06A26] border-[#FCE2D2]':'bg-[#F0F6EC] text-[#567946] border-[#C6DCB4]';
+            const seatColor = s => s<=5?'text-rose-600':s<=20?'text-amber-600':'text-emerald-700';
+
+            grid.innerHTML = _b2cFlightTicketsData.map(ft => `
+                <div class="bg-white border border-[#E7DCB9] rounded-3xl shadow-sm hover:shadow-xl hover:border-[#E06A26]/50 transition-all duration-300 overflow-hidden flex flex-col lg:flex-row">
+                    <!-- Airline Brand Strip -->
+                    <div class="bg-[#2D4424] lg:w-48 p-5 flex flex-row lg:flex-col items-center lg:items-start justify-between lg:justify-start gap-4 shrink-0">
+                        <div class="flex items-center gap-3 lg:flex-col lg:items-start">
+                            ${ft.airline_logo ? `<img src="${ft.airline_logo}" alt="${ft.airline_name}" class="w-12 h-12 object-contain rounded-2xl bg-white p-1">` : `
+                                <div class="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-black text-lg shadow-md">
+                                    ${ft.airline_code ? ft.airline_code.slice(0,2).toUpperCase() : ft.airline_name.slice(0,2).toUpperCase()}
+                                </div>
+                            `}
+                            <div>
+                                <div class="text-white font-extrabold text-sm leading-tight">${ft.airline_name}</div>
+                                <div class="text-[#90B576] text-[10px] font-mono mt-0.5">${ft.flight_number}</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1.5">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${typeColor(ft.flight_type)}">${ft.flight_type === 'direct' ? 'Non-Stop' : 'Via / Transit'}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${classColor(ft.ticket_class)}">${ft.ticket_class}</span>
+                            ${ft.has_meal ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-700 text-white border border-emerald-800">🍲 Meal Included</span>' : '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-slate-700 text-white border border-slate-800">🚫 No Meal</span>'}
+                            ${ft.is_popular ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#E06A26] text-white border border-[#C45517]">&#9733; Popular</span>' : ''}
+                        </div>
+                    </div>
+
+                    <!-- Route Boarding Pass Block -->
+                    <div class="flex-1 p-5 flex flex-col gap-4">
+                        <!-- Route Visual -->
+                        <div class="bg-[#F7F3E9] rounded-2xl p-4 border border-[#E7DCB9] flex flex-col gap-3">
+                            <div class="flex items-center justify-between gap-4">
+                                <!-- Departure -->
+                                <div class="text-left">
+                                    <div class="text-3xl font-black text-[#2D4424] tracking-tight">${ft.departure_airport_code || ft.departure_city.slice(0,3).toUpperCase()}</div>
+                                    <div class="text-[11px] text-[#567946] font-semibold mt-0.5">${ft.departure_city}</div>
+                                    <div class="text-[11px] text-[#E06A26] font-bold mt-1">&#9200; ${ft.departure_time_str}</div>
+                                </div>
+                                <!-- Flight Path -->
+                                <div class="flex-1 text-center px-2">
+                                    <div class="text-[9px] text-[#567946] font-bold uppercase tracking-wider">${ft.duration_str || ''}</div>
+                                    <div class="relative my-2">
+                                        <div class="h-0.5 bg-gradient-to-r from-[#E06A26]/40 via-[#567946]/60 to-emerald-400/40 rounded-full"></div>
+                                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white border-2 border-[#E06A26] rounded-full flex items-center justify-center shadow">
+                                            <i class="fa-solid fa-plane text-[#E06A26] text-[9px]"></i>
+                                        </div>
+                                    </div>
+                                    <div class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest">${ft.flight_type==='direct'?'NON-STOP':'TRANSIT VIA ROUTE'}</div>
+                                </div>
+                                <!-- Arrival -->
+                                <div class="text-right">
+                                    <div class="text-3xl font-black text-[#2D4424] tracking-tight">${ft.destination_airport_code || ft.destination_city.slice(0,3).toUpperCase()}</div>
+                                    <div class="text-[11px] text-[#567946] font-semibold mt-0.5">${ft.destination_city}</div>
+                                    <div class="text-[11px] text-[#E06A26] font-bold mt-1">&#9200; ${ft.arrival_time_str}</div>
+                                </div>
+                            </div>
+                            ${ft.via_routes ? `
+                                <div class="bg-white/80 border border-[#E7DCB9] p-2 rounded-xl text-[10px] text-[#2D4424] font-bold flex items-center gap-1.5">
+                                    <i class="fa-solid fa-route text-[#E06A26]"></i> <span class="text-[#567946] uppercase font-extrabold">Via Route Segments:</span> ${ft.via_routes}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <!-- Details Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#E7DCB9]">
+                                <div class="text-[9px] text-[#567946] uppercase font-bold mb-1">Check-in Baggage</div>
+                                <div class="font-extrabold text-[#2D4424] text-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-suitcase-rolling text-blue-500 text-[10px]"></i>${ft.baggage_checkin || '30 kg'}
+                                </div>
+                            </div>
+                            <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#E7DCB9]">
+                                <div class="text-[9px] text-[#567946] uppercase font-bold mb-1">Hand Carry</div>
+                                <div class="font-extrabold text-[#2D4424] text-xs flex items-center gap-1.5">
+                                    <i class="fa-solid fa-briefcase text-purple-500 text-[10px]"></i>${ft.baggage_hand || '7 kg'}
+                                </div>
+                            </div>
+                            <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#E7DCB9]">
+                                <div class="text-[9px] text-[#567946] uppercase font-bold mb-1">In-Flight Meals</div>
+                                <div class="font-extrabold text-xs ${ft.has_meal ? 'text-emerald-700' : 'text-slate-600'} flex items-center gap-1">
+                                    <i class="fa-solid fa-utensils text-[10px]"></i>${ft.meal_service || (ft.has_meal ? 'Meal Included' : 'No Meal')}
+                                </div>
+                            </div>
+                            <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#E7DCB9]">
+                                <div class="text-[9px] text-[#567946] uppercase font-bold mb-1">Seats Available</div>
+                                <div class="font-extrabold text-xs ${seatColor(ft.available_seats)}">${ft.available_seats} <span class="text-[#567946] font-semibold">/ ${ft.total_seats}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Baggage & Fare Tier Options Allotment -->
+                        <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#E7DCB9]">
+                            <div class="text-[9px] text-[#567946] uppercase font-bold mb-2 flex items-center gap-1">
+                                <i class="fa-solid fa-tags text-[#E06A26]"></i> Allotted Baggage Fares Listing
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-[10px]">
+                                ${ft.price_handcarry ? `<span class="bg-slate-800 text-white px-3 py-1 rounded-lg font-black">Hand Carry Only — PKR ${Number(ft.price_handcarry).toLocaleString('en-PK')}</span>` : ''}
+                                <span class="bg-[#E06A26] text-white px-3 py-1 rounded-lg font-black">20 KG — PKR ${Number(ft.price_20kg||ft.price).toLocaleString('en-PK')}</span>
+                                <span class="bg-white border border-[#D9CBAC] text-[#2D4424] px-3 py-1 rounded-lg font-bold">30 KG — PKR ${Number(ft.price_30kg||(Number(ft.price)+15000)).toLocaleString('en-PK')}</span>
+                                <span class="bg-white border border-[#D9CBAC] text-[#2D4424] px-3 py-1 rounded-lg font-bold">40 KG — PKR ${Number(ft.price_40kg||(Number(ft.price)+30000)).toLocaleString('en-PK')}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Price & Actions -->
+                    <div class="border-t lg:border-t-0 lg:border-l border-[#E7DCB9] p-5 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 shrink-0 lg:w-48">
+                        <div class="text-right">
+                            <div class="text-[10px] text-[#567946] uppercase font-bold">Starting Fare</div>
+                            <div class="text-2xl font-black text-[#E06A26]">PKR ${Number(ft.price).toLocaleString('en-PK')}</div>
+                            ${ft.original_price ? '<div class="text-xs text-[#D9CBAC] line-through font-semibold">PKR '+Number(ft.original_price).toLocaleString('en-PK')+'</div>' : ''}
+                            <div class="text-[9px] text-[#567946] mt-0.5">ID: #${ft.id}</div>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <button onclick="deleteB2CFlightTicket(${ft.id})" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-bold rounded-xl border border-rose-200 flex items-center gap-1.5 transition-all">
+                                <i class="fa-solid fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function deleteB2CFlightTicket(ticketId) {
+            if (!confirm('Are you sure you want to delete this flight ticket offer?')) return;
+            try {
+                const res = await fetch(`/dashboard/admin/api/flight-tickets/${ticketId}/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    _b2cFlightTicketsData = _b2cFlightTicketsData.filter(t => t.id !== ticketId);
+                    renderB2CFlightTickets();
+                } else {
+                    alert('Failed to delete: ' + (data.message || 'Unknown error'));
+                }
+            } catch(err) { alert('Network error deleting ticket.'); }
+        }
+
+        function renderB2CAirlines() {
+            const grid = document.getElementById('grid-b2c-airlines');
+            if (!grid) return;
+            if (!_b2cAirlinesData.length) {
+                grid.innerHTML = `<div class="col-span-full p-10 text-center bg-white rounded-3xl border border-[#E7DCB9]">
+                    <i class="fa-solid fa-plane text-5xl text-[#D9CBAC] mb-3 block"></i>
+                    <div class="font-black text-[#2D4424]">No Airlines Added Yet</div>
+                    <p class="text-xs text-[#567946] mt-1">Click "Add Airline" to add your first airline partner.</p>
+                </div>`;
+                return;
+            }
+            grid.innerHTML = _b2cAirlinesData.map(a => `
+                <div class="bg-white border border-[#E7DCB9] rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[#E06A26]/50 transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        ${a.logo_url ? `
+                            <img src="${a.logo_url}" alt="${a.name}" class="w-12 h-12 object-contain rounded-2xl bg-white border border-[#E7DCB9] p-1 shadow-sm">
+                        ` : `
+                            <div class="w-12 h-12 rounded-2xl bg-[#2D4424] text-white flex items-center justify-center font-black text-lg shadow-sm">
+                                ${(a.iata_code || a.name.slice(0,2)).slice(0,2).toUpperCase()}
+                            </div>
+                        `}
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${a.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-600'}">${a.is_active ? 'Active' : 'Inactive'}</span>
+                    </div>
+                    <div class="font-extrabold text-[#2D4424] text-sm truncate">${a.name}</div>
+                    <div class="text-[10px] text-[#567946] font-mono mt-0.5">IATA: ${a.iata_code || '—'}</div>
+                    <div class="mt-3 pt-3 border-t border-[#E7DCB9] flex items-center justify-between">
+                        <span class="text-[10px] text-[#567946]">ID: #${a.id}</span>
+                        <button onclick="deleteB2CAirline(${a.id})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[9px] font-bold rounded-lg border border-rose-200 transition-all">
+                            <i class="fa-solid fa-trash-alt"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function deleteB2CAirline(airlineId) {
+            if (!confirm('Delete this airline? This may affect linked flight records.')) return;
+            try {
+                const res = await fetch(`/dashboard/admin/api/airlines/${airlineId}/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    _b2cAirlinesData = _b2cAirlinesData.filter(a => a.id !== airlineId);
+                    renderB2CAirlines();
+                } else { alert('Failed: ' + (data.message || '')); }
+            } catch(err) { alert('Network error.'); }
+        }
+
+        function renderB2CSectors() {
+            const tbody = document.getElementById('tbody-b2c-sectors');
+            if (!tbody) return;
+            if (!_b2cSectorsData.length) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-[#567946]">No sectors found. Click "Add Sector" to create one.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = _b2cSectorsData.map(s => `
                 <tr class="hover:bg-[#F6FAF3] transition-colors">
-                    <td class="p-3 font-mono font-bold text-[#2D4424]">#${ft.id}</td>
+                    <td class="p-3 font-mono font-bold text-[#2D4424]">#${s.id}</td>
+                    <td class="p-3 font-extrabold text-[#2D4424]">${s.name}</td>
+                    <td class="p-3 text-[#567946] font-semibold">${s.origin_city}</td>
+                    <td class="p-3 text-[#567946] font-semibold">${s.destination_city}</td>
+                    <td class="p-3">${s.is_round_trip ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-100 text-blue-700 border border-blue-200">Round Trip</span>' : '<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-[#F0F6EC] text-[#567946] border border-[#C6DCB4]">One Way</span>'}</td>
+                    <td class="p-3">${s.is_active ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200">Active</span>' : '<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-600 border border-rose-200">Inactive</span>'}</td>
+                    <td class="p-3 text-[10px] text-[#567946] font-mono">${s.created_at ? s.created_at.split(' ')[0] : '—'}</td>
                     <td class="p-3">
-                        <div class="font-bold text-[#2D4424]">${ft.airline_name}</div>
-                        <div class="text-[10px] text-[#567946]">${ft.airline_code||''}</div>
+                        <button onclick="deleteB2CSector(${s.id})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[9px] font-bold rounded-lg border border-rose-200 transition-all">
+                            <i class="fa-solid fa-trash-alt"></i> Delete
+                        </button>
                     </td>
-                    <td class="p-3 font-mono text-[#2D4424] font-bold">${ft.flight_number}</td>
-                    <td class="p-3 font-bold text-[#2D4424]">${ft.departure_city} → ${ft.destination_city}</td>
-                    <td class="p-3 text-[11px] text-[#567946]">${ft.departure_time_str} → ${ft.arrival_time_str}<br>${ft.duration_str||''}</td>
-                    <td class="p-3"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${classColor(ft.ticket_class)}">${ft.ticket_class}</span></td>
-                    <td class="p-3 font-mono font-black text-[#2D4424]">PKR ${Number(ft.price).toLocaleString('en-PK')}</td>
-                    <td class="p-3">${ft.available_seats} / ${ft.total_seats}</td>
-                    <td class="p-3">${ft.is_popular?'<span class="text-[#E06A26] text-xs font-black">★ Popular</span>':'<span class="text-[#D9CBAC] text-xs">—</span>'}</td>
                 </tr>
             `).join('');
+        }
+
+        async function deleteB2CSector(sectorId) {
+            if (!confirm('Delete this sector? This may affect linked flights and packages.')) return;
+            try {
+                const res = await fetch(`/dashboard/admin/api/sectors/${sectorId}/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    _b2cSectorsData = _b2cSectorsData.filter(s => s.id !== sectorId);
+                    renderB2CSectors();
+                } else { alert('Failed: ' + (data.message || '')); }
+            } catch(err) { alert('Network error.'); }
+        }
+
+        function openAddAirlineModal() {
+            let modal = document.getElementById('modal-add-airline');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-add-airline';
+                modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+                modal.innerHTML = `
+                    <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5">
+                        <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
+                            <h3 class="font-black text-[#2D4424] flex items-center gap-2"><i class="fa-solid fa-plane-departure text-[#E06A26]"></i> Add Airline Partner</h3>
+                            <button onclick="document.getElementById('modal-add-airline').remove()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+                        </div>
+                        <form id="form-add-airline" onsubmit="submitAddAirline(event)" class="space-y-4 text-xs" enctype="multipart/form-data">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Airline Name *</label>
+                                <input type="text" name="name" required placeholder="e.g. Pakistan International Airlines" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">IATA Code (2-Letter)</label>
+                                <input type="text" name="iata_code" maxlength="10" placeholder="e.g. PK, SV, EK" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] uppercase">
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Airline Logo Image (Upload Logo)</label>
+                                <input type="file" name="logo" accept="image/*" class="w-full px-3 py-2 border border-[#D9CBAC] bg-[#F7F3E9] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" name="is_active" id="airline-is-active" checked class="h-4 w-4 text-[#E06A26] rounded border-[#D9CBAC]">
+                                <label for="airline-is-active" class="font-bold text-[#2D4424]">Active (Visible in flights)</label>
+                            </div>
+                            <div class="flex justify-end gap-2 pt-2 border-t border-[#E7DCB9]">
+                                <button type="button" onclick="document.getElementById('modal-add-airline').remove()" class="px-4 py-2 bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] font-bold rounded-xl">Cancel</button>
+                                <button type="submit" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white font-bold rounded-xl shadow-md">Add Airline</button>
+                            </div>
+                        </form>
+                    </div>`;
+                document.body.appendChild(modal);
+            } else { modal.style.display = 'flex'; }
+        }
+
+        async function submitAddAirline(e) {
+            e.preventDefault();
+            const form = e.target;
+            const fd = new FormData(form);
+            fd.append('is_active', form.querySelector('[name="is_active"]').checked ? 'true' : 'false');
+            try {
+                const res = await fetch('/dashboard/admin/api/airlines/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: fd
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('modal-add-airline').remove();
+                    await fetchAdminB2CAirlines();
+                    switchFlightsSubTab('airlines');
+                } else { alert('Error: ' + (data.message || 'Unknown')); }
+            } catch(err) { alert('Network error.'); }
+        }
+
+        function openAddSectorModal() {
+            let modal = document.getElementById('modal-add-sector-b2c');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-add-sector-b2c';
+                modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+                modal.innerHTML = `
+                    <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5">
+                        <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
+                            <h3 class="font-black text-[#2D4424] flex items-center gap-2"><i class="fa-solid fa-route text-[#567946]"></i> Add Sector / Route</h3>
+                            <button onclick="document.getElementById('modal-add-sector-b2c').remove()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+                        </div>
+                        <form id="form-add-sector-b2c" onsubmit="submitAddSector(event)" class="space-y-4 text-xs">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Sector Name *</label>
+                                <input type="text" name="name" required placeholder="e.g. KARACHI-JEDDAH-KARACHI" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-extrabold text-[#2D4424] mb-1">Origin City *</label>
+                                    <input type="text" name="origin_city" required placeholder="e.g. Karachi" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                                </div>
+                                <div>
+                                    <label class="block font-extrabold text-[#2D4424] mb-1">Destination City *</label>
+                                    <input type="text" name="destination_city" required placeholder="e.g. Jeddah" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" name="is_round_trip" id="sector-round-trip" class="h-4 w-4 text-[#E06A26] rounded border-[#D9CBAC]">
+                                    <label for="sector-round-trip" class="font-bold text-[#2D4424]">Round Trip</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" name="is_active" id="sector-is-active" checked class="h-4 w-4 text-[#E06A26] rounded border-[#D9CBAC]">
+                                    <label for="sector-is-active" class="font-bold text-[#2D4424]">Active</label>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-2 pt-2 border-t border-[#E7DCB9]">
+                                <button type="button" onclick="document.getElementById('modal-add-sector-b2c').remove()" class="px-4 py-2 bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] font-bold rounded-xl">Cancel</button>
+                                <button type="submit" class="px-5 py-2 bg-[#567946] hover:bg-[#2D4424] text-white font-bold rounded-xl shadow-md">Create Sector</button>
+                            </div>
+                        </form>
+                    </div>`;
+                document.body.appendChild(modal);
+            } else { modal.style.display = 'flex'; }
+        }
+
+        async function submitAddSector(e) {
+            e.preventDefault();
+            const form = e.target;
+            const fd = new FormData(form);
+            fd.append('is_round_trip', form.querySelector('[name="is_round_trip"]').checked ? 'true' : 'false');
+            fd.append('is_active', form.querySelector('[name="is_active"]').checked ? 'true' : 'false');
+            try {
+                const res = await fetch('/dashboard/admin/api/sectors/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: fd
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('modal-add-sector-b2c').remove();
+                    _b2cSectorsData = [];
+                    await fetchAdminB2CSectors();
+                    switchFlightsSubTab('sectors');
+                } else { alert('Error: ' + (data.message || 'Unknown')); }
+            } catch(err) { alert('Network error.'); }
         }
 
         // Flight quote modal (inline) 
@@ -7036,7 +7716,7 @@
                     <label class="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-[#D9CBAC] hover:border-[#E06A26] rounded-2xl cursor-pointer bg-[#F7F3E9]/50 hover:bg-[#FDF2EA] transition-all group">
                         <i class="fa-solid fa-cloud-arrow-up text-[#E06A26] text-xl group-hover:scale-110 transition-transform"></i>
                         <span class="text-xs font-bold text-[#2D4424]">Choose Photo File (JPG, PNG, WebP)</span>
-                        <input type="file" id="ach-form-photo" accept="image/*" class="hidden" onchange="previewAchievementPhoto(this)">
+                        <input type="file" id="ach-form-photo" name="photo" accept="image/*" class="sr-only" onchange="previewAchievementPhoto(this)">
                     </label>
                 </div>
 
@@ -7799,11 +8479,11 @@
 
     <!-- Modal: Admin Allot Passenger Tickets & Status -->
     <div id="modal-admin-allot-tickets" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4" style="display: none;">
-        <div class="bg-white border border-[#E7DCB9] rounded-3xl max-w-2xl w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white border border-[#E7DCB9] rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5">
             <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-4">
                 <div>
                     <h3 class="text-base font-extrabold text-[#2D4424] flex items-center gap-2">
-                        <i class="fa-solid fa-ticket text-[#E06A26]"></i> Allot Passenger Ticket Numbers
+                        <i class="fa-solid fa-ticket text-[#E06A26]"></i> Allot Order PNR Code
                     </h3>
                     <p class="text-xs text-[#567946] mt-0.5" id="admin-allot-order-subtitle">Reference: —</p>
                 </div>
@@ -7830,39 +8510,25 @@
                 </div>
             </div>
 
-            <!-- PNR & Status Controls -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- PNR, Status & Admin Discount Controls -->
+            <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-extrabold text-[#2D4424] uppercase mb-1">PNR Code</label>
-                    <input type="text" id="admin-allot-pnr-input" placeholder="e.g. ABC123" class="w-full bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl px-3 py-2 text-xs font-mono font-bold text-[#1F2E1A] focus:outline-none focus:border-[#E06A26]">
+                    <label class="block text-xs font-extrabold text-[#2D4424] uppercase mb-1">PNR Code (Airline Reference)</label>
+                    <input type="text" id="admin-allot-pnr-input" placeholder="e.g. PK-94820 or SV-78219" class="w-full bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl px-4 py-2.5 text-sm font-mono font-bold text-[#1F2E1A] focus:outline-none focus:border-[#E06A26]">
                 </div>
-                <div>
-                    <label class="block text-xs font-extrabold text-[#2D4424] uppercase mb-1">Order Status</label>
-                    <select id="admin-allot-status-select" class="w-full bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl px-3 py-2 text-xs font-bold text-[#1F2E1A] focus:outline-none focus:border-[#E06A26]">
-                        <option value="ticketed">✓ Ticketed (Tickets OK &amp; Issued)</option>
-                        <option value="paid">✓ Paid &amp; Confirmed</option>
-                        <option value="hold">⏰ On Hold</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Passengers Ticket Numbers Table -->
-            <div class="space-y-2">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-[#567946]">Passenger Ticket Number Allotment</h4>
-                <div class="border border-[#E7DCB9] rounded-2xl overflow-hidden">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="bg-[#2D4424] text-white text-[10px] uppercase font-bold tracking-wider">
-                                <th class="p-3">#</th>
-                                <th class="p-3">Passenger Name</th>
-                                <th class="p-3">Passport #</th>
-                                <th class="p-3">Allotted Ticket Number</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tbody-admin-allot-passengers" class="divide-y divide-[#E7DCB9] text-[#1F2E1A] bg-white">
-                            <!-- Dynamic -->
-                        </tbody>
-                    </table>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] uppercase mb-1">Order Status</label>
+                        <select id="admin-allot-status-select" class="w-full bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl px-3 py-2 text-xs font-bold text-[#1F2E1A] focus:outline-none focus:border-[#E06A26]">
+                            <option value="ticketed">✓ Ticketed / PNR Allotted</option>
+                            <option value="paid">✓ Paid &amp; Confirmed</option>
+                            <option value="hold">⏰ On Hold</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] uppercase mb-1">Admin Discount (PKR)</label>
+                        <input type="number" step="0.01" min="0" id="admin-allot-discount-input" placeholder="e.g. 5000 (Credited to Agent Ledger)" class="w-full bg-[#FDF2EA] border border-[#FCE2D2] text-[#E06A26] rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:border-[#E06A26]">
+                    </div>
                 </div>
             </div>
 
@@ -8213,21 +8879,27 @@
                         <input type="text" name="departure_city" required placeholder="Karachi (KHI)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
                     </div>
                     <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Departure Airport Code (3-Letter)</label>
-                        <input type="text" name="departure_airport_code" placeholder="e.g. KHI (Auto-extracted if blank)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] uppercase">
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Departure Airport Code</label>
+                        <input type="text" name="departure_airport_code" placeholder="e.g. KHI" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] uppercase">
                     </div>
                     <div>
                         <label class="block font-extrabold text-[#2D4424] mb-1">Destination City *</label>
                         <input type="text" name="destination_city" required placeholder="Jeddah (JED)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
                     </div>
                     <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Destination Airport Code (3-Letter)</label>
-                        <input type="text" name="destination_airport_code" placeholder="e.g. JED (Auto-extracted if blank)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] uppercase">
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Destination Airport Code</label>
+                        <input type="text" name="destination_airport_code" placeholder="e.g. JED" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] uppercase">
                     </div>
+
+                    <!-- Flight Type: Direct vs Via -->
                     <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Ticket Price (PKR) *</label>
-                        <input type="number" step="0.01" name="price" required placeholder="145000" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Flight Type *</label>
+                        <select name="flight_type" id="add-flight-type-select" onchange="toggleViaRouteFields(this.value)" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] bg-white font-bold">
+                            <option value="direct">Direct (Non-Stop)</option>
+                            <option value="one_stop">Via / Connecting (Transit)</option>
+                        </select>
                     </div>
+
                     <div>
                         <label class="block font-extrabold text-[#2D4424] mb-1">Ticket Class</label>
                         <select name="ticket_class" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] bg-white font-bold">
@@ -8236,6 +8908,61 @@
                             <option value="first">First Class</option>
                         </select>
                     </div>
+
+                    <!-- In-Flight Meal Option -->
+                    <div>
+                        <label class="block font-extrabold text-[#2D4424] mb-1">In-Flight Meal Option *</label>
+                        <select name="has_meal" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26] bg-white font-bold">
+                            <option value="true">🍲 Meal Included</option>
+                            <option value="false">🚫 No Meal (Paid/None)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Meal Service Description</label>
+                        <input type="text" name="meal_service" value="Hot Meal & Drinks Included" placeholder="e.g. Hot Meal Included" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                    </div>
+                </div>
+
+                <!-- Via Route Segments (Up to 4 Routes) -->
+                <div id="via-routes-container" class="space-y-2 bg-[#F8FAF6] p-4 rounded-2xl border border-[#E7DCB9] hidden">
+                    <div class="font-extrabold text-[#2D4424] text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-route text-[#E06A26]"></i> Via / Transit Route Segments (Up to 4 Routes)
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="text" name="via_route1" placeholder="Segment 1: e.g. KHI → MCT" class="px-3 py-1.5 border border-[#D9CBAC] rounded-lg">
+                        <input type="text" name="via_route2" placeholder="Segment 2: e.g. MCT → DXB" class="px-3 py-1.5 border border-[#D9CBAC] rounded-lg">
+                        <input type="text" name="via_route3" placeholder="Segment 3: e.g. DXB → MED" class="px-3 py-1.5 border border-[#D9CBAC] rounded-lg">
+                        <input type="text" name="via_route4" placeholder="Segment 4: e.g. MED → JED" class="px-3 py-1.5 border border-[#D9CBAC] rounded-lg">
+                    </div>
+                </div>
+
+                <!-- Allotted Baggage Fares Listing -->
+                <div class="bg-[#FDF2EA] p-4 rounded-2xl border border-[#FCE2D2] space-y-3">
+                    <div class="font-extrabold text-[#2D4424] text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-tags text-[#E06A26]"></i> Allotted Fares by Baggage Allowance
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block font-bold text-[#567946] text-[10px] uppercase mb-1">Hand Carry Fare (PKR)</label>
+                            <input type="number" step="0.01" name="price_handcarry" placeholder="110000" class="w-full px-3 py-1.5 border border-[#D9CBAC] rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-[#567946] text-[10px] uppercase mb-1">20 KG Fare (PKR) *</label>
+                            <input type="number" step="0.01" name="price" required placeholder="145000" class="w-full px-3 py-1.5 border border-[#D9CBAC] rounded-xl bg-white font-bold text-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-[#567946] text-[10px] uppercase mb-1">30 KG Fare (PKR)</label>
+                            <input type="number" step="0.01" name="price_30kg" placeholder="160000" class="w-full px-3 py-1.5 border border-[#D9CBAC] rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-[#567946] text-[10px] uppercase mb-1">40 KG Fare (PKR)</label>
+                            <input type="number" step="0.01" name="price_40kg" placeholder="175000" class="w-full px-3 py-1.5 border border-[#D9CBAC] rounded-xl bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block font-extrabold text-[#2D4424] mb-1">Departure Time</label>
                         <input type="text" name="departure_time_str" value="03:30 AM" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
@@ -8248,16 +8975,12 @@
                         <label class="block font-extrabold text-[#2D4424] mb-1">Total Seats Available</label>
                         <input type="number" name="total_seats" value="50" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
                     </div>
-                    <div>
-                        <label class="block font-extrabold text-[#2D4424] mb-1">Baggage Check-in</label>
-                        <input type="text" name="baggage_checkin" value="30 kg" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
-                    </div>
                 </div>
+
                 <div class="flex justify-end gap-3 pt-4 border-t border-[#E7DCB9]">
                     <button type="button" onclick="closeAddB2CFlightModal()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] font-bold rounded-xl">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white font-bold rounded-xl shadow-md">+ Publish Flight Offer</button>
-                </div>
-            </form>
+                    <button type="submit" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white font-bold rounded-xl shadow-md">+ Publish Flight Ticket Offer</button>
+                </div></form>
         </div>
     </div>
 
@@ -9038,6 +9761,28 @@
                             <label class="block font-extrabold text-[#2D4424] mb-1">Discount (%)</label>
                             <input type="number" id="pkg-form-discount" min="0" max="100" step="0.5" placeholder="0" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
+                        <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5 mt-1">
+                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-image text-[#E06A26]"></i> Package Cover Image</span>
+                                <span class="text-[10px] text-[#567946] font-semibold">(Shown on Website & Admin List)</span>
+                            </label>
+                            <div class="flex items-center gap-4">
+                                <div class="w-24 h-16 rounded-xl overflow-hidden border-2 border-dashed border-[#D9CBAC] bg-white flex items-center justify-center shrink-0 shadow-inner">
+                                    <img id="pkg-cover-preview-img" src="/static/images/umrah_card.png" class="w-full h-full object-cover" alt="Cover Preview" onerror="this.src='/static/images/umrah_card.png'">
+                                </div>
+                                <div class="flex-1 space-y-1.5">
+                                    <input type="file" id="pkg-form-cover-image" accept="image/*" onchange="previewPkgCover(this)" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-[#2D4424] file:text-white hover:file:bg-[#1a2c14] cursor-pointer">
+                                    <p class="text-[10px] text-[#567946] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Upload JPG/PNG/WEBP cover image file. Auto-shown on website cards.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sm:col-span-2 flex items-center gap-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                            <input type="checkbox" id="pkg-form-featured" class="w-4 h-4 text-[#E06A26] rounded border-amber-300 focus:ring-[#E06A26] cursor-pointer">
+                            <label for="pkg-form-featured" class="text-xs font-black text-amber-900 cursor-pointer flex items-center gap-1.5">
+                                <i class="fa-solid fa-star text-amber-500"></i> Feature this package on Home Page
+                            </label>
+                            <span class="text-[10px] text-amber-700 ml-auto font-semibold hidden sm:inline">Will appear in Home Page Featured Packages</span>
+                        </div>
                     </div>
                 </div>
 
@@ -9097,27 +9842,67 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Airline</label>
-                            <select id="pkg-form-airline" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                            <select id="pkg-form-airline" onchange="onPkgAirlineSelect(this.value)" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                                 <option value="Saudi Airlines">Saudi Airlines (Saudia)</option>
                                 <option value="PIA">PIA (Pakistan International)</option>
                                 <option value="Emirates">Emirates</option>
                                 <option value="Qatar Airways">Qatar Airways</option>
                                 <option value="Air Arabia">Air Arabia</option>
                                 <option value="FlyDubai">FlyDubai</option>
-                                <option value="Other">Other</option>
+                                <option value="Serene Air">Serene Air</option>
+                                <option value="Air Blue">Air Blue</option>
+                                <option value="Turkish Airlines">Turkish Airlines</option>
+                                <option value="Etihad Airways">Etihad Airways</option>
+                                <option value="__custom__">✏️ Custom Airline...</option>
                             </select>
+                            <!-- Custom airline text input (shown when Custom is selected) -->
+                            <input type="text" id="pkg-form-airline-custom" placeholder="Type airline name here..." class="hidden w-full mt-2 px-3 py-2.5 bg-white border-2 border-[#E06A26] rounded-xl font-bold text-[#2D4424] focus:outline-none" oninput="_syncCustomAirline(this.value)">
+                            <p class="hidden text-[9px] text-[#567946] mt-1 font-semibold" id="pkg-airline-custom-hint"><i class="fa-solid fa-circle-info mr-1"></i>This airline name will be shown on the package listing.</p>
                         </div>
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Route Type</label>
-                            <select id="pkg-form-route-type" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                                <option value="direct">Direct Flight</option>
-                                <option value="via">Via / Connecting</option>
+                            <select id="pkg-form-route-type" onchange="onPkgRouteTypeChange(this.value)" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="direct">Direct Flight (2 stops)</option>
+                                <option value="via">Via / Connecting (4 stops)</option>
                             </select>
                         </div>
-                        <div class="sm:col-span-2">
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Flight Route</label>
-                            <input type="text" id="pkg-form-routes" placeholder="KHI - JED - MED - KHI" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                    </div>
+                    <!-- Dynamic Route Builder -->
+                    <div id="pkg-route-builder" class="mt-3">
+                        <label class="block font-extrabold text-[#2D4424] mb-2 text-[10px] uppercase tracking-wider"><i class="fa-solid fa-route text-[#E06A26] mr-1"></i> Flight Route Stops</label>
+                        <!-- Direct: 2 stops -->
+                        <div id="pkg-routes-direct" class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Origin</label>
+                                <input type="text" id="pkg-route-d1" placeholder="KHI" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Destination</label>
+                                <input type="text" id="pkg-route-d2" placeholder="JED" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                            </div>
                         </div>
+                        <!-- Via: 4 stops -->
+                        <div id="pkg-routes-via" class="grid grid-cols-4 gap-2 hidden">
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">From</label>
+                                <input type="text" id="pkg-route-v1" placeholder="KHI" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Via</label>
+                                <input type="text" id="pkg-route-v2" placeholder="DXB" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Dest.</label>
+                                <input type="text" id="pkg-route-v3" placeholder="JED" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Return</label>
+                                <input type="text" id="pkg-route-v4" placeholder="KHI" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                            </div>
+                        </div>
+                        <!-- Hidden field stores final route string -->
+                        <input type="hidden" id="pkg-form-routes">
+                        <p id="pkg-route-preview" class="text-[9px] text-[#567946] font-bold mt-1.5"><i class="fa-solid fa-route mr-1"></i> Route: —</p>
                     </div>
                 </div>
 
@@ -9125,7 +9910,8 @@
                 <div class="border-t border-[#E7DCB9] pt-4">
                     <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Inclusions & Services</p>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
+                        <!-- Meal Plan: only shown for Hajj & Tour packages, hidden for Umrah -->
+                        <div id="pkg-meal-row" class="hidden">
                             <label class="block font-extrabold text-[#2D4424] mb-1">Meal Plan</label>
                             <select id="pkg-form-meal" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                                 <option value="Full Board">Full Board (3 meals)</option>
@@ -9147,6 +9933,11 @@
                             <label class="block font-extrabold text-[#2D4424] mb-1">Luggage</label>
                             <input type="text" id="pkg-form-luggage" placeholder="20 kg + 7 kg Hand Carry" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
+                    </div>
+                    <!-- Umrah info note -->
+                    <div id="pkg-meal-umrah-note" class="mt-2 flex items-center gap-2 text-[10px] text-[#567946] bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                        <i class="fa-solid fa-circle-info text-emerald-500"></i>
+                        <span>Umrah packages do not include a meal plan. Meals are arranged independently by pilgrims.</span>
                     </div>
                 </div>
 
@@ -9179,7 +9970,19 @@
                     <textarea id="pkg-form-description" rows="3" placeholder="Describe the package highlights, inclusions, and special features..." class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-medium text-[#2D4424] focus:outline-none focus:border-[#E06A26]"></textarea>
                 </div>
 
-                <!-- Actions -->
+                <!-- ── SECTION 7: Optional Add-ons ── -->
+                <div class="border-t border-[#E7DCB9] pt-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-sliders"></i> Optional Add-ons <span class="text-[9px] text-[#567946] font-semibold normal-case ml-1">(shown as checkboxes on website)</span></p>
+                        <button type="button" onclick="_addAddonRow()" class="px-2.5 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white text-[9px] font-black rounded-lg flex items-center gap-1 transition-all"><i class="fa-solid fa-plus"></i> Add Item</button>
+                    </div>
+                    <div id="pkg-addons-list" class="space-y-2">
+                        <!-- Rows injected by JS -->
+                    </div>
+                    <p class="text-[9px] text-[#567946] mt-2 font-semibold"><i class="fa-solid fa-circle-info mr-1"></i>Leave empty to hide add-ons section on the website. Customers select these optional upgrades before booking.</p>
+                </div>
+
+
                 <div class="flex justify-end gap-3 pt-3 border-t border-[#E7DCB9] sticky bottom-0 bg-white pb-1">
                     <button type="button" onclick="closePackageModal()" class="px-5 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] font-extrabold rounded-xl text-xs hover:bg-[#EBD8B3] transition-all">Cancel</button>
                     <button type="submit" id="pkg-form-submit-btn" class="px-7 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white font-black rounded-xl text-xs shadow-md transition-all flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i> Create Package</button>
@@ -9219,13 +10022,18 @@
                     <p class="text-[9px] font-black text-[#567946] uppercase">Airline</p>
                     <p id="pkgd-airline" class="font-extrabold text-[#2D4424] text-sm mt-0.5">—</p>
                 </div>
-                <div class="bg-[#F7F3E9] rounded-2xl p-3">
+                <div class="bg-[#F7F3E9] rounded-2xl p-3 sm:col-span-2">
                     <p class="text-[9px] font-black text-[#567946] uppercase">Flight Route</p>
                     <p id="pkgd-route" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
                 </div>
                 <div class="bg-[#F7F3E9] rounded-2xl p-3">
-                    <p class="text-[9px] font-black text-[#567946] uppercase">Meal Plan</p>
-                    <p id="pkgd-meal" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
+                    <p class="text-[9px] font-black text-[#567946] uppercase">Transport</p>
+                    <p id="pkgd-transport" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
+                </div>
+                <!-- Meal Plan — hidden for Umrah packages via JS -->
+                <div id="pkgd-meal-wrapper" class="bg-amber-50 border border-amber-200 rounded-2xl p-3 hidden">
+                    <p class="text-[9px] font-black text-amber-700 uppercase">Meal Plan</p>
+                    <p id="pkgd-meal" class="font-bold text-amber-800 text-xs mt-0.5">—</p>
                 </div>
                 <div class="bg-[#F7F3E9] rounded-2xl p-3">
                     <p class="text-[9px] font-black text-[#567946] uppercase">Luggage</p>

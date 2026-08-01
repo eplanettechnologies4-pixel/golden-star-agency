@@ -4,6 +4,23 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import user_passes_test
 from .models import PlatformReview, Achievement
 import json
+from functools import wraps
+
+
+def is_admin(user):
+    if not user or not user.is_authenticated:
+        return False
+    return user.is_superuser or user.is_staff or getattr(user, 'role', '') in ['super_admin', 'admin']
+
+
+def admin_required_api(view_func):
+    """API decorator that returns JSON 403 instead of HTML redirect on auth failure."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not is_admin(request.user):
+            return JsonResponse({'success': False, 'message': 'Admin authentication required.'}, status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
 
 def get_approved_reviews_api(request):
     """
@@ -73,12 +90,7 @@ def submit_review_api(request):
         }
     })
 
-def is_admin(user):
-    if not user or not user.is_authenticated:
-        return False
-    return user.is_superuser or user.is_staff or getattr(user, 'role', '') in ['super_admin', 'admin']
-
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_reviews_list_api(request):
     """
     GET: Get all reviews for admin dashboard.
@@ -98,7 +110,7 @@ def admin_reviews_list_api(request):
     return JsonResponse({'success': True, 'reviews': reviews_data})
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_review_toggle_api(request, review_id):
     """
     POST: Toggle approval status of a review.
@@ -115,7 +127,7 @@ def admin_review_toggle_api(request, review_id):
         return JsonResponse({'success': False, 'message': 'Review not found.'}, status=404)
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_review_delete_api(request, review_id):
     """
     POST/DELETE: Delete a review.
@@ -142,7 +154,7 @@ def achievements_list_view(request):
 # ADMIN API: Achievements CRUD
 # ============================================================
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_achievements_list_api(request):
     """GET: List all achievements for admin dashboard."""
     achievements = Achievement.objects.all().order_by('-date', '-created_at')
@@ -164,7 +176,7 @@ def admin_achievements_list_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_achievement_create_api(request):
     """POST: Create a new achievement (multipart/form-data for photo upload)."""
     if request.method != 'POST':
@@ -190,7 +202,7 @@ def admin_achievement_create_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_achievement_detail_api(request, pk):
     """POST: Update  |  DELETE: Delete a specific achievement."""
     try:

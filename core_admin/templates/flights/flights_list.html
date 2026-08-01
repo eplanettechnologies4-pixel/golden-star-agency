@@ -60,38 +60,65 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {% for ticket in flight_tickets|slice:":5" %}
-            <div onclick="filterByAirline('{{ ticket.airline_name|escapejs }}')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
-                <div class="flex items-center justify-between mb-3">
-                    {% if ticket.airline_logo %}
-                        <img src="{{ ticket.airline_logo }}" alt="{{ ticket.airline_name }}" class="w-10 h-10 object-contain rounded-xl bg-slate-50 border border-slate-100 p-1">
-                    {% else %}
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-900 to-slate-950 text-brand-orange flex items-center justify-center font-black text-sm shadow-md border border-white/10">
-                            {{ ticket.airline_code|default:ticket.airline_name|slice:":2"|upper }}
-                        </div>
-                    {% endif %}
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
-                        🎟️ {{ ticket.available_seats }} Seats
-                    </span>
-                </div>
-                <div>
-                    <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors truncate">{{ ticket.airline_name }}</h3>
-                    <p class="text-[11px] font-medium text-slate-500 mt-1 truncate">{{ ticket.flight_number }} • {{ ticket.departure_airport_code }} → {{ ticket.destination_airport_code }}</p>
-                    <span class="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">🧳 {{ ticket.baggage_checkin }}</span>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                    <div>
-                        <span class="text-[9px] text-slate-400 font-semibold block uppercase">Starting Fare</span>
-                        <span class="text-xs font-black text-brand-orange">PKR {{ ticket.price|floatformat:0 }}</span>
+            {% if master_airlines %}
+                {% for airline in master_airlines %}
+                <div onclick="filterByAirline('{{ airline.name|escapejs }}')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        {% if airline.logo %}
+                            <img src="{{ airline.logo.url }}" alt="{{ airline.name }}" class="w-10 h-10 object-contain rounded-xl bg-slate-50 border border-slate-100 p-1">
+                        {% else %}
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-900 to-slate-950 text-brand-orange flex items-center justify-center font-black text-sm shadow-md border border-white/10">
+                                {{ airline.iata_code|default:airline.name|slice:":2"|upper }}
+                            </div>
+                        {% endif %}
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                            Official Partner
+                        </span>
                     </div>
-                    <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors truncate">{{ airline.name }}</h3>
+                        <p class="text-[11px] font-medium text-slate-500 mt-1 truncate">IATA Code: {{ airline.iata_code|default:airline.name|slice:":2"|upper }}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-[9px] text-slate-400 font-semibold block uppercase">Browse Flights</span>
+                        <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                    </div>
                 </div>
-            </div>
-            {% empty %}
-            <div class="col-span-full text-center py-6 text-slate-500 text-xs">
-                No featured airline fleet cards currently available.
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                {% for ticket in flight_tickets|slice:":5" %}
+                <div onclick="filterByAirline('{{ ticket.airline_name|escapejs }}')" class="airline-card group p-5 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-brand-orange/60 hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        {% if ticket.airline_logo %}
+                            <img src="{{ ticket.airline_logo }}" alt="{{ ticket.airline_name }}" class="w-10 h-10 object-contain rounded-xl bg-slate-50 border border-slate-100 p-1">
+                        {% else %}
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-900 to-slate-950 text-brand-orange flex items-center justify-center font-black text-sm shadow-md border border-white/10">
+                                {{ ticket.airline_code|default:ticket.airline_name|slice:":2"|upper }}
+                            </div>
+                        {% endif %}
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+                            🎟️ {{ ticket.available_seats }} Seats
+                        </span>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 text-sm group-hover:text-brand-orange transition-colors truncate">{{ ticket.airline_name }}</h3>
+                        <p class="text-[11px] font-medium text-slate-500 mt-1 truncate">{{ ticket.flight_number }} • {{ ticket.departure_airport_code }} → {{ ticket.destination_airport_code }}</p>
+                        <span class="inline-block mt-2 px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600">🧳 {{ ticket.baggage_checkin }}</span>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-semibold block uppercase">Starting Fare</span>
+                            <span class="text-xs font-black text-brand-orange">PKR {{ ticket.price|floatformat:0 }}</span>
+                        </div>
+                        <span class="text-[10px] text-brand-orange font-extrabold flex items-center gap-1 group-hover:translate-x-1 transition-transform">View Fares <i class="fa-solid fa-arrow-right text-[9px]"></i></span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full text-center py-6 text-slate-500 text-xs">
+                    No featured airline fleet cards currently available.
+                </div>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 </section>
@@ -111,7 +138,7 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                 <!-- Departure City -->
                 <div>
                     <label class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Departure City</label>
@@ -130,6 +157,17 @@
                         <option value="">All Destination Cities</option>
                         {% for city in destination_cities %}
                             <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sector Route Filter -->
+                <div>
+                    <label class="block text-[9px] font-bold text-brand-orange uppercase tracking-wider mb-1"><i class="fa-solid fa-route mr-1"></i>Sector / Route</label>
+                    <select id="filter-sector" onchange="applyFlightFilters()" class="w-full bg-slate-950 border border-brand-orange/40 text-xs text-white rounded-lg px-3 py-2 outline-none focus:border-brand-orange transition-all">
+                        <option value="">All Sectors / Routes</option>
+                        {% for sector in sector_routes %}
+                            <option value="{{ sector }}">{{ sector }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -172,6 +210,7 @@
                  data-airline="{{ ticket.airline_name }}"
                  data-dep="{{ ticket.departure_city }}"
                  data-dest="{{ ticket.destination_city }}"
+                 data-sector="{{ ticket.departure_city }} → {{ ticket.destination_city }}"
                  data-type="{{ ticket.flight_type }}"
                  data-price="{{ ticket.price }}">
                 
@@ -188,12 +227,17 @@
                     {% endif %}
                     
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
                             <h4 class="font-extrabold text-slate-900 text-base leading-tight group-hover:text-brand-orange transition-colors">{{ ticket.airline_name }}</h4>
                             {% if ticket.flight_type == 'direct' %}
                                 <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-wider">Direct</span>
                             {% else %}
-                                <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase tracking-wider">1 Stop</span>
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase tracking-wider">Via / Transit</span>
+                            {% endif %}
+                            {% if ticket.has_meal %}
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-emerald-600 text-white shadow-xs">🍲 Meal</span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-extrabold bg-slate-700 text-white shadow-xs">🚫 No Meal</span>
                             {% endif %}
                         </div>
 
@@ -209,7 +253,7 @@
                 </div>
 
                 <!-- Middle: High-Contrast Itinerary Route Box -->
-                <div class="lg:w-2/5 bg-slate-950 text-white rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-inner border border-white/10">
+                <div class="lg:w-2/5 bg-slate-950 text-white rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-inner border border-white/10 flex flex-col justify-between">
                     <div class="flex items-center justify-between relative z-10">
                         <!-- Departure Origin -->
                         <div class="text-left">
@@ -218,15 +262,15 @@
                             <span class="text-[11px] text-amber-400 font-bold block mt-1.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[10px]"></i> {{ ticket.departure_time_str }}</span>
                         </div>
 
-                        <!-- Route Flight Path Vector (Perfectly Spaced & Justified Aero Icon) -->
-                        <div class="flex-1 text-center px-4 flex flex-col items-center justify-between min-h-[90px]">
+                        <!-- Route Flight Path Vector -->
+                        <div class="flex-1 text-center px-4 flex flex-col items-center justify-between min-h-[70px]">
                             <!-- Duration Header Text -->
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2">
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
                                 <i class="fa-solid fa-hourglass-half text-[9px] mr-1 text-brand-orange"></i>{{ ticket.duration_str }}
                             </span>
                             
                             <!-- Justified Center Vector Line with Airplane Badge -->
-                            <div class="w-full relative flex items-center justify-center my-3 py-2">
+                            <div class="w-full relative flex items-center justify-center my-2 py-1">
                                 <div class="w-full h-0.5 bg-gradient-to-r from-brand-orange/40 via-amber-400/60 to-emerald-400/40 rounded-full"></div>
                                 <div class="w-7 h-7 rounded-full bg-slate-900 border border-brand-orange/60 flex items-center justify-center absolute shadow-lg z-10">
                                     <i class="fa-solid fa-plane text-brand-orange text-xs"></i>
@@ -234,8 +278,8 @@
                             </div>
 
                             <!-- Flight Type Subtitle Text -->
-                            <span class="text-[9px] font-bold text-emerald-400 block mt-2 uppercase tracking-widest">
-                                {% if ticket.flight_type == 'direct' %}Non-Stop Flight{% else %}1 Stop Transit{% endif %}
+                            <span class="text-[9px] font-bold text-emerald-400 block mt-1 uppercase tracking-widest">
+                                {% if ticket.flight_type == 'direct' %}Non-Stop Flight{% else %}Transit Via Route{% endif %}
                             </span>
                         </div>
 
@@ -246,6 +290,12 @@
                             <span class="text-[11px] text-amber-400 font-bold block mt-1.5 flex items-center gap-1 justify-end"><i class="fa-solid fa-clock text-[10px]"></i> {{ ticket.arrival_time_str }}</span>
                         </div>
                     </div>
+
+                    {% if ticket.via_routes %}
+                        <div class="mt-3 pt-2 border-t border-white/10 text-[10px] text-slate-300 font-mono flex items-center gap-1.5">
+                            <i class="fa-solid fa-route text-brand-orange"></i> <span class="text-amber-400 font-bold uppercase">Via Routes:</span> {{ ticket.via_routes }}
+                        </div>
+                    {% endif %}
                 </div>
 
                 <!-- Specs & Baggage Badges with Modern Icons -->
@@ -257,17 +307,23 @@
                         </div>
 
                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-center">
-                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-0.5">Hand Carry</span>
-                            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-purple-500"></i> {{ ticket.baggage_hand }}</span>
+                            <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-0.5">In-Flight Meal</span>
+                            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5"><i class="fa-solid fa-utensils text-emerald-600"></i> {{ ticket.meal_service|default:"Meal Included" }}</span>
                         </div>
                     </div>
 
-                    <!-- Baggage Allowance Tiers (20kg, 30kg, 40kg) -->
+                    <!-- Baggage Allowance Tiers (Hand carry, 20kg, 30kg, 40kg) -->
                     <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
                         <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-                            <i class="fa-solid fa-weight-hanging text-brand-orange"></i> Select Baggage Allowance Tier:
+                            <i class="fa-solid fa-weight-hanging text-brand-orange"></i> Allotted Fares by Baggage Allowance:
                         </span>
                         <div class="flex items-center gap-1.5 flex-wrap">
+                            {% if ticket.price_handcarry %}
+                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', 'Hand Carry', '{{ ticket.price_handcarry }}', this)" 
+                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100 shadow-sm">
+                                Hand Carry
+                            </button>
+                            {% endif %}
                             <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', '20 kg', '{{ ticket.get_price_20kg }}', this)" 
                                     class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-brand-orange text-white border-brand-orange shadow-sm">
                                 20 KG
@@ -409,10 +465,11 @@
     }
 
     function applyFlightFilters() {
-        const dep = document.getElementById('filter-dep-city').value.toLowerCase();
-        const dest = document.getElementById('filter-dest-city').value.toLowerCase();
-        const airline = document.getElementById('filter-airline').value.toLowerCase();
-        const type = document.getElementById('filter-type').value.toLowerCase();
+        const dep = (document.getElementById('filter-dep-city').value || '').toLowerCase();
+        const dest = (document.getElementById('filter-dest-city').value || '').toLowerCase();
+        const sector = (document.getElementById('filter-sector') ? document.getElementById('filter-sector').value : '').toLowerCase();
+        const airline = (document.getElementById('filter-airline').value || '').toLowerCase();
+        const type = (document.getElementById('filter-type').value || '').toLowerCase();
 
         const cards = document.querySelectorAll('#flight-tickets-grid .ticket-card');
         let visibleCount = 0;
@@ -421,11 +478,21 @@
             const cAirline = (card.getAttribute('data-airline') || '').toLowerCase();
             const cDep = (card.getAttribute('data-dep') || '').toLowerCase();
             const cDest = (card.getAttribute('data-dest') || '').toLowerCase();
+            const cSector = (card.getAttribute('data-sector') || `${cDep} → ${cDest}`).toLowerCase();
             const cType = (card.getAttribute('data-type') || '').toLowerCase();
 
             let matches = true;
             if (dep && !cDep.includes(dep)) matches = false;
             if (dest && !cDest.includes(dest)) matches = false;
+            if (sector) {
+                const sectorClean = sector.replace('to', '→');
+                const sectorParts = sectorClean.split('→').map(p=>p.trim());
+                if (sectorParts.length === 2) {
+                    if (!cDep.includes(sectorParts[0]) || !cDest.includes(sectorParts[1])) matches = false;
+                } else if (!cSector.includes(sector)) {
+                    matches = false;
+                }
+            }
             if (airline && !cAirline.includes(airline)) matches = false;
             if (type && cType !== type) matches = false;
 
@@ -443,6 +510,7 @@
     function resetFlightFilters() {
         document.getElementById('filter-dep-city').value = '';
         document.getElementById('filter-dest-city').value = '';
+        if (document.getElementById('filter-sector')) document.getElementById('filter-sector').value = '';
         document.getElementById('filter-airline').value = '';
         document.getElementById('filter-type').value = '';
         applyFlightFilters();

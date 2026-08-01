@@ -49,6 +49,18 @@ def is_agent(user):
 def is_agent_or_admin(user):
     return user.is_authenticated and (user.is_superuser or getattr(user, 'role', '') in ['agent', 'admin', 'super_admin'])
 
+
+from functools import wraps
+def admin_required_api(view_func):
+    """API decorator that returns JSON 403 instead of HTML redirect on auth failure."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not is_admin(request.user):
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'message': 'Admin authentication required.'}, status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ⚡ Global Email Thread Pool — reusable, 4 background workers, no per-email
 #    thread creation overhead. Fire-and-forget async email delivery.
@@ -590,7 +602,7 @@ def admin_dashboard_view(request):
     return render(request, 'dashboard/admin/overview.html')
 
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_dashboard_api(request):
     # Fetch all agents
     agents = User.objects.filter(role='agent').order_by('-date_joined')
@@ -808,7 +820,7 @@ def agent_feedbacks_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_agent_feedbacks_api(request):
     """
     GET → List all agent submitted feedbacks for admin with status & category filtering.
@@ -859,7 +871,7 @@ def admin_agent_feedbacks_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_feedback_status_api(request, pk):
     """
     POST/PATCH → Admin updates feedback status (reviewed, resolved, closed) and optionally adds admin_reply.
@@ -892,7 +904,7 @@ def admin_feedback_status_api(request, pk):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_feedback_delete_api(request, pk):
     """
     DELETE/POST → Admin deletes feedback entry.
@@ -915,7 +927,7 @@ def admin_reject_agent(request, agent_id):
     return JsonResponse({'success': False}, status=400)
 
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_dashboard_overview_api(request):
     counts = {
         'agents_pending': User.objects.filter(role='agent', approval_status='pending').count(),
@@ -932,7 +944,7 @@ def admin_dashboard_overview_api(request):
     return JsonResponse({'counts': counts})
 
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_b2b_overview_api(request):
     from django.utils import timezone
     from django.db.models import Sum
@@ -1111,7 +1123,7 @@ def admin_b2b_overview_api(request):
     })
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_packages_api(request):
     if request.method == 'GET':
         packages = Package.objects.all().order_by('-created_at')
@@ -1270,7 +1282,7 @@ def admin_packages_api(request):
     return JsonResponse({'success': False}, status=400)
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_package_detail_api(request, pk):
     package = get_object_or_404(Package, pk=pk)
     if request.method == 'POST':
@@ -1375,7 +1387,7 @@ def admin_package_detail_api(request, pk):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_visas_api(request):
     visas = VisaApplication.objects.all().order_by('-created_at')
     visas_data = []
@@ -1396,7 +1408,7 @@ def admin_visas_api(request):
     return JsonResponse({'visas': visas_data})
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_visa_status_api(request, pk):
     if request.method == 'POST':
         visa = get_object_or_404(VisaApplication, pk=pk)
@@ -1407,7 +1419,7 @@ def admin_visa_status_api(request, pk):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_visa_packages_api(request):
     from apps.visa.models import VisaPackage
     if request.method == 'GET':
@@ -1474,7 +1486,7 @@ def admin_visa_packages_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_visa_package_detail_api(request, pk):
     from apps.visa.models import VisaPackage
     vp = get_object_or_404(VisaPackage, pk=pk)
@@ -1508,7 +1520,7 @@ def admin_visa_package_detail_api(request, pk):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flights_api(request):
     flights = FlightQuoteRequest.objects.all().order_by('-created_at')
     flights_data = []
@@ -1528,7 +1540,7 @@ def admin_flights_api(request):
     return JsonResponse({'flights': flights_data})
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flight_status_api(request, pk):
     if request.method == 'POST':
         flight = get_object_or_404(FlightQuoteRequest, pk=pk)
@@ -1542,7 +1554,7 @@ def admin_flight_status_api(request, pk):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flight_tickets_api(request):
     from apps.flights.models import FlightTicketOffer
     if request.method == 'GET':
@@ -1563,14 +1575,18 @@ def admin_flight_tickets_api(request):
                 'arrival_time_str': ft.arrival_time_str,
                 'duration_str': ft.duration_str,
                 'flight_type': ft.flight_type,
+                'via_routes': ft.via_routes or '',
                 'ticket_class': ft.ticket_class,
                 'price': str(ft.price),
+                'price_handcarry': str(ft.price_handcarry) if ft.price_handcarry else '',
                 'price_20kg': str(ft.price_20kg) if ft.price_20kg else str(ft.price),
                 'price_30kg': str(ft.price_30kg) if ft.price_30kg else '',
                 'price_40kg': str(ft.price_40kg) if ft.price_40kg else '',
                 'original_price': str(ft.original_price) if ft.original_price else '',
                 'baggage_checkin': ft.baggage_checkin,
                 'baggage_hand': ft.baggage_hand,
+                'has_meal': ft.has_meal,
+                'meal_service': ft.meal_service or ('Meal Included' if ft.has_meal else 'No Meal'),
                 'is_refundable': ft.is_refundable,
                 'cancellation_fee': str(ft.cancellation_fee),
                 'total_seats': ft.total_seats,
@@ -1584,82 +1600,115 @@ def admin_flight_tickets_api(request):
     elif request.method == 'POST':
         import re
         try:
-            body = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            body = request.POST
+            try:
+                body = json.loads(request.body.decode('utf-8'))
+            except Exception:
+                body = request.POST
 
-        def extract_code(city_str, fallback):
-            if not city_str:
-                return fallback
-            match = re.search(r'\(([A-Za-z]{3})\)', city_str)
-            if match:
-                return match.group(1).upper()
-            cleaned = re.sub(r'[^A-Za-z]', '', city_str)
-            return cleaned[:3].upper() if len(cleaned) >= 3 else fallback
+            def extract_code(city_str, fallback):
+                if not city_str:
+                    return fallback
+                match = re.search(r'\(([A-Za-z]{3})\)', city_str)
+                if match:
+                    return match.group(1).upper()
+                cleaned = re.sub(r'[^A-Za-z]', '', city_str)
+                return cleaned[:3].upper() if len(cleaned) >= 3 else fallback
 
-        airline_name = str(body.get('airline_name') or 'PIA').strip()
-        airline_code = str(body.get('airline_code') or '').strip()
-        if not airline_code and airline_name:
-            airline_code = airline_name[:2].upper()
-        airline_logo = str(body.get('airline_logo') or '').strip()
-        flight_number = str(body.get('flight_number') or 'PK-731').strip()
-        departure_city = str(body.get('departure_city') or 'Karachi (KHI)').strip()
-        departure_airport_code = str(body.get('departure_airport_code') or '').strip().upper() or extract_code(departure_city, 'KHI')
-        destination_city = str(body.get('destination_city') or 'Jeddah (JED)').strip()
-        destination_airport_code = str(body.get('destination_airport_code') or '').strip().upper() or extract_code(destination_city, 'JED')
-        departure_time_str = str(body.get('departure_time_str') or '03:30 AM').strip()
-        arrival_time_str = str(body.get('arrival_time_str') or '06:45 AM').strip()
-        duration_str = str(body.get('duration_str') or '4h 15m').strip()
-        flight_type = str(body.get('flight_type') or 'direct').strip()
-        ticket_class = str(body.get('ticket_class') or 'economy').strip()
-        price = body.get('price') or '145000.00'
-        price_20kg = body.get('price_20kg', None)
-        price_30kg = body.get('price_30kg', None)
-        price_40kg = body.get('price_40kg', None)
-        original_price = body.get('original_price', None)
-        baggage_checkin = str(body.get('baggage_checkin') or '30 kg').strip()
-        baggage_hand = str(body.get('baggage_hand') or '7 kg').strip()
-        is_refundable = str(body.get('is_refundable', 'true')).lower() in ('true', '1', 'on')
-        cancellation_fee = body.get('cancellation_fee') or '15000.00'
-        total_seats = int(body.get('total_seats') or 50)
-        available_seats = int(body.get('available_seats') or total_seats)
-        is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
-        description = str(body.get('description') or '').strip()
+            airline_name = str(body.get('airline_name') or 'PIA').strip()
+            airline_code = str(body.get('airline_code') or '').strip()
+            if not airline_code and airline_name:
+                airline_code = airline_name[:2].upper()
+            
+            airline_logo = str(body.get('airline_logo') or '').strip()
+            if not airline_logo:
+                try:
+                    from apps.airline_ticketing.models import Airline
+                    matched_airline = Airline.objects.filter(name__iexact=airline_name).first()
+                    if matched_airline and matched_airline.logo:
+                        airline_logo = matched_airline.logo.url
+                except Exception:
+                    pass
 
-        ft = FlightTicketOffer.objects.create(
-            airline_name=airline_name,
-            airline_code=airline_code,
-            airline_logo=airline_logo,
-            flight_number=flight_number,
-            departure_city=departure_city,
-            departure_airport_code=departure_airport_code,
-            destination_city=destination_city,
-            destination_airport_code=destination_airport_code,
-            departure_time_str=departure_time_str,
-            arrival_time_str=arrival_time_str,
-            duration_str=duration_str,
-            flight_type=flight_type,
-            ticket_class=ticket_class,
-            price=price,
-            price_20kg=price_20kg if price_20kg else price,
-            price_30kg=price_30kg if price_30kg else None,
-            price_40kg=price_40kg if price_40kg else None,
-            original_price=original_price if original_price else None,
-            baggage_checkin=baggage_checkin,
-            baggage_hand=baggage_hand,
-            is_refundable=is_refundable,
-            cancellation_fee=cancellation_fee,
-            total_seats=total_seats,
-            available_seats=available_seats,
-            is_popular=is_popular,
-            description=description
-        )
-        return JsonResponse({'success': True, 'flight_ticket_id': ft.id})
-    return JsonResponse({'success': False}, status=400)
+            flight_number = str(body.get('flight_number') or 'PK-731').strip()
+            departure_city = str(body.get('departure_city') or 'Karachi (KHI)').strip()
+            departure_airport_code = str(body.get('departure_airport_code') or '').strip().upper() or extract_code(departure_city, 'KHI')
+            destination_city = str(body.get('destination_city') or 'Jeddah (JED)').strip()
+            destination_airport_code = str(body.get('destination_airport_code') or '').strip().upper() or extract_code(destination_city, 'JED')
+            departure_time_str = str(body.get('departure_time_str') or '03:30 AM').strip()
+            arrival_time_str = str(body.get('arrival_time_str') or '06:45 AM').strip()
+            duration_str = str(body.get('duration_str') or '4h 15m').strip()
+            flight_type = str(body.get('flight_type') or 'direct').strip()
+            
+            # Extract up to 4 via route segments if transit
+            via_route1 = str(body.get('via_route1') or '').strip()
+            via_route2 = str(body.get('via_route2') or '').strip()
+            via_route3 = str(body.get('via_route3') or '').strip()
+            via_route4 = str(body.get('via_route4') or '').strip()
+            
+            via_list = [r for r in [via_route1, via_route2, via_route3, via_route4] if r]
+            via_routes = " → ".join(via_list) if via_list else str(body.get('via_routes') or '').strip()
+
+            ticket_class = str(body.get('ticket_class') or 'economy').strip()
+            price = body.get('price') or '145000.00'
+            price_handcarry = body.get('price_handcarry', None)
+            price_20kg = body.get('price_20kg', None)
+            price_30kg = body.get('price_30kg', None)
+            price_40kg = body.get('price_40kg', None)
+            original_price = body.get('original_price', None)
+            
+            baggage_checkin = str(body.get('baggage_checkin') or '30 kg').strip()
+            baggage_hand = str(body.get('baggage_hand') or '7 kg').strip()
+            
+            has_meal = str(body.get('has_meal', 'true')).lower() in ('true', '1', 'on', 'yes')
+            meal_service = str(body.get('meal_service') or ('Meal Included' if has_meal else 'No Meal')).strip()
+
+            is_refundable = str(body.get('is_refundable', 'true')).lower() in ('true', '1', 'on')
+            cancellation_fee = body.get('cancellation_fee') or '15000.00'
+            total_seats = int(body.get('total_seats') or 50)
+            available_seats = int(body.get('available_seats') or total_seats)
+            is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
+            description = str(body.get('description') or '').strip()
+
+            ft = FlightTicketOffer.objects.create(
+                airline_name=airline_name,
+                airline_code=airline_code,
+                airline_logo=airline_logo,
+                flight_number=flight_number,
+                departure_city=departure_city,
+                departure_airport_code=departure_airport_code,
+                destination_city=destination_city,
+                destination_airport_code=destination_airport_code,
+                departure_time_str=departure_time_str,
+                arrival_time_str=arrival_time_str,
+                duration_str=duration_str,
+                flight_type=flight_type,
+                via_routes=via_routes,
+                ticket_class=ticket_class,
+                price=price,
+                price_handcarry=price_handcarry if price_handcarry else None,
+                price_20kg=price_20kg if price_20kg else price,
+                price_30kg=price_30kg if price_30kg else None,
+                price_40kg=price_40kg if price_40kg else None,
+                original_price=original_price if original_price else None,
+                baggage_checkin=baggage_checkin,
+                baggage_hand=baggage_hand,
+                has_meal=has_meal,
+                meal_service=meal_service,
+                is_refundable=is_refundable,
+                cancellation_fee=cancellation_fee,
+                total_seats=total_seats,
+                available_seats=available_seats,
+                is_popular=is_popular,
+                description=description
+            )
+            return JsonResponse({'success': True, 'flight_ticket_id': ft.id})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flight_ticket_detail_api(request, pk):
     import re
     from apps.flights.models import FlightTicketOffer
@@ -1726,7 +1775,7 @@ def admin_flight_ticket_detail_api(request, pk):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_bookings_api(request):
     bookings = Booking.objects.all().order_by('-created_at')
     bookings_data = []
@@ -1749,7 +1798,7 @@ def admin_bookings_api(request):
     return JsonResponse({'bookings': bookings_data})
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_booking_status_api(request, pk):
     if request.method == 'POST':
         booking = get_object_or_404(Booking, pk=pk)
@@ -1878,7 +1927,7 @@ def agent_flights_api(request):
     return JsonResponse({'flights': flights_data})
 
 
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_agent_detail_data_api(request, agent_id):
     agent = get_object_or_404(User, id=agent_id, role='agent')
     
@@ -1968,7 +2017,15 @@ def home_view(request):
     # Fetch real-time registered agent partners ordered by latest registration
     best_agents = User.objects.filter(role='agent').order_by('-date_joined')
     achievements = Achievement.objects.filter(is_active=True)
-    featured_packages = Package.objects.all().order_by('-created_at')[:3]
+    
+    # Prioritize packages explicitly selected as featured by admin in B2C admin panel
+    featured = list(Package.objects.filter(is_featured=True).order_by('-updated_at', '-created_at'))
+    if len(featured) < 6:
+        existing_ids = [p.id for p in featured]
+        extra = list(Package.objects.exclude(id__in=existing_ids).order_by('-created_at')[:(6 - len(featured))])
+        featured.extend(extra)
+    featured_packages = featured[:6]
+    
     return render(request, 'home.html', {
         'best_agents': best_agents,
         'achievements': achievements,
@@ -3713,7 +3770,7 @@ def live_search_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flight_tickets_api(request):
     from apps.flights.models import FlightTicketOffer
     if request.method == 'GET':
@@ -3772,7 +3829,7 @@ def admin_flight_tickets_api(request):
         return JsonResponse({'success': True, 'ticket_id': ticket.id})
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flight_ticket_detail_api(request, pk):
     from apps.flights.models import FlightTicketOffer
     ticket = get_object_or_404(FlightTicketOffer, pk=pk)
@@ -3925,7 +3982,7 @@ def send_custom_inquiry_emails(inquiry):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_custom_inquiries_list_api(request):
     """
     GET: List all custom package inquiries.
@@ -3952,7 +4009,7 @@ def admin_custom_inquiries_list_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_custom_inquiry_contact_api(request, pk):
     """
     POST: Mark custom package inquiry as contacted.
@@ -4093,7 +4150,7 @@ def ticket_approval_letter_view(request, pk):
 import csv
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_visas_csv_api(request):
     """
     Exports visa applications as a CSV download file.
@@ -4125,7 +4182,7 @@ def admin_export_visas_csv_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_bookings_csv_api(request):
     """
     Exports package bookings as a CSV download file.
@@ -4159,7 +4216,7 @@ def admin_export_bookings_csv_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_flights_csv_api(request):
     """
     Exports flight requests as a CSV download file.
@@ -4191,7 +4248,7 @@ def admin_export_flights_csv_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_agents_csv_api(request):
     """
     Exports partner agents as a CSV download file.
@@ -4218,7 +4275,7 @@ def admin_export_agents_csv_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_agent_ticket_orders_csv_api(request):
     """
     Exports B2B Agent Ticket Orders as a CSV download file.
@@ -4253,7 +4310,7 @@ def admin_export_agent_ticket_orders_csv_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_agent_wallet_ledger_csv_api(request):
     """
     Exports B2B Agent Wallet Ledger entries as a CSV download file.
@@ -4282,7 +4339,7 @@ def admin_export_agent_wallet_ledger_csv_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_agent_packages_sales_csv_api(request):
     """
     Exports B2B Agent Package (Umrah/Hajj) sales records as a CSV download file.
@@ -4309,7 +4366,7 @@ def admin_export_agent_packages_sales_csv_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_report_api(request, report_type, fmt):
     """
     Exports administrative reports in PDF, Word (.doc), Excel (.xls), or CSV (.csv) format.
@@ -4597,7 +4654,7 @@ def _get_real_monthly_series(df, date_col='created_at', val_col=None):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_all_agent_ledgers_api(request):
     """
     GET → List agent ledger entries across all agents with date range, agent filter, entry type, search keyword & running summary totals.
@@ -4669,7 +4726,7 @@ def admin_all_agent_ledgers_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_financial_analytics_api(request):
     """
     Real-time Financial Analytics API powered by NumPy & Pandas.
@@ -4908,7 +4965,7 @@ def admin_financial_analytics_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_pandas_analytics_api(request, fmt):
     """
     Exports comprehensive Pandas-calculated financial analytics in Excel (.xlsx) or CSV format.
@@ -4984,7 +5041,7 @@ def admin_export_pandas_analytics_api(request, fmt):
 from .models import AdminCustomBill
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_custom_bills_api(request):
     """API endpoint to list and create manual admin custom bills, supplier invoices, & expenses."""
     if request.method == 'GET':
@@ -5030,7 +5087,7 @@ def admin_custom_bills_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_delete_custom_bill_api(request, pk):
     """Delete a manual custom bill entry."""
     bill = get_object_or_404(AdminCustomBill, pk=pk)
@@ -5039,7 +5096,7 @@ def admin_delete_custom_bill_api(request, pk):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_custom_bill_api(request, pk, fmt):
     """Export custom manual bill in PDF, Word (.doc), Excel (.xls), or CSV (.csv)."""
     bill = get_object_or_404(AdminCustomBill, pk=pk)
@@ -5243,7 +5300,7 @@ def agent_financial_analytics_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_export_report_api(request, report_type, fmt):
     """
     Export reports for Admin across all agents or a specific agent (ledger, bookings, visas, flights) in CSV, Excel, or PDF formats.
@@ -5498,7 +5555,7 @@ def agent_export_report_api(request, report_type, fmt):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_bank_accounts_api(request):
     """
     GET  → List all CompanyBankAccount records for admin.
@@ -5552,7 +5609,7 @@ def admin_bank_accounts_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_bank_account_detail_api(request, pk):
     """
     POST   → Edit company bank account details.
@@ -5612,7 +5669,7 @@ def agent_bank_accounts_api(request):
 # ─────────────────────────────────────────────────────────────────────────────
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_department_contacts_api(request):
     """
     GET  → List all department contacts for Admin management.
@@ -5666,7 +5723,7 @@ def admin_department_contacts_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_department_contact_detail_api(request, pk):
     """
     POST/PATCH → Update a department contact.
@@ -5857,7 +5914,7 @@ def submit_custom_inquiry_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_custom_inquiries_list_api(request):
     """
     GET /dashboard/admin/api/custom-inquiries/
@@ -5893,7 +5950,7 @@ def admin_custom_inquiries_list_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_custom_inquiry_contact_api(request, pk):
     """
     POST/PATCH /dashboard/admin/api/custom-inquiries/<pk>/contact/

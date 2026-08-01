@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.db import transaction
 import json
 import os
+from functools import wraps
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -37,12 +38,22 @@ def is_agent(user):
     return user.is_authenticated and (user.role == 'agent' or user.is_superuser)
 
 
+def admin_required_api(view_func):
+    """API decorator that returns JSON 403 instead of HTML redirect on auth failure."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not is_admin(request.user):
+            return JsonResponse({'success': False, 'message': 'Admin authentication required.'}, status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
 # ══════════════════════════════════════════════
 # SECTORS (GET list / POST create)
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_sectors_api(request):
     """
     GET  → list all sectors with counts of flights & packages under them
@@ -94,7 +105,7 @@ def admin_sectors_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_sector_detail_api(request, pk):
     """
     POST   → edit sector
@@ -130,7 +141,7 @@ def admin_sector_detail_api(request, pk):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_adjust_seats_api(request, pk):
     """
     POST → Manually update seat counts (total_seats or booked_seats)
@@ -197,7 +208,7 @@ def admin_adjust_seats_api(request, pk):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_airlines_api(request):
     """
     GET  → list all airlines
@@ -210,6 +221,7 @@ def admin_airlines_api(request):
             data.append({
                 'id':        a.id,
                 'name':      a.name,
+                'iata_code': a.iata_code or '',
                 'logo_url':  a.logo.url if a.logo else None,
                 'is_active': a.is_active,
                 'created_at': a.created_at.strftime('%Y-%m-%d %H:%M'),
@@ -218,17 +230,19 @@ def admin_airlines_api(request):
 
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
+        iata_code = request.POST.get('iata_code', '').strip().upper()
         if not name:
             return JsonResponse({'success': False, 'message': 'Airline name is required.'}, status=400)
 
         airline = Airline(
             name=name,
-            is_active=request.POST.get('is_active', 'true') == 'true',
+            iata_code=iata_code,
+            is_active=request.POST.get('is_active', 'true') in ('true', 'on', '1', True),
         )
         if 'logo' in request.FILES:
             airline.logo = request.FILES['logo']
         airline.save()
-        return JsonResponse({'success': True, 'id': airline.id, 'message': 'Airline created.'})
+        return JsonResponse({'success': True, 'id': airline.id, 'logo_url': airline.logo.url if airline.logo else None, 'message': 'Airline created.'})
 
     return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
 
@@ -238,7 +252,7 @@ def admin_airlines_api(request):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_airline_detail_api(request, pk):
     """
     POST   → edit airline name / logo / is_active
@@ -268,7 +282,7 @@ def admin_airline_detail_api(request, pk):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flight_inventory_api(request):
     """
     GET  → list all flight inventory entries with nested baggage tiers & Sector/Trip details
@@ -365,7 +379,7 @@ def admin_flight_inventory_api(request):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_flight_inventory_detail_api(request, pk):
     """
     POST   → edit inventory entry (replaces all baggage tiers on save)
@@ -436,8 +450,10 @@ def _save_baggage_tiers(flight_inventory, post_data):
     """
     Parse baggage tier pairs from POST data.
     Keys expected: baggage_weight_0, baggage_fare_0, baggage_weight_1, baggage_fare_1 …
-    Stops at first index where both keys are absent.
+    Or fare_20kg, fare_30kg, fare_40kg, fare_handcarry.
+    If no tiers provided, creates default 20KG, 30KG, 40KG fare tiers automatically.
     """
+    created_count = 0
     i = 0
     while True:
         weight_key = f'baggage_weight_{i}'
@@ -453,9 +469,36 @@ def _save_baggage_tiers(flight_inventory, post_data):
                     weight_kg=int(weight),
                     fare=float(fare),
                 )
+                created_count += 1
             except (ValueError, TypeError):
-                pass   # skip malformed tier rows silently
+                pass
         i += 1
+
+    # Check for direct inputs e.g. fare_20kg, fare_30kg, fare_40kg, fare_handcarry or price
+    direct_tiers = [
+        ('20', post_data.get('fare_20kg') or post_data.get('price_20kg') or post_data.get('price') or post_data.get('base_fare')),
+        ('30', post_data.get('fare_30kg') or post_data.get('price_30kg')),
+        ('40', post_data.get('fare_40kg') or post_data.get('price_40kg')),
+        ('7', post_data.get('fare_handcarry') or post_data.get('price_handcarry')),
+    ]
+    for w, f in direct_tiers:
+        if f and str(f).strip():
+            try:
+                BaggageFareTier.objects.create(
+                    flight_inventory=flight_inventory,
+                    weight_kg=int(w),
+                    fare=float(f),
+                )
+                created_count += 1
+            except (ValueError, TypeError):
+                pass
+
+    # Fallback: if no baggage tiers created at all, create standard default tiers (20KG, 30KG, 40KG)!
+    if created_count == 0:
+        base_price = float(post_data.get('price') or post_data.get('fare') or post_data.get('base_fare') or 50000.00)
+        BaggageFareTier.objects.create(flight_inventory=flight_inventory, weight_kg=20, fare=base_price)
+        BaggageFareTier.objects.create(flight_inventory=flight_inventory, weight_kg=30, fare=base_price + 5000)
+        BaggageFareTier.objects.create(flight_inventory=flight_inventory, weight_kg=40, fare=base_price + 10000)
 
 
 # ══════════════════════════════════════════════
@@ -463,7 +506,7 @@ def _save_baggage_tiers(flight_inventory, post_data):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_group_fare_policies_api(request):
     """
     GET  → list all group fare policies joined with flight inventory and airline details
@@ -526,7 +569,7 @@ def admin_group_fare_policies_api(request):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_group_fare_policy_detail_api(request, pk):
     """
     POST   → edit group fare policy fields
@@ -572,7 +615,7 @@ def admin_group_fare_policy_detail_api(request, pk):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_agent_packages_api(request):
     """
     GET  → list all agent packages (supports ?type=umrah or ?type=hajj query param filter)
@@ -759,7 +802,7 @@ def admin_agent_packages_api(request):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_agent_package_detail_api(request, pk):
     """
     POST   → edit agent package details
@@ -898,7 +941,7 @@ def admin_agent_package_detail_api(request, pk):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_hotels_api(request):
     """
     GET  → list all hotels (filterable by ?city=makkah / ?city=madinah)
@@ -975,7 +1018,7 @@ def admin_hotels_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_hotel_detail_api(request, pk):
     """
     POST   → edit hotel details / toggle active status / replace image
@@ -1049,6 +1092,7 @@ def agent_airlines_api(request):
         data.append({
             'id': a.id,
             'name': a.name,
+            'iata_code': a.iata_code or '',
             'logo_url': a.logo.url if a.logo else None,
             'is_active': a.is_active,
         })
@@ -1082,7 +1126,8 @@ def agent_flight_inventory_api(request):
             Q(destination_city__icontains=search) | 
             Q(departure_city__icontains=search) | 
             Q(sector__name__icontains=search) |
-            Q(airline__name__icontains=search)
+            Q(airline__name__icontains=search) |
+            Q(airline__iata_code__icontains=search)
         )
 
     data = []
@@ -1097,7 +1142,8 @@ def agent_flight_inventory_api(request):
             'sector_name':          fi.sector.name if fi.sector else None,
             'airline_id':           fi.airline_id,
             'airline_name':         fi.airline.name,
-            'airline_logo_url':     fi.airline.logo.url if fi.airline.logo else None,
+            'airline_iata_code':    fi.airline.iata_code if fi.airline else '',
+            'airline_logo_url':     fi.airline.logo.url if fi.airline and fi.airline.logo else None,
             'departure_city':       fi.departure_city,
             'destination_city':     fi.destination_city,
             'departure_time':       fi.departure_time,
@@ -1213,7 +1259,7 @@ def agent_group_fare_policies_api(request):
     return JsonResponse({'success': True, 'policies': data})
 
 
-@user_passes_test(is_admin)
+@admin_required_api
 @csrf_exempt
 def admin_group_fare_policies_api(request):
     """
@@ -1336,7 +1382,7 @@ def admin_group_fare_policies_api(request):
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 
-@user_passes_test(is_admin)
+@admin_required_api
 @csrf_exempt
 def admin_group_fare_policy_detail_api(request, pk):
     """
@@ -1416,7 +1462,7 @@ def admin_group_fare_policy_detail_api(request, pk):
         return JsonResponse({'success': True, 'message': 'Group ticket deleted successfully!'})
 
 
-@user_passes_test(is_admin)
+@admin_required_api
 @csrf_exempt
 def admin_adjust_group_seats_api(request, pk):
     """
@@ -1904,7 +1950,9 @@ def agent_create_ticket_order_api(request):
                     reference=order.reference_number,
                     created_by=request.user
                 )
-                issue_pnr_and_tickets_for_order(order)
+                order.pnr = None
+                order.status = 'paid'
+                order.save()
 
         return JsonResponse({
             'success': True,
@@ -1984,7 +2032,9 @@ def agent_update_passengers_api(request, pk):
             reference=order.reference_number,
             created_by=request.user
         )
-        issue_pnr_and_tickets_for_order(order)
+        order.status = 'paid'
+        order.pnr = None
+        order.save()
 
     return JsonResponse({
         'success': True,
@@ -2052,7 +2102,7 @@ def auto_expire_hold_orders_helper():
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_ticket_orders_api(request):
     """
     GET → List all AgentTicketOrder records AND Booking records for admin view with status filter.
@@ -2111,6 +2161,8 @@ def admin_ticket_orders_api(request):
             'traveler_contact_email': order.traveler_contact_email,
             'agent_contact_email': order.agent_contact_email,
             'total_fare': str(order.total_fare),
+            'original_fare': str(order.original_fare) if order.original_fare is not None else str(order.total_fare),
+            'admin_discount': str(getattr(order, 'admin_discount', '0.00')),
             'status': order.status,
             'status_display': order.get_status_display(),
             'hold_expires_at': order.hold_expires_at.isoformat() if order.hold_expires_at else None,
@@ -2146,6 +2198,8 @@ def admin_ticket_orders_api(request):
                 'traveler_contact_email': b.user.email if b.user else '',
                 'agent_contact_email': b.user.email if b.user else '',
                 'total_fare': str(b.total_price),
+                'original_fare': str(b.total_price),
+                'admin_discount': '0.00',
                 'status': b.status,
                 'status_display': b.get_status_display(),
                 'hold_expires_at': None,
@@ -2176,10 +2230,10 @@ def admin_ticket_orders_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_allot_tickets_api(request, pk):
     """
-    POST → Admin enters ticket numbers for passengers, optional PNR, and marks status as 'ticketed' or 'paid'.
+    POST → Admin enters ticket numbers for passengers, optional PNR, optional Admin Discount, and marks status as 'ticketed' or 'paid'.
     Supports both AgentTicketOrder (integer pk) and Booking (pk starting with bkg_).
     """
     if request.method != 'POST':
@@ -2224,6 +2278,37 @@ def admin_allot_tickets_api(request, pk):
 
     if new_status in ['paid', 'confirmed', 'ticketed']:
         order.status = new_status
+
+    # Optional Admin Discount processing
+    raw_discount = data.get('admin_discount') or data.get('discount_amount')
+    if raw_discount is not None and str(raw_discount).strip() != '':
+        try:
+            from decimal import Decimal
+            from apps.accounts.models import AgentLedger
+            new_discount = Decimal(str(raw_discount).strip())
+            if new_discount >= 0:
+                if order.original_fare is None:
+                    order.original_fare = order.total_fare
+
+                old_discount = order.admin_discount or Decimal('0.00')
+                discount_diff = new_discount - old_discount
+
+                order.admin_discount = new_discount
+                order.total_fare = max(Decimal('0.00'), order.original_fare - new_discount)
+
+                if discount_diff > 0 and order.agent:
+                    AgentLedger.objects.create(
+                        agent=order.agent,
+                        entry_type='credit',
+                        category='adjustment',
+                        amount=discount_diff,
+                        description=f"Special Admin Discount credited for Order #{order.reference_number}",
+                        reference=order.reference_number,
+                        created_by=request.user if hasattr(request, 'user') and request.user.is_authenticated else None
+                    )
+        except Exception as disc_err:
+            print(f"[admin_allot_tickets_api] Error processing discount: {disc_err}")
+
     order.save()
 
     for p_item in passengers_list:
@@ -2239,12 +2324,14 @@ def admin_allot_tickets_api(request, pk):
         'success': True,
         'message': f'Ticket numbers allotted and order status updated to {order.get_status_display()}.',
         'status': order.status,
-        'pnr': order.pnr or ''
+        'pnr': order.pnr or '',
+        'total_fare': str(order.total_fare),
+        'admin_discount': str(order.admin_discount)
     })
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_confirm_ticket_payment_api(request, pk):
     """
     POST → Admin confirms payment for a ticket order.
@@ -2271,7 +2358,7 @@ def admin_confirm_ticket_payment_api(request, pk):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_cancel_ticket_order_api(request, pk):
     """
     POST → Admin cancels an AgentTicketOrder or Booking record and restores reserved seats.
@@ -2305,23 +2392,44 @@ def admin_cancel_ticket_order_api(request, pk):
 @user_passes_test(is_agent)
 def agent_cancel_ticket_order_api(request, pk):
     """
-    POST → Agent cancels their own order (if status is 'hold' or 'paid_pending').
+    POST → Agent cancels their own order (if status is 'hold', 'paid_pending', or 'paid').
     Restores reserved seats back to inventory / package / group ticket.
+    If order was paid, automatically refunds the payment to agent's wallet ledger!
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
 
     order = get_object_or_404(AgentTicketOrder, pk=pk, agent=request.user)
-    if order.status not in ('hold', 'paid_pending'):
+    if order.status not in ('hold', 'paid_pending', 'paid'):
         return JsonResponse({
             'success': False,
-            'message': f'Cannot cancel order with status "{order.get_status_display()}". Only hold or pending orders can be cancelled.'
+            'message': f'Cannot cancel order with status "{order.get_status_display()}". Only hold, pending, or un-ticketed paid orders can be cancelled.'
         }, status=400)
 
+    was_paid = (order.status == 'paid')
+    refund_amount = order.total_fare
+
     restore_order_seats_and_update_status(order, new_status='cancelled')
+
+    if was_paid and refund_amount > 0:
+        from apps.accounts.models import AgentLedger
+        AgentLedger.objects.create(
+            agent=request.user,
+            entry_type='credit',
+            category='refund',
+            amount=refund_amount,
+            description=f'Refund for cancelled ticket order #{order.reference_number}',
+            reference=order.reference_number,
+            created_by=request.user
+        )
+
+    msg = f'Order #{order.reference_number} has been cancelled successfully. Reserved seats released.'
+    if was_paid:
+        msg += f' PKR {refund_amount} has been refunded to your wallet ledger.'
+
     return JsonResponse({
         'success': True,
-        'message': f'Order #{order.reference_number} has been cancelled successfully. Reserved seats released.',
+        'message': msg,
         'status': 'cancelled'
     })
 
@@ -2630,7 +2738,7 @@ def agent_wallet_ledger_api(request):
 # ══════════════════════════════════════════════
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_bank_accounts_api(request):
     """
     GET  → return list of bank accounts
@@ -2677,7 +2785,7 @@ def admin_bank_accounts_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_admin)
+@admin_required_api
 def admin_bank_account_detail_api(request, pk):
     """
     POST   → update bank account details

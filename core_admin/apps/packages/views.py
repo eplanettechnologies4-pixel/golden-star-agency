@@ -6,17 +6,13 @@ from apps.packages.models import Package
 from apps.blog.admin_views import admin_required_api
 
 def umrah_list_view(request):
-    # Fetch all Umrah packages dynamically from database
+    # Fetch only Umrah packages dynamically from database for website Umrah page
     packages = Package.objects.filter(category__iexact='umrah').order_by('-created_at')
-    if not packages.exists():
-        packages = Package.objects.all().order_by('-created_at')
     return render(request, 'packages/umrah_list.html', {'packages': packages})
 
 def hajj_list_view(request):
-    # Fetch all Hajj packages dynamically from database
+    # Fetch only Hajj packages dynamically from database for website Hajj page
     packages = Package.objects.filter(category__iexact='hajj').order_by('-created_at')
-    if not packages.exists():
-        packages = Package.objects.all().order_by('-created_at')
     return render(request, 'packages/hajj_list.html', {'packages': packages})
 
 def package_detail_view(request, pk):
@@ -47,6 +43,8 @@ def admin_packages_list_api(request):
             'id': pkg.id,
             'title': pkg.title,
             'category': pkg.category,
+            'is_featured': pkg.is_featured,
+            'cover_url': pkg.cover_url,
             'price': float(pkg.price),
             'duration_days': pkg.duration_days,
             'available_seats': pkg.available_seats,
@@ -69,7 +67,8 @@ def admin_packages_list_api(request):
             'price_infant': float(pkg.price_infant),
             'discount_percentage': float(pkg.discount_percentage),
             'description': pkg.description or '',
-            'created_at': pkg.created_at.strftime('%Y-%m-%d')
+            'created_at': pkg.created_at.strftime('%Y-%m-%d'),
+            'addons': pkg.addons if isinstance(pkg.addons, list) else [],
         })
     
     return JsonResponse({
@@ -99,6 +98,8 @@ def admin_package_detail_api(request, pk):
                 'id': pkg.id,
                 'title': pkg.title,
                 'category': pkg.category,
+                'is_featured': pkg.is_featured,
+                'cover_url': pkg.cover_url,
                 'price': float(pkg.price),
                 'price_sharing': float(pkg.price_sharing),
                 'price_quad':    float(pkg.price_quad),
@@ -123,7 +124,8 @@ def admin_package_detail_api(request, pk):
                 'meal_detail': pkg.meal_detail or 'Full Board',
                 'transport_type': pkg.transport_type or 'Sharing',
                 'luggage_weight': pkg.luggage_weight or '20 kg + 7 kg Hand Carry',
-                'description': pkg.description or ''
+                'description': pkg.description or '',
+                'addons': pkg.addons if isinstance(pkg.addons, list) else [],
             }
         })
     
@@ -135,6 +137,13 @@ def admin_package_detail_api(request, pk):
 
         pkg.title = (body.get('title') or pkg.title).strip()
         pkg.category = (body.get('category') or pkg.category).strip().lower()
+        if 'is_featured' in body or 'is_featured' in request.POST:
+            feat_val = body.get('is_featured') if 'is_featured' in body else request.POST.get('is_featured')
+            pkg.is_featured = str(feat_val).lower() in ('true', '1', 'on', 'yes')
+        
+        if 'cover_image' in request.FILES:
+            pkg.cover_image = request.FILES['cover_image']
+
         if body.get('price')         is not None: pkg.price          = float(body['price'])
         if body.get('price_sharing') is not None: pkg.price_sharing  = float(body['price_sharing'])
         if body.get('price_quad')    is not None: pkg.price_quad     = float(body['price_quad'])
@@ -160,9 +169,17 @@ def admin_package_detail_api(request, pk):
         if body.get('transport_type'):   pkg.transport_type   = body['transport_type']
         if body.get('luggage_weight'):   pkg.luggage_weight   = body['luggage_weight']
         if body.get('description') is not None: pkg.description = body['description']
+        if 'addons' in body or 'addons' in request.POST:
+            addons_raw = body.get('addons') if 'addons' in body else request.POST.get('addons')
+            if isinstance(addons_raw, str):
+                try:
+                    addons_raw = json.loads(addons_raw)
+                except Exception:
+                    addons_raw = []
+            pkg.addons = [{'name': a['name'], 'price': int(a.get('price', 0))} for a in (addons_raw or []) if isinstance(a, dict) and a.get('name', '').strip()]
         
         pkg.save()
-        return JsonResponse({'success': True, 'message': 'Package updated successfully.'})
+        return JsonResponse({'success': True, 'message': 'Package updated successfully.', 'cover_url': pkg.cover_url})
 
 
 @csrf_exempt
@@ -180,46 +197,81 @@ def admin_package_create_api(request):
     except Exception:
         body = request.POST
 
-    title = (body.get('title') or '').strip()
+    title = (body.get('title') or request.POST.get('title') or '').strip()
     if not title:
         return JsonResponse({'success': False, 'message': 'Package title is required.'}, status=400)
 
-    category = (body.get('category') or 'umrah').strip().lower()
-    price = float(body.get('price') or 210000)
-    duration_days = int(body.get('duration_days') or 15)
-    total_seats = int(body.get('total_seats') or 30)
+    category = (body.get('category') or request.POST.get('category') or 'umrah').strip().lower()
+    price = float(body.get('price') or request.POST.get('price') or 210000)
+    duration_days = int(body.get('duration_days') or request.POST.get('duration_days') or 15)
+    total_seats = int(body.get('total_seats') or request.POST.get('total_seats') or 30)
+
+    feat_val = body.get('is_featured') if 'is_featured' in body else request.POST.get('is_featured')
+    is_featured = str(feat_val).lower() in ('true', '1', 'on', 'yes')
+
+    addons_raw = body.get('addons') if 'addons' in body else request.POST.get('addons')
+    if isinstance(addons_raw, str):
+        try:
+            addons_raw = json.loads(addons_raw)
+        except Exception:
+            addons_raw = []
 
     pkg = Package.objects.create(
         title=title,
         category=category,
+        is_featured=is_featured,
         price=price,
-        price_sharing=float(body.get('price_sharing') or price),
-        price_quad=float(body.get('price_quad')    or price + 35000),
-        price_triple=float(body.get('price_triple') or price + 65000),
-        price_double=float(body.get('price_double') or price + 110000),
-        price_child=float(body.get('price_child')  or 180000),
-        price_infant=float(body.get('price_infant') or 65000),
-        discount_percentage=float(body.get('discount_percentage') or 0),
+        price_sharing=float(body.get('price_sharing') or request.POST.get('price_sharing') or price),
+        price_quad=float(body.get('price_quad')    or request.POST.get('price_quad')    or price + 35000),
+        price_triple=float(body.get('price_triple') or request.POST.get('price_triple') or price + 65000),
+        price_double=float(body.get('price_double') or request.POST.get('price_double') or price + 110000),
+        price_child=float(body.get('price_child')  or request.POST.get('price_child')  or 180000),
+        price_infant=float(body.get('price_infant') or request.POST.get('price_infant') or 65000),
+        discount_percentage=float(body.get('discount_percentage') or request.POST.get('discount_percentage') or 0),
         duration_days=duration_days,
         total_seats=total_seats,
-        available_seats=total_seats,
-        makkah_hotel_name=body.get('makkah_hotel_name') or 'Anjum Hotel Makkah',
-        makkah_hotel_distance=body.get('makkah_hotel_distance') or '350m from Haram',
-        madinah_hotel_name=body.get('madinah_hotel_name') or 'Pullman Zamzam Madinah',
-        madinah_hotel_distance=body.get('madinah_hotel_distance') or "150m from Prophet's Mosque",
-        airline=body.get('airline') or 'Saudi Airlines',
-        flight_routes=body.get('flight_routes') or 'KHI - JED - MED - KHI',
-        flight_route_type=body.get('flight_route_type') or 'direct',
-        flight_dates=body.get('flight_dates') or '15 Aug 2026 - 30 Aug 2026',
-        departure_date=body.get('departure_date') or None,
-        return_date=body.get('return_date') or None,
-        meal_detail=body.get('meal_detail') or 'Full Board',
-        transport_type=body.get('transport_type') or 'Sharing',
-        luggage_weight=body.get('luggage_weight') or '20 kg + 7 kg Hand Carry',
-        description=body.get('description') or 'Premium package with complete Hajj & Umrah services.'
+        available_seats=int(body.get('available_seats') or request.POST.get('available_seats') or total_seats),
+        makkah_hotel_name=body.get('makkah_hotel_name') or request.POST.get('makkah_hotel_name') or 'Anjum Hotel Makkah',
+        makkah_hotel_distance=body.get('makkah_hotel_distance') or request.POST.get('makkah_hotel_distance') or '350m from Haram',
+        madinah_hotel_name=body.get('madinah_hotel_name') or request.POST.get('madinah_hotel_name') or 'Pullman Zamzam Madinah',
+        madinah_hotel_distance=body.get('madinah_hotel_distance') or request.POST.get('madinah_hotel_distance') or "150m from Prophet's Mosque",
+        airline=body.get('airline') or request.POST.get('airline') or 'Saudi Airlines',
+        flight_routes=body.get('flight_routes') or request.POST.get('flight_routes') or 'KHI - JED - MED - KHI',
+        flight_route_type=body.get('flight_route_type') or request.POST.get('flight_route_type') or 'direct',
+        flight_dates=body.get('flight_dates') or request.POST.get('flight_dates') or '15 Aug 2026 - 30 Aug 2026',
+        departure_date=body.get('departure_date') or request.POST.get('departure_date') or None,
+        return_date=body.get('return_date') or request.POST.get('return_date') or None,
+        meal_detail=body.get('meal_detail') or request.POST.get('meal_detail') or 'Full Board',
+        transport_type=body.get('transport_type') or request.POST.get('transport_type') or 'Sharing',
+        luggage_weight=body.get('luggage_weight') or request.POST.get('luggage_weight') or '20 kg + 7 kg Hand Carry',
+        description=body.get('description') or request.POST.get('description') or 'Premium package with complete Hajj & Umrah services.',
+        addons=[{'name': a['name'], 'price': int(a.get('price', 0))} for a in (addons_raw or []) if isinstance(a, dict) and a.get('name', '').strip()]
     )
 
-    return JsonResponse({'success': True, 'message': f'Package "{pkg.title}" created successfully.', 'id': pkg.id})
+    if 'cover_image' in request.FILES:
+        pkg.cover_image = request.FILES['cover_image']
+        pkg.save()
+
+    return JsonResponse({'success': True, 'message': f'Package "{pkg.title}" created successfully.', 'id': pkg.id, 'cover_url': pkg.cover_url})
+
+
+@csrf_exempt
+@admin_required_api
+def admin_package_toggle_featured_api(request, pk):
+    """
+    POST /dashboard/admin/api/packages/<pk>/toggle-featured/
+    Toggles the is_featured status of a Package.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
+    pkg = get_object_or_404(Package, pk=pk)
+    pkg.is_featured = not pkg.is_featured
+    pkg.save()
+    return JsonResponse({
+        'success': True,
+        'message': f'Package "{pkg.title}" is_featured set to {pkg.is_featured}.',
+        'is_featured': pkg.is_featured
+    })
 
 
 @csrf_exempt
@@ -232,3 +284,4 @@ def admin_package_delete_api(request, pk):
     pkg = get_object_or_404(Package, pk=pk)
     pkg.delete()
     return JsonResponse({'success': True, 'message': 'Package deleted successfully.'})
+

@@ -126,6 +126,7 @@ urlpatterns = [
     path('dashboard/admin/api/packages/create/', packages_views.admin_package_create_api, name='admin_package_create_api'),
     path('dashboard/admin/api/packages/<int:pk>/', packages_views.admin_package_detail_api, name='admin_package_detail_api'),
     path('dashboard/admin/api/packages/<int:pk>/delete/', packages_views.admin_package_delete_api, name='admin_package_delete_api'),
+    path('dashboard/admin/api/packages/<int:pk>/toggle-featured/', packages_views.admin_package_toggle_featured_api, name='admin_package_toggle_featured_api'),
     path('dashboard/admin/api/visas/', accounts_views.admin_visas_api, name='admin_visas_api'),
     path('dashboard/admin/api/visas/<int:pk>/', accounts_views.admin_visa_status_api, name='admin_visa_status_api'),
     path('dashboard/admin/api/visa-packages/', accounts_views.admin_visa_packages_api, name='admin_visa_packages_api'),
@@ -260,5 +261,11 @@ urlpatterns = [
     path('dashboard/agent/ticket-orders/<str:reference_number>/print/', airline_ticketing_views.agent_ticket_order_print_view, name='agent_ticket_order_print_view'),
 ]
 
+from django.views.static import serve
+from django.urls import re_path
+
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]

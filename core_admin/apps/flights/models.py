@@ -95,6 +95,7 @@ class FlightTicketOffer(models.Model):
     ticket_class = models.CharField(max_length=30, choices=CLASS_CHOICES, default='economy')
     
     price = models.DecimalField(max_digits=10, decimal_places=2) # Base ticket price per seat in PKR
+    price_handcarry = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_20kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_30kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_40kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -102,6 +103,10 @@ class FlightTicketOffer(models.Model):
     
     baggage_checkin = models.CharField(max_length=50, default='30 kg')
     baggage_hand = models.CharField(max_length=50, default='7 kg')
+    
+    has_meal = models.BooleanField(default=True)
+    meal_service = models.CharField(max_length=100, default='Meal Included')
+    via_routes = models.CharField(max_length=255, blank=True, null=True, default='')
     
     is_refundable = models.BooleanField(default=True)
     cancellation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=15000.00)

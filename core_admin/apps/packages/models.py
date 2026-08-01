@@ -54,12 +54,26 @@ class Package(models.Model):
     total_seats = models.IntegerField(default=30)
     available_seats = models.IntegerField(default=30)
     
+    # Cover image and Featured toggle
+    cover_image = models.ImageField(upload_to='packages/covers/', null=True, blank=True)
+    is_featured = models.BooleanField(default=False)
+    
     embedding = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
+
+    @property
+    def cover_url(self):
+        if self.cover_image and hasattr(self.cover_image, 'url'):
+            return self.cover_image.url
+        if isinstance(self.images, list) and len(self.images) > 0 and self.images[0]:
+            return self.images[0]
+        if self.category == 'hajj':
+            return "/static/images/hajj_card.png"
+        return "/static/images/umrah_card.png"
 
     def get_images_list(self):
         if isinstance(self.images, list) and len(self.images) > 0:

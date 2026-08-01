@@ -98,15 +98,7 @@
             {% if featured_post %}
             <a href="{% url 'blog_detail' slug=featured_post.slug %}" class="group block bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:border-brand-orange/40 transition-all duration-300 hover:shadow-2xl hover:shadow-brand-orange/10">
                 <div class="relative h-56 bg-slate-800 overflow-hidden">
-                    {% if featured_post.cover_image %}
-                        <img src="{{ featured_post.cover_image.url }}" alt="{{ featured_post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                    {% elif featured_post.static_cover %}
-                        <img src="{% static 'images/'|add:featured_post.static_cover %}" alt="{{ featured_post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                    {% else %}
-                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
-                            <i class="fa-solid fa-newspaper text-4xl text-slate-600"></i>
-                        </div>
-                    {% endif %}
+                    <img src="{{ featured_post.cover_url }}" alt="{{ featured_post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     <span class="absolute top-4 left-4 bg-brand-orange text-white text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow-md">
                         <i class="fa-solid fa-star text-[9px] mr-1"></i> Featured Article
                     </span>
@@ -202,15 +194,7 @@
                     <article class="group bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-sm hover:shadow-xl hover:border-brand-orange/30 transition-all duration-300 flex flex-col h-full">
                         <!-- Cover Image -->
                         <a href="{% url 'blog_detail' slug=post.slug %}" class="block relative aspect-[16/9] w-full bg-slate-100 overflow-hidden flex-shrink-0">
-                            {% if post.cover_image %}
-                                <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            {% elif post.static_cover %}
-                                <img src="{% static 'images/'|add:post.static_cover %}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                            {% else %}
-                                <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-                                    <i class="fa-solid fa-newspaper text-3xl text-slate-400"></i>
-                                </div>
-                            {% endif %}
+                            <img src="{{ post.cover_url }}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             {% if post.is_featured %}
                             <span class="absolute top-3 left-3 bg-brand-orange text-white text-[9px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider shadow">Featured</span>
                             {% endif %}

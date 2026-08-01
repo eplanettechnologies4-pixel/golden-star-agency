@@ -53,11 +53,11 @@
                 
                 <!-- Image Area -->
                 <div class="relative h-56 bg-slate-950 overflow-hidden shrink-0">
-                    {% if achievement.photo %}
-                        <img src="{{ achievement.photo.url }}" alt="{{ achievement.title }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
+                    {% if achievement.photo_url %}
+                        <img src="{{ achievement.photo_url }}" alt="{{ achievement.title }}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500">
                     {% else %}
                         <div class="w-full h-full bg-slate-900 flex items-center justify-center text-slate-700">
-                            <i class="fa-solid fa-image text-4xl"></i>
+                            <i class="fa-solid fa-trophy text-4xl text-amber-500"></i>
                         </div>
                     {% endif %}
                     

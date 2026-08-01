@@ -327,6 +327,8 @@ class AgentTicketOrder(models.Model):
     agent_contact_email = models.EmailField()
     agent_phone_number = models.CharField(max_length=30, blank=True, null=True)
     total_fare = models.DecimalField(max_digits=12, decimal_places=2)
+    original_fare = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    admin_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='hold')
     hold_expires_at = models.DateTimeField(null=True, blank=True)
     pnr = models.CharField(max_length=20, null=True, blank=True)

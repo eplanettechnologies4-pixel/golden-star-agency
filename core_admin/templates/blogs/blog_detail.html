@@ -44,18 +44,9 @@
 <section class="relative min-h-[580px] flex items-end overflow-hidden bg-slate-950">
 
     <!-- Cover Image as Background -->
-    {% if post.cover_image %}
-        <div class="absolute inset-0">
-            <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover">
-        </div>
-    {% elif post.static_cover %}
-        <div class="absolute inset-0">
-            <img src="{% static 'images/'|add:post.static_cover %}" alt="{{ post.title }}" class="w-full h-full object-cover">
-        </div>
-    {% else %}
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(234,88,12,0.15),transparent_60%)]"></div>
-        <div class="absolute inset-0 opacity-[0.03]" style="background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:48px 48px;"></div>
-    {% endif %}
+    <div class="absolute inset-0">
+        <img src="{{ post.cover_url }}" alt="{{ post.title }}" class="w-full h-full object-cover">
+    </div>
 
     <!-- Gradient overlays for legibility -->
     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/75 to-slate-950/25"></div>

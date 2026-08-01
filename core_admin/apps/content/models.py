@@ -50,3 +50,12 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"[{self.get_category_display()}] {self.title}"
+
+    @property
+    def photo_url(self):
+        if self.photo:
+            try:
+                return self.photo.url
+            except Exception:
+                pass
+        return None

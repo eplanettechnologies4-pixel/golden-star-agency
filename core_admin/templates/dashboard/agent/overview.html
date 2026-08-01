@@ -4879,6 +4879,17 @@
                         </select>
                     </div>
                 `;
+            } else {
+                tiersSelectHtml = `
+                    <div class="space-y-1 w-full">
+                        <label class="block text-[10px] font-extrabold text-[#567946] uppercase flex items-center gap-1"><i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> Select Baggage Allowance</label>
+                        <select id="select-tier-card-${fi.id}" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9] text-[#2D4424] font-bold">
+                            <option value="default_20">🧳 Standard 20 KG Allowance</option>
+                            <option value="default_30">🧳 Standard 30 KG Allowance</option>
+                            <option value="default_40">🧳 Standard 40 KG Allowance</option>
+                        </select>
+                    </div>
+                `;
             }
 
             const minFare = (fi.baggage_tiers && fi.baggage_tiers.length > 0)
@@ -4902,7 +4913,10 @@
                             <div class="p-2.5 bg-white rounded-2xl border border-[#E7DCB9] shadow-xs inline-block">
                                 ${logoHtml}
                             </div>
-                            <h4 class="text-base font-black text-[#2D4424] tracking-tight mt-1">${escapeHTML(fi.airline_name)}</h4>
+                            <h4 class="text-base font-black text-[#2D4424] tracking-tight mt-1">
+                                ${escapeHTML(fi.airline_name)}
+                                ${fi.airline_iata_code ? `<span class="text-[11px] font-mono font-extrabold text-[#E06A26] bg-[#FDF2EA] px-2 py-0.5 rounded-lg border border-[#FCE2D2] ml-1">(${escapeHTML(fi.airline_iata_code)})</span>` : ''}
+                            </h4>
                         </div>
                         <div class="flex flex-wrap items-center gap-1.5 mt-3">
                             ${sectorBadge}
@@ -4964,11 +4978,10 @@
 
         function submitCardTicketBooking(flightId) {
             const sel = document.getElementById(`select-tier-card-${flightId}`);
-            if (!sel || !sel.value) {
-                alert("Please select a baggage allowance tier.");
-                return;
+            let tierId = null;
+            if (sel && sel.value && !sel.value.startsWith('default')) {
+                tierId = parseInt(sel.value);
             }
-            const tierId = parseInt(sel.value);
             selectB2BTicket(tierId, flightId);
         }
 
@@ -5817,7 +5830,9 @@
 
                         const logoHtml = a.logo_url
                             ? `<img src="${a.logo_url}" alt="${escapeHTML(a.name)}" class="h-6 w-auto object-contain mb-1">`
-                            : `<i class="fa-solid fa-plane text-[#E06A26] mb-1 text-base"></i>`;
+                            : `<div class="w-7 h-7 rounded-lg bg-[#2D4424] text-white flex items-center justify-center font-black text-xs mb-1">${(a.iata_code || a.name.slice(0,2)).slice(0,2).toUpperCase()}</div>`;
+
+                        const iataBadge = a.iata_code ? `<span class="text-[9px] font-mono font-black text-[#E06A26] bg-[#FDF2EA] px-1.5 py-0.5 rounded border border-[#FCE2D2] mt-0.5">${escapeHTML(a.iata_code)}</span>` : '';
 
                         const btn = document.createElement("button");
                         btn.className = btnClass;
@@ -5825,6 +5840,7 @@
                         btn.innerHTML = `
                             ${logoHtml}
                             <span class="text-[11px] font-bold truncate max-w-full">${escapeHTML(a.name)}</span>
+                            ${iataBadge}
                         `;
                         grid.appendChild(btn);
                     });
@@ -5963,14 +5979,22 @@
                 tbody.innerHTML = "";
                 data.orders.forEach(o => {
                     let badge = "";
-                    if (o.status === "ticketed" || o.status === "paid") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">✓ Ticketed / Confirmed</span>';
-                    else if (o.status === "hold") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">On Hold (Seats Held)</span>';
-                    else if (o.status === "paid_pending") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FBF5E8] text-[#7A5C28] border border-[#EADBB8]">Payment Pending Approval</span>';
-                    else if (o.status === "expired") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Hold Expired</span>';
-                    else badge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F7F3E9] text-[#567946] border border-[#D9CBAC]">${escapeHTML(o.status_display)}</span>`;
+                    if (o.status === "ticketed" || (o.status === "paid" && o.pnr)) {
+                        badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">✓ Ticketed / PNR Allotted</span>';
+                    } else if (o.status === "paid" || o.status === "paid_pending") {
+                        badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FBF5E8] text-[#7A5C28] border border-[#EADBB8]">✓ Paid — Pending Admin PNR</span>';
+                    } else if (o.status === "hold") {
+                        badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">On Hold (Seats Held)</span>';
+                    } else if (o.status === "expired") {
+                        badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Hold Expired</span>';
+                    } else {
+                        badge = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F7F3E9] text-[#567946] border border-[#D9CBAC]">${escapeHTML(o.status_display)}</span>`;
+                    }
 
                     const holdExpiryText = o.hold_expires_at ? `<div class="text-[10px] text-[#E06A26] font-bold mt-0.5"><i class="fa-solid fa-clock mr-1"></i>Expires: ${o.hold_expires_at.slice(11, 16)}</div>` : '';
-                    const pnrBadge = o.pnr ? `<span class="font-mono font-extrabold text-[#38522D] text-xs">${escapeHTML(o.pnr)}</span>` : '<span class="text-[#567946] italic text-[10px]">Awaiting Confirmation</span>';
+                    const pnrBadge = o.pnr ? `<span class="font-mono font-extrabold text-[#38522D] text-xs bg-[#F0F6EC] px-2 py-0.5 rounded border border-[#C6DCB4]">${escapeHTML(o.pnr)}</span>` : '<span class="text-[#E06A26] font-extrabold italic text-[10px] bg-[#FDF2EA] px-2 py-0.5 rounded border border-[#FCE2D2]">⏳ Pending PNR Allotment</span>';
+
+                    const canCancel = (o.status === 'hold' || o.status === 'paid_pending' || o.status === 'paid') && o.status !== 'ticketed';
 
                     const actionButtons = `
                         <div class="flex items-center justify-end gap-1.5 flex-wrap">
@@ -5983,13 +6007,13 @@
                             <a href="/dashboard/agent/ticket-orders/${escapeHTML(o.reference_number)}/print/?hide_fare=1" target="_blank" title="Print Client Invoice without Fare" class="px-2.5 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm">
                                 <i class="fa-solid fa-file-invoice"></i> Without Fare
                             </a>
-                            ${(o.status === 'hold' || o.status === 'paid_pending') ? `
-                                <button type="button" onclick="agentCancelTicketOrder(${o.id})" title="Cancel Order & Release Seats" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm">
-                                    <i class="fa-solid fa-ban"></i> Cancel
+                            ${canCancel ? `
+                                <button type="button" onclick="agentCancelTicketOrder(${o.id})" title="Cancel Order & Refund to Wallet" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-ban"></i> Cancel Order
                                 </button>
                             ` : ''}
                             ${(o.status === 'cancelled' || o.status === 'expired' || o.status === 'hold') ? `
-                                <button type="button" onclick="agentDeleteTicketOrder(${o.id})" title="Delete Order" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm">
+                                <button type="button" onclick="agentDeleteTicketOrder(${o.id})" title="Delete Order Record" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 shadow-sm">
                                     <i class="fa-solid fa-trash"></i> Delete
                                 </button>
                             ` : ''}
@@ -6032,7 +6056,7 @@
         }
 
         async function agentCancelTicketOrder(orderId) {
-            if (!confirm("Are you sure you want to cancel this hold order? The reserved seats will be released back to inventory.")) return;
+            if (!confirm("Are you sure you want to cancel this order? If paid, the fare will be refunded back to your wallet.")) return;
             try {
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
                 const res = await fetch(`/dashboard/agent/api/my-orders/${orderId}/cancel/`, {
@@ -6044,8 +6068,9 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert("Order cancelled successfully and reserved seats released.");
+                    alert(data.message || "Order cancelled successfully.");
                     syncAgentMyOrders();
+                    if (typeof fetchAgentWalletLedger === 'function') fetchAgentWalletLedger();
                 } else {
                     alert(data.message || data.error || "Failed to cancel order.");
                 }
