@@ -275,6 +275,26 @@
                     {% endif %}
 
                     <form id="package-booking-form" class="border-t border-slate-100 pt-6 space-y-4">
+                        {% if not user.is_authenticated %}
+                        <div class="p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 space-y-2.5">
+                            <span class="text-[11px] font-extrabold text-amber-900 flex items-center gap-1"><i class="fa-solid fa-user-pen text-brand-orange"></i> Client Contact Information</span>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Full Name *</label>
+                                <input id="booking-guest-name" type="text" placeholder="e.g. Muhammad Ali" required class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">WhatsApp / Phone *</label>
+                                    <input id="booking-guest-phone" type="tel" placeholder="03001234567" required class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Email Address *</label>
+                                    <input id="booking-guest-email" type="email" placeholder="ali@gmail.com" required class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <!-- Room Sharing Choice -->
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Room Sharing Category</label>
@@ -459,10 +479,18 @@
                     bookingForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
 
+                        let guestName = "";
+                        let guestPhone = "";
+                        let guestEmail = "";
+
                         if (!IS_USER_LOGGED_IN) {
-                            alert("🔒 Account Required!\n\nYou must log in or create an account before booking pilgrimage packages.\n\nClick OK to log in.");
-                            window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
-                            return;
+                            guestName = document.getElementById('booking-guest-name')?.value.trim();
+                            guestPhone = document.getElementById('booking-guest-phone')?.value.trim();
+                            guestEmail = document.getElementById('booking-guest-email')?.value.trim();
+                            if (!guestName || !guestPhone || !guestEmail) {
+                                alert("Please enter your Full Name, Phone / WhatsApp, and Email address to confirm booking.");
+                                return;
+                            }
                         }
 
                         const btn = document.getElementById('btn-book-package');
@@ -494,6 +522,9 @@
                                 },
                                 body: JSON.stringify({
                                     package_id: packageId,
+                                    full_name: guestName,
+                                    phone_number: guestPhone,
+                                    email: guestEmail,
                                     sharing_category: sharingCategory,
                                     adults_count: adultsCount,
                                     children_count: childrenCount,

@@ -113,6 +113,19 @@ def admin_sector_detail_api(request, pk):
     """
     sector = get_object_or_404(Sector, pk=pk)
 
+    if request.method == 'GET':
+        return JsonResponse({
+            'success': True,
+            'sector': {
+                'id': sector.id,
+                'name': sector.name,
+                'origin_city': sector.origin_city,
+                'destination_city': sector.destination_city,
+                'is_round_trip': sector.is_round_trip,
+                'is_active': sector.is_active,
+            }
+        })
+
     if request.method == 'DELETE':
         sector.delete()
         return JsonResponse({'success': True, 'message': 'Sector deleted.'})
@@ -128,8 +141,8 @@ def admin_sector_detail_api(request, pk):
         if dest:
             sector.destination_city = dest
 
-        sector.is_round_trip = request.POST.get('is_round_trip', 'false') == 'true'
-        sector.is_active = request.POST.get('is_active', 'true') == 'true'
+        sector.is_round_trip = request.POST.get('is_round_trip', 'false') in ('true', 'on', '1', True)
+        sector.is_active = request.POST.get('is_active', 'true') in ('true', 'on', '1', True)
         sector.save()
         return JsonResponse({'success': True, 'message': 'Sector updated.'})
 

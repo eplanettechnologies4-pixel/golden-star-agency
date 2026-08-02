@@ -3327,9 +3327,8 @@ def process_b2b_agent_commission_and_email(user, tracking_id, item_title, seats_
 def submit_package_booking_api(request):
     from apps.bookings.models import Booking
     from apps.packages.models import Package
-    
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'message': 'Authentication required. Please login to book a package.'}, status=401)
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
     
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'POST method only.'}, status=405)
@@ -3339,7 +3338,53 @@ def submit_package_booking_api(request):
             body = json.loads(request.body)
         except Exception:
             body = request.POST
+
+        # Resolve user or create guest customer user
+        if request.user.is_authenticated:
+            user = request.user
+        else:
+            guest_name = (body.get('full_name') or body.get('name') or '').strip()
+            guest_email = (body.get('email') or '').strip().lower()
+            guest_phone = (body.get('phone') or body.get('phone_number') or '').strip()
             
+            if guest_email:
+                user = User.objects.filter(email__iexact=guest_email).first()
+                if not user:
+                    import time
+                    username = guest_email.split('@')[0] + '_' + str(int(time.time()))[-4:]
+                    user = User.objects.create_user(
+                        username=username,
+                        email=guest_email,
+                        first_name=guest_name or 'Pilgrim Guest',
+                        role='customer'
+                    )
+                    if guest_phone and hasattr(user, 'phone_number'):
+                        user.phone_number = guest_phone
+                        user.save()
+            elif guest_phone:
+                user = User.objects.filter(phone_number=guest_phone).first() if hasattr(User, 'phone_number') else None
+                if not user:
+                    import time
+                    username = 'guest_' + str(int(time.time()))[-6:]
+                    user = User.objects.create_user(
+                        username=username,
+                        email=f'{username}@goldenstar.com',
+                        first_name=guest_name or 'Pilgrim Guest',
+                        role='customer'
+                    )
+                    if hasattr(user, 'phone_number'):
+                        user.phone_number = guest_phone
+                        user.save()
+            else:
+                import time
+                username = 'guest_' + str(int(time.time()))[-6:]
+                user = User.objects.create_user(
+                    username=username,
+                    email=f'{username}@goldenstar.com',
+                    first_name=guest_name or 'Pilgrim Guest',
+                    role='customer'
+                )
+
         package_id = int(body.get('package_id'))
         sharing_category = body.get('sharing_category', 'Sharing').strip()
         adults_count = int(body.get('adults_count', body.get('quantity', 1)))
@@ -3403,7 +3448,7 @@ def submit_package_booking_api(request):
         total_price = max(0.0, subtotal - discount_applied)
         
         booking = Booking.objects.create(
-            user=request.user,
+            user=user,
             package=package,
             booking_type='package',
             status='pending',

@@ -2871,9 +2871,14 @@
                                     </span>
                                 </td>
                                 <td class="p-3 text-right">
-                                    <button onclick="deleteAdminSector(${s.id})" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all">
-                                        Delete
-                                    </button>
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        <button onclick="openEditSectorModal(${s.id})" class="px-2.5 py-1 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-[10px] font-bold rounded-lg border border-[#D9CBAC] transition-all flex items-center gap-1">
+                                            <i class="fa-solid fa-pen text-[#E06A26]"></i> Edit
+                                        </button>
+                                        <button onclick="deleteAdminSector(${s.id})" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all flex items-center gap-1">
+                                            <i class="fa-solid fa-trash-alt"></i> Delete
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `).join('');
@@ -5342,12 +5347,12 @@
                     renderB2CPackagesTable();
                 } else {
                     const tbody = document.getElementById('tbody-b2c-packages');
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-rose-600 font-bold">Failed to load packages.</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-rose-600 font-bold">Failed to load packages.</td></tr>';
                 }
             } catch(err) {
                 console.error('fetchAdminB2CPackages error:', err);
                 const tbody = document.getElementById('tbody-b2c-packages');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-rose-600 font-bold">Server error. Please refresh.</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-rose-600 font-bold">Server error. Please refresh.</td></tr>';
             } finally {
                 if (icon) icon.classList.remove('fa-spin');
             }
@@ -5364,21 +5369,36 @@
             }
         }
 
-        async function toggleB2CPackageFeatured(id) {
-            try {
-                const res = await fetch(`/dashboard/admin/api/packages/${id}/toggle-featured/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}' }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    fetchAdminB2CPackages();
-                } else {
-                    alert('Failed to toggle featured status: ' + (data.message || 'Error'));
-                }
-            } catch(err) {
-                alert('Network error updating featured status.');
+        function previewHotelImages(input, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (!input.files || !input.files.length) return;
+            container.innerHTML = '';
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'w-16 h-12 rounded-lg overflow-hidden border border-[#D9CBAC] bg-slate-900 shrink-0 relative group shadow-xs';
+                    thumb.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    container.appendChild(thumb);
+                };
+                reader.readAsDataURL(file);
             }
+        }
+
+        function renderHotelThumbsGrid(urls, containerId, label) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            if (!urls || !Array.isArray(urls) || !urls.length) {
+                container.innerHTML = `<span class="text-[10px] text-slate-400 italic py-1">No ${label} photos uploaded yet.</span>`;
+                return;
+            }
+            container.innerHTML = urls.map(u => `
+                <div class="w-16 h-12 rounded-lg overflow-hidden border border-[#D9CBAC] bg-slate-900 shrink-0 relative group shadow-xs">
+                    <img src="${u}" class="w-full h-full object-cover" onerror="this.src='/static/images/umrah_card.png'">
+                </div>
+            `).join('');
         }
 
         function renderB2CPackagesTable() {
@@ -5394,7 +5414,11 @@
                 const seatColor = seats <= 5 ? 'text-rose-600 font-black' : seats <= 10 ? 'text-amber-600 font-bold' : 'text-emerald-700 font-bold';
                 const seatsBar = Math.min(100, Math.round((seats / Math.max(pkg.total_seats, 1)) * 100));
                 const coverImg = pkg.cover_url || (pkg.category === 'hajj' ? '/static/images/hajj_card.png' : '/static/images/umrah_card.png');
+                const travelDatesText = pkg.flight_dates || (pkg.departure_date ? `${pkg.departure_date} to ${pkg.return_date || ''}` : '');
                 const isFeatured = !!pkg.is_featured;
+                const makkahCount = (pkg.makkah_hotel_images && Array.isArray(pkg.makkah_hotel_images)) ? pkg.makkah_hotel_images.length : 0;
+                const madinahCount = (pkg.madinah_hotel_images && Array.isArray(pkg.madinah_hotel_images)) ? pkg.madinah_hotel_images.length : 0;
+
                 return `
                 <tr class="hover:bg-[#F6FAF3] transition-colors border-b border-[#E7DCB9]">
                     <td class="p-3 font-bold text-[#2D4424]">#${pkg.id}</td>
@@ -5403,7 +5427,7 @@
                     </td>
                     <td class="p-3">
                         <div class="font-black text-[#2D4424] text-xs max-w-xs truncate">${escapeHTML(pkg.title)}</div>
-                        <div class="text-[10px] text-[#567946] font-semibold mt-0.5">${escapeHTML(pkg.airline || 'Saudi Airlines')} &bull; ${pkg.duration_days} Days</div>
+                        <div class="text-[10px] text-[#567946] font-semibold mt-0.5">${escapeHTML(pkg.airline || 'Saudi Airlines')} &bull; ${pkg.duration_days} Days ${travelDatesText ? `&bull; <span class="text-[#E06A26] font-bold"><i class="fa-solid fa-calendar-days text-[9px] mr-0.5"></i>${escapeHTML(travelDatesText)}</span>` : ''}</div>
                     </td>
                     <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${catColor}">${(pkg.category || 'umrah').toUpperCase()}</span></td>
                     <td class="p-3 font-extrabold text-[#2D4424]">PKR ${Number(pkg.price).toLocaleString()}</td>
@@ -5416,7 +5440,13 @@
                             <i class="fa-solid fa-star ${isFeatured ? 'text-white' : 'text-amber-500'}"></i> ${isFeatured ? 'Featured' : 'Standard'}
                         </button>
                     </td>
-                    <td class="p-3 text-xs text-[#567946] font-semibold max-w-[120px] truncate">${escapeHTML(pkg.makkah_hotel_name || 'N/A')}</td>
+                    <td class="p-3 text-xs text-[#567946] font-semibold max-w-[140px]">
+                        <div class="truncate font-bold text-[#2D4424]">${escapeHTML(pkg.makkah_hotel_name || 'N/A')}</div>
+                        <div class="flex items-center gap-1 mt-1">
+                            <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 text-[9px] font-extrabold border border-amber-200" title="Makkah Hotel Photos"><i class="fa-solid fa-kaaba text-amber-600"></i> ${makkahCount}</span>
+                            <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[9px] font-extrabold border border-emerald-200" title="Madinah Hotel Photos"><i class="fa-solid fa-mosque text-emerald-600"></i> ${madinahCount}</span>
+                        </div>
+                    </td>
                     <td class="p-3 text-center">
                         <div class="flex items-center justify-center gap-1">
                             <button onclick="viewB2CPackage(${pkg.id})" title="View Details" class="px-2 py-1.5 rounded-xl text-[10px] font-black bg-[#F6FAF3] border border-emerald-200 text-[#567946] hover:bg-emerald-50 transition-all flex items-center gap-1"><i class="fa-solid fa-eye"></i> View</button>
@@ -5515,13 +5545,11 @@
             const customInput = document.getElementById('pkg-form-airline-custom');
             const hint = document.getElementById('pkg-airline-custom-hint');
             if (!sel || !airline) return;
-            // Check if airline is in the predefined list
             let found = false;
             for (let o of sel.options) {
                 if (o.value === airline) { o.selected = true; found = true; break; }
             }
             if (!found) {
-                // Set to custom
                 for (let o of sel.options) {
                     if (o.value === '__custom__') { o.selected = true; break; }
                 }
@@ -5584,6 +5612,25 @@
             _renderAddonRows();
         }
 
+        /* ── Travel Dates Calendar auto-calculator ── */
+        function onPkgTravelDatesChange() {
+            const depStr = _pkgVal('pkg-form-departure-date');
+            const retStr = _pkgVal('pkg-form-return-date');
+            if (depStr && retStr) {
+                const d1 = new Date(depStr);
+                const d2 = new Date(retStr);
+                if (!isNaN(d1.getTime()) && !isNaN(d2.getTime()) && d2 >= d1) {
+                    const diffTime = Math.abs(d2 - d1);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+                    _pkgSet('pkg-form-duration', diffDays);
+
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const fmt = d => `${String(d.getDate()).padStart(2, '0')} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+                    _pkgSet('pkg-form-flight-dates', `${fmt(d1)} - ${fmt(d2)}`);
+                }
+            }
+        }
+
         function openAddB2CPackageModal() {
             _editingPackageId = null;
             const modal = document.getElementById('modal-b2c-package-form');
@@ -5591,6 +5638,9 @@
             document.getElementById('pkg-modal-title').textContent = 'Create New Package';
             _pkgSet('pkg-form-title', '');
             _pkgSetSel('pkg-form-category', 'umrah');
+            _pkgSet('pkg-form-departure-date', '');
+            _pkgSet('pkg-form-return-date', '');
+            _pkgSet('pkg-form-flight-dates', '');
             _pkgSet('pkg-form-duration', '15');
             _pkgSet('pkg-form-seats', '30');
             _pkgSet('pkg-form-discount', '0');
@@ -5602,8 +5652,8 @@
             _pkgSet('pkg-form-price-infant',  '65000');
             _pkgSetAirlineVal('Saudi Airlines');
             _pkgSetSel('pkg-form-route-type', 'direct');
-            _pkgSet('pkg-form-route-d1', 'KHI');
-            _pkgSet('pkg-form-route-d2', 'JED');
+            _pkgSet('pkg-route-d1', 'KHI');
+            _pkgSet('pkg-route-d2', 'JED');
             _pkgSetSel('pkg-form-meal', 'Full Board');
             _pkgSetSel('pkg-form-transport', 'Sharing');
             _pkgSet('pkg-form-luggage', '20 kg + 7 kg Hand Carry');
@@ -5612,10 +5662,20 @@
             _pkgSet('pkg-form-madinah-hotel', 'Pullman Zamzam Madinah');
             _pkgSet('pkg-form-madinah-dist',  "150m from Prophet's Mosque");
             _pkgSet('pkg-form-description', '');
+
             const coverInput = document.getElementById('pkg-form-cover-image');
             if (coverInput) coverInput.value = '';
             const coverImg = document.getElementById('pkg-cover-preview-img');
             if (coverImg) coverImg.src = '/static/images/umrah_card.png';
+
+            const makkahInput = document.getElementById('pkg-form-makkah-images');
+            if (makkahInput) makkahInput.value = '';
+            renderHotelThumbsGrid([], 'pkg-makkah-preview-grid', 'Makkah hotel');
+
+            const madinahInput = document.getElementById('pkg-form-madinah-images');
+            if (madinahInput) madinahInput.value = '';
+            renderHotelThumbsGrid([], 'pkg-madinah-preview-grid', 'Madinah hotel');
+
             const featChk = document.getElementById('pkg-form-featured');
             if (featChk) featChk.checked = false;
             onPkgCategoryChange('umrah');
@@ -5632,7 +5692,6 @@
 
         async function editB2CPackage(id) {
             _editingPackageId = id;
-            // Close detail modal if open
             closePkgDetailModal();
             try {
                 const res = await fetch(`/dashboard/admin/api/packages/${id}/`);
@@ -5644,6 +5703,9 @@
                     document.getElementById('pkg-modal-title').textContent = 'Edit Package — #' + p.id;
                     _pkgSet('pkg-form-title', p.title);
                     _pkgSetSel('pkg-form-category', p.category || 'umrah');
+                    _pkgSet('pkg-form-departure-date', p.departure_date || '');
+                    _pkgSet('pkg-form-return-date', p.return_date || '');
+                    _pkgSet('pkg-form-flight-dates', p.flight_dates || '');
                     _pkgSet('pkg-form-duration', p.duration_days || 15);
                     _pkgSet('pkg-form-seats', p.available_seats || 30);
                     _pkgSet('pkg-form-discount', p.discount_percentage || 0);
@@ -5658,7 +5720,6 @@
                     _pkgSetSel('pkg-form-route-type', routeType);
                     onPkgRouteTypeChange(routeType);
                     _parseRouteToInputs(p.flight_routes, routeType);
-                    _pkgSet('pkg-form-flight-dates', p.flight_dates || '');
                     _pkgSetSel('pkg-form-meal', p.meal_detail || 'Full Board');
                     _pkgSetSel('pkg-form-transport', p.transport_type || 'Sharing');
                     _pkgSet('pkg-form-luggage', p.luggage_weight || '20 kg + 7 kg Hand Carry');
@@ -5667,10 +5728,20 @@
                     _pkgSet('pkg-form-madinah-hotel', p.madinah_hotel_name);
                     _pkgSet('pkg-form-madinah-dist',  p.madinah_hotel_distance);
                     _pkgSet('pkg-form-description',   p.description);
+
                     const coverInput = document.getElementById('pkg-form-cover-image');
                     if (coverInput) coverInput.value = '';
                     const coverImg = document.getElementById('pkg-cover-preview-img');
                     if (coverImg) coverImg.src = p.cover_url || '/static/images/umrah_card.png';
+
+                    const makkahInput = document.getElementById('pkg-form-makkah-images');
+                    if (makkahInput) makkahInput.value = '';
+                    renderHotelThumbsGrid(p.makkah_hotel_images, 'pkg-makkah-preview-grid', 'Makkah hotel');
+
+                    const madinahInput = document.getElementById('pkg-form-madinah-images');
+                    if (madinahInput) madinahInput.value = '';
+                    renderHotelThumbsGrid(p.madinah_hotel_images, 'pkg-madinah-preview-grid', 'Madinah hotel');
+
                     const featChk = document.getElementById('pkg-form-featured');
                     if (featChk) featChk.checked = !!p.is_featured;
                     onPkgCategoryChange(p.category || 'umrah');
@@ -5709,13 +5780,15 @@
             formData.append('price_child', parseFloat(_pkgVal('pkg-form-price-child')) || 180000);
             formData.append('price_infant', parseFloat(_pkgVal('pkg-form-price-infant')) || 65000);
             formData.append('discount_percentage', parseFloat(_pkgVal('pkg-form-discount')) || 0);
+            formData.append('departure_date', _pkgVal('pkg-form-departure-date'));
+            formData.append('return_date', _pkgVal('pkg-form-return-date'));
+            formData.append('flight_dates', _pkgVal('pkg-form-flight-dates'));
             formData.append('duration_days', parseInt(_pkgVal('pkg-form-duration')) || 15);
             formData.append('available_seats', parseInt(_pkgVal('pkg-form-seats')) || 30);
             formData.append('total_seats', parseInt(_pkgVal('pkg-form-seats')) || 30);
             formData.append('airline', _pkgGetAirlineVal());
             formData.append('flight_route_type', _pkgVal('pkg-form-route-type'));
             formData.append('flight_routes', _pkgVal('pkg-form-routes'));
-            formData.append('flight_dates', _pkgVal('pkg-form-flight-dates'));
             formData.append('meal_detail', (_pkgVal('pkg-form-category') === 'umrah') ? '' : _pkgVal('pkg-form-meal'));
             formData.append('transport_type', _pkgVal('pkg-form-transport'));
             formData.append('luggage_weight', _pkgVal('pkg-form-luggage'));
@@ -5729,6 +5802,20 @@
             const coverFileInput = document.getElementById('pkg-form-cover-image');
             if (coverFileInput && coverFileInput.files && coverFileInput.files[0]) {
                 formData.append('cover_image', coverFileInput.files[0]);
+            }
+
+            const makkahFileInput = document.getElementById('pkg-form-makkah-images');
+            if (makkahFileInput && makkahFileInput.files) {
+                for (let i = 0; i < makkahFileInput.files.length; i++) {
+                    formData.append('makkah_hotel_images', makkahFileInput.files[i]);
+                }
+            }
+
+            const madinahFileInput = document.getElementById('pkg-form-madinah-images');
+            if (madinahFileInput && madinahFileInput.files) {
+                for (let i = 0; i < madinahFileInput.files.length; i++) {
+                    formData.append('madinah_hotel_images', madinahFileInput.files[i]);
+                }
             }
 
             submitBtn.disabled = true;
@@ -5780,6 +5867,10 @@
             document.getElementById('pkgd-seats').textContent = (pkg.available_seats || '—') + ' / ' + (pkg.total_seats || '—');
             document.getElementById('pkgd-airline').textContent = pkg.airline || '—';
             document.getElementById('pkgd-route').textContent = pkg.flight_routes || '—';
+            const datesEl = document.getElementById('pkgd-dates');
+            if (datesEl) {
+                datesEl.textContent = pkg.flight_dates || (pkg.departure_date ? `${pkg.departure_date} to ${pkg.return_date || ''}` : '—');
+            }
             document.getElementById('pkgd-transport').textContent = pkg.transport_type || 'Sharing';
             document.getElementById('pkgd-luggage').textContent = pkg.luggage_weight || '20 kg + 7 kg';
             document.getElementById('pkgd-makkah-hotel').textContent = pkg.makkah_hotel_name || '—';
@@ -5788,7 +5879,9 @@
             document.getElementById('pkgd-madinah-dist').textContent = pkg.madinah_hotel_distance || '—';
             document.getElementById('pkgd-description').textContent = pkg.description || 'No description provided.';
 
-            // Show Meal Plan only for Hajj / Tour, hide for Umrah
+            renderHotelThumbsGrid(pkg.makkah_hotel_images, 'pkgd-makkah-gallery', 'Makkah hotel');
+            renderHotelThumbsGrid(pkg.madinah_hotel_images, 'pkgd-madinah-gallery', 'Madinah hotel');
+
             const mealWrapper = document.getElementById('pkgd-meal-wrapper');
             if (mealWrapper) {
                 if (cat === 'umrah') {
@@ -5808,17 +5901,6 @@
                 { label: 'Child (with bed)',   val: pkg.price_child,   color: 'bg-amber-50 border-amber-200 text-amber-800' },
                 { label: 'Infant (no bed)',    val: pkg.price_infant,  color: 'bg-blue-50 border-blue-200 text-blue-800' }
             ];
-            pricesGrid.innerHTML = priceDefs.map(pd => `
-                <div class="border rounded-2xl p-3 ${pd.color}">
-                    <p class="text-[9px] font-black uppercase mb-1">${pd.label}</p>
-                    <p class="font-extrabold text-sm">${fmtPKR(pd.val)}</p>
-                </div>`).join('');
-
-            const editBtn = document.getElementById('pkgd-edit-btn');
-            if (editBtn) editBtn.onclick = () => { closePkgDetailModal(); editB2CPackage(id); };
-            const viewLink = document.getElementById('pkgd-view-link');
-            if (viewLink) viewLink.href = `/packages/${id}/`;
-
             modal.style.display = 'flex';
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
@@ -6387,9 +6469,14 @@
                     <div class="text-[10px] text-[#567946] font-mono mt-0.5">IATA: ${a.iata_code || '—'}</div>
                     <div class="mt-3 pt-3 border-t border-[#E7DCB9] flex items-center justify-between">
                         <span class="text-[10px] text-[#567946]">ID: #${a.id}</span>
-                        <button onclick="deleteB2CAirline(${a.id})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[9px] font-bold rounded-lg border border-rose-200 transition-all">
-                            <i class="fa-solid fa-trash-alt"></i> Remove
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="openEditAirlineModal(${a.id})" class="px-2 py-1 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-[9px] font-bold rounded-lg border border-[#D9CBAC] transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-pen text-[#E06A26]"></i> Edit
+                            </button>
+                            <button onclick="deleteB2CAirline(${a.id})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[9px] font-bold rounded-lg border border-rose-200 transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-trash-alt"></i> Remove
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -6427,9 +6514,14 @@
                     <td class="p-3">${s.is_active ? '<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200">Active</span>' : '<span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-100 text-rose-600 border border-rose-200">Inactive</span>'}</td>
                     <td class="p-3 text-[10px] text-[#567946] font-mono">${s.created_at ? s.created_at.split(' ')[0] : '—'}</td>
                     <td class="p-3">
-                        <button onclick="deleteB2CSector(${s.id})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[9px] font-bold rounded-lg border border-rose-200 transition-all">
-                            <i class="fa-solid fa-trash-alt"></i> Delete
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="openEditSectorModal(${s.id})" class="px-2 py-1 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-[9px] font-bold rounded-lg border border-[#D9CBAC] transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-pen text-[#E06A26]"></i> Edit
+                            </button>
+                            <button onclick="deleteB2CSector(${s.id})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[9px] font-bold rounded-lg border border-rose-200 transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -6448,6 +6540,172 @@
                     renderB2CSectors();
                 } else { alert('Failed: ' + (data.message || '')); }
             } catch(err) { alert('Network error.'); }
+        }
+
+        /* ── Edit Sector Modal ── */
+        async function openEditSectorModal(id) {
+            let s = (window._adminSectorsList || []).find(sec => sec.id == id) || (_b2cSectorsData || []).find(sec => sec.id == id);
+            if (!s) {
+                try {
+                    const res = await fetch(`/dashboard/admin/api/sectors/${id}/`);
+                    const data = await res.json();
+                    if (data.success && data.sector) s = data.sector;
+                } catch(e){}
+            }
+            if (!s) { alert('Sector not found.'); return; }
+
+            let modal = document.getElementById('modal-edit-sector');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-edit-sector';
+                modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+                document.body.appendChild(modal);
+            }
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+            modal.innerHTML = `
+                <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
+                        <h3 class="font-black text-[#2D4424] flex items-center gap-2"><i class="fa-solid fa-pen text-[#E06A26]"></i> Edit Sector #${s.id}</h3>
+                        <button onclick="document.getElementById('modal-edit-sector').style.display='none'" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+                    </div>
+                    <form id="form-edit-sector" onsubmit="submitEditSector(event, ${s.id})" class="space-y-4 text-xs">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Sector Name *</label>
+                            <input type="text" name="name" value="${_escHtml(s.name)}" required placeholder="e.g. KHI-JED-KHI" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Origin City *</label>
+                                <input type="text" name="origin_city" value="${_escHtml(s.origin_city)}" required placeholder="KHI" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Destination City *</label>
+                                <input type="text" name="destination_city" value="${_escHtml(s.destination_city)}" required placeholder="JED" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-[#F7F3E9] p-3 rounded-xl border border-[#D9CBAC]">
+                            <input type="checkbox" name="is_round_trip" id="edit-sector-roundtrip" ${s.is_round_trip ? 'checked' : ''} class="w-4 h-4 text-[#E06A26] rounded border-[#D9CBAC] focus:ring-[#E06A26] cursor-pointer">
+                            <label for="edit-sector-roundtrip" class="font-extrabold text-[#2D4424] cursor-pointer">Round Trip Sector</label>
+                        </div>
+                        <div class="flex items-center gap-2 bg-[#F7F3E9] p-3 rounded-xl border border-[#D9CBAC]">
+                            <input type="checkbox" name="is_active" id="edit-sector-active" ${s.is_active !== false ? 'checked' : ''} class="w-4 h-4 text-[#E06A26] rounded border-[#D9CBAC] focus:ring-[#E06A26] cursor-pointer">
+                            <label for="edit-sector-active" class="font-extrabold text-[#2D4424] cursor-pointer">Active Sector</label>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2 border-t border-[#E7DCB9]">
+                            <button type="button" onclick="document.getElementById('modal-edit-sector').style.display='none'" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200">Cancel</button>
+                            <button type="submit" class="px-5 py-2 bg-[#E06A26] text-white font-extrabold rounded-xl hover:bg-[#c85819] shadow-sm"><i class="fa-solid fa-floppy-disk mr-1"></i> Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+
+        async function submitEditSector(e, id) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            if (!form.querySelector('[name=is_round_trip]').checked) formData.set('is_round_trip', 'false');
+            if (!form.querySelector('[name=is_active]').checked) formData.set('is_active', 'false');
+            try {
+                const csrfToken = getCookie('csrftoken') || '';
+                const res = await fetch(`/dashboard/admin/api/sectors/${id}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Sector updated successfully!');
+                    document.getElementById('modal-edit-sector').style.display = 'none';
+                    if (typeof fetchAdminSectors === 'function') fetchAdminSectors();
+                    if (typeof fetchAdminB2CSectors === 'function') fetchAdminB2CSectors();
+                } else {
+                    alert('Failed: ' + (data.message || 'Error'));
+                }
+            } catch(err) {
+                alert('Network error updating sector.');
+            }
+        }
+
+        /* ── Edit Airline Modal ── */
+        async function openEditAirlineModal(id) {
+            let a = (_b2cAirlinesData || []).find(air => air.id == id);
+            if (!a) {
+                try {
+                    const res = await fetch(`/dashboard/admin/api/airlines/${id}/`);
+                    const data = await res.json();
+                    if (data.success && data.airline) a = data.airline;
+                } catch(e){}
+            }
+            if (!a) { alert('Airline not found.'); return; }
+
+            let modal = document.getElementById('modal-edit-airline');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'modal-edit-airline';
+                modal.className = 'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+                document.body.appendChild(modal);
+            }
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+            modal.innerHTML = `
+                <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
+                        <h3 class="font-black text-[#2D4424] flex items-center gap-2"><i class="fa-solid fa-pen text-[#E06A26]"></i> Edit Airline Partner #${a.id}</h3>
+                        <button onclick="document.getElementById('modal-edit-airline').style.display='none'" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+                    </div>
+                    <form id="form-edit-airline" onsubmit="submitEditAirline(event, ${a.id})" class="space-y-4 text-xs" enctype="multipart/form-data">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Airline Name *</label>
+                            <input type="text" name="name" value="${_escHtml(a.name)}" required placeholder="e.g. Saudi Airlines" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">IATA Code (2-Letter)</label>
+                            <input type="text" name="iata_code" value="${_escHtml(a.iata_code || '')}" maxlength="5" placeholder="SV" class="w-full px-3 py-2 border border-[#D9CBAC] rounded-xl uppercase tracking-widest focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Change Logo (Optional)</label>
+                            <input type="file" name="logo" accept="image/*" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:bg-[#2D4424] file:text-white file:font-bold hover:file:bg-[#1f2f18] cursor-pointer">
+                            ${a.logo_url ? `<div class="mt-1 text-[10px] text-[#567946]"><i class="fa-solid fa-image mr-1"></i>Current Logo: <a href="${a.logo_url}" target="_blank" class="underline text-[#E06A26]">View Logo</a></div>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 bg-[#F7F3E9] p-3 rounded-xl border border-[#D9CBAC]">
+                            <input type="checkbox" name="is_active" id="edit-airline-active" ${a.is_active !== false ? 'checked' : ''} class="w-4 h-4 text-[#E06A26] rounded border-[#D9CBAC] focus:ring-[#E06A26] cursor-pointer">
+                            <label for="edit-airline-active" class="font-extrabold text-[#2D4424] cursor-pointer">Active Airline Partner</label>
+                        </div>
+                        <div class="flex justify-end gap-2 pt-2 border-t border-[#E7DCB9]">
+                            <button type="button" onclick="document.getElementById('modal-edit-airline').style.display='none'" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200">Cancel</button>
+                            <button type="submit" class="px-5 py-2 bg-[#E06A26] text-white font-extrabold rounded-xl hover:bg-[#c85819] shadow-sm"><i class="fa-solid fa-floppy-disk mr-1"></i> Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+
+        async function submitEditAirline(e, id) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            if (!form.querySelector('[name=is_active]').checked) formData.set('is_active', 'false');
+            try {
+                const csrfToken = getCookie('csrftoken') || '';
+                const res = await fetch(`/dashboard/admin/api/airlines/${id}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Airline updated successfully!');
+                    document.getElementById('modal-edit-airline').style.display = 'none';
+                    if (typeof fetchAdminAirlinesAndInventory === 'function') fetchAdminAirlinesAndInventory();
+                    if (typeof fetchAdminB2CAirlines === 'function') fetchAdminB2CAirlines();
+                } else {
+                    alert('Failed: ' + (data.message || 'Error'));
+                }
+            } catch(err) {
+                alert('Network error updating airline.');
+            }
         }
 
         function openAddAirlineModal() {
@@ -9743,15 +10001,11 @@
                         </div>
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Category</label>
-                            <select id="pkg-form-category" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                            <select id="pkg-form-category" onchange="onPkgCategoryChange(this.value)" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                                 <option value="umrah">Umrah</option>
                                 <option value="hajj">Hajj</option>
                                 <option value="tour">Tour Package</option>
                             </select>
-                        </div>
-                        <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Duration (Days)</label>
-                            <input type="number" id="pkg-form-duration" min="1" placeholder="15" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Total Seats</label>
@@ -9760,6 +10014,37 @@
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Discount (%)</label>
                             <input type="number" id="pkg-form-discount" min="0" max="100" step="0.5" placeholder="0" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <!-- Travel Dates Calendar & Duration Section -->
+                        <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label class="font-extrabold text-[#2D4424] flex items-center gap-1.5 text-xs">
+                                    <i class="fa-solid fa-calendar-days text-[#E06A26]"></i> Travel Dates & Schedule (Calendar Pickers)
+                                </label>
+                                <span class="text-[10px] text-[#567946] font-bold"><i class="fa-solid fa-wand-magic-sparkles mr-1 text-[#E06A26]"></i>Auto-calculates days & text</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-[#567946] uppercase mb-1">Departure Date (Calendar)</label>
+                                    <input type="date" id="pkg-form-departure-date" onchange="onPkgTravelDatesChange()" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26] text-xs cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-[#567946] uppercase mb-1">Return Date (Calendar)</label>
+                                    <input type="date" id="pkg-form-return-date" onchange="onPkgTravelDatesChange()" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26] text-xs cursor-pointer">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-[#567946] uppercase mb-1">Duration (Days)</label>
+                                    <div class="flex items-center gap-1">
+                                        <input type="number" id="pkg-form-duration" min="1" placeholder="15" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-black text-[#E06A26] focus:outline-none focus:border-[#E06A26] text-xs">
+                                        <span class="text-xs font-bold text-[#567946] shrink-0">Days</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-[#567946] uppercase mb-1">Formatted Travel Dates Display Text</label>
+                                <input type="text" id="pkg-form-flight-dates" placeholder="e.g. 15 Aug 2026 - 30 Aug 2026" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26] text-xs">
+                                <p class="text-[9px] text-[#567946] font-semibold mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Automatically updated from calendar pickers above. Appears on website package cards and admin list.</p>
+                            </div>
                         </div>
                         <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5 mt-1">
                             <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
@@ -9941,9 +10226,9 @@
                     </div>
                 </div>
 
-                <!-- ── SECTION 5: Hotels ── -->
+                <!-- ── SECTION 5: Hotels & Hotel Photos ── -->
                 <div class="border-t border-[#E7DCB9] pt-4">
-                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-hotel"></i> Hotel Information</p>
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-hotel"></i> Hotel Information & Photos Upload</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Hotel</label>
@@ -9953,6 +10238,20 @@
                             <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Distance</label>
                             <input type="text" id="pkg-form-makkah-dist" placeholder="350m from Haram" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
+                        <!-- Makkah Hotel Photos Upload -->
+                        <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5">
+                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-kaaba text-amber-600"></i> Makkah Hotel Photos</span>
+                                <span class="text-[10px] text-[#567946] font-semibold">(Upload JPG/PNG photo files from disk)</span>
+                            </label>
+                            <div class="space-y-2">
+                                <input type="file" id="pkg-form-makkah-images" accept="image/*" multiple onchange="previewHotelImages(this, 'pkg-makkah-preview-grid')" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-amber-700 file:text-white hover:file:bg-amber-800 cursor-pointer">
+                                <div id="pkg-makkah-preview-grid" class="flex flex-wrap gap-2 min-h-[44px] p-2 bg-white rounded-xl border border-[#D9CBAC]">
+                                    <span class="text-[10px] text-slate-400 italic">No Makkah hotel photos uploaded yet.</span>
+                                </div>
+                            </div>
+                        </div>
+
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Hotel</label>
                             <input type="text" id="pkg-form-madinah-hotel" placeholder="Pullman Zamzam Madinah" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
@@ -9960,6 +10259,19 @@
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Distance</label>
                             <input type="text" id="pkg-form-madinah-dist" placeholder="150m from Prophet's Mosque" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <!-- Madinah Hotel Photos Upload -->
+                        <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5">
+                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-mosque text-emerald-600"></i> Madinah Hotel Photos</span>
+                                <span class="text-[10px] text-[#567946] font-semibold">(Upload JPG/PNG photo files from disk)</span>
+                            </label>
+                            <div class="space-y-2">
+                                <input type="file" id="pkg-form-madinah-images" accept="image/*" multiple onchange="previewHotelImages(this, 'pkg-madinah-preview-grid')" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-emerald-700 file:text-white hover:file:bg-emerald-800 cursor-pointer">
+                                <div id="pkg-madinah-preview-grid" class="flex flex-wrap gap-2 min-h-[44px] p-2 bg-white rounded-xl border border-[#D9CBAC]">
+                                    <span class="text-[10px] text-slate-400 italic">No Madinah hotel photos uploaded yet.</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -10023,6 +10335,10 @@
                     <p id="pkgd-airline" class="font-extrabold text-[#2D4424] text-sm mt-0.5">—</p>
                 </div>
                 <div class="bg-[#F7F3E9] rounded-2xl p-3 sm:col-span-2">
+                    <p class="text-[9px] font-black text-[#567946] uppercase flex items-center gap-1"><i class="fa-solid fa-calendar-days text-[#E06A26]"></i> Travel Dates (Schedule)</p>
+                    <p id="pkgd-dates" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
+                </div>
+                <div class="bg-[#F7F3E9] rounded-2xl p-3 sm:col-span-2">
                     <p class="text-[9px] font-black text-[#567946] uppercase">Flight Route</p>
                     <p id="pkgd-route" class="font-bold text-[#2D4424] text-xs mt-0.5">—</p>
                 </div>
@@ -10041,17 +10357,29 @@
                 </div>
             </div>
 
-            <!-- Hotels -->
+            <!-- Hotels & Photo Galleries -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-                <div class="border border-[#E7DCB9] rounded-2xl p-3">
-                    <p class="text-[9px] font-black text-[#567946] uppercase mb-1"><i class="fa-solid fa-kaaba text-[#E06A26] mr-1"></i> Makkah Hotel</p>
-                    <p id="pkgd-makkah-hotel" class="font-extrabold text-[#2D4424] text-xs">—</p>
-                    <p id="pkgd-makkah-dist" class="text-[10px] text-[#567946] font-semibold mt-0.5">—</p>
+                <div class="border border-[#E7DCB9] rounded-2xl p-3 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[9px] font-black text-[#567946] uppercase mb-1"><i class="fa-solid fa-kaaba text-[#E06A26] mr-1"></i> Makkah Hotel</p>
+                        <p id="pkgd-makkah-hotel" class="font-extrabold text-[#2D4424] text-xs">—</p>
+                        <p id="pkgd-makkah-dist" class="text-[10px] text-[#567946] font-semibold mt-0.5 mb-2">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold text-[#567946] mb-1">Makkah Hotel Photos:</p>
+                        <div id="pkgd-makkah-gallery" class="flex flex-wrap gap-1.5 p-1.5 bg-[#F7F3E9] rounded-xl border border-[#D9CBAC] min-h-[38px]"></div>
+                    </div>
                 </div>
-                <div class="border border-[#E7DCB9] rounded-2xl p-3">
-                    <p class="text-[9px] font-black text-[#567946] uppercase mb-1"><i class="fa-solid fa-mosque text-[#E06A26] mr-1"></i> Madinah Hotel</p>
-                    <p id="pkgd-madinah-hotel" class="font-extrabold text-[#2D4424] text-xs">—</p>
-                    <p id="pkgd-madinah-dist" class="text-[10px] text-[#567946] font-semibold mt-0.5">—</p>
+                <div class="border border-[#E7DCB9] rounded-2xl p-3 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[9px] font-black text-[#567946] uppercase mb-1"><i class="fa-solid fa-mosque text-[#E06A26] mr-1"></i> Madinah Hotel</p>
+                        <p id="pkgd-madinah-hotel" class="font-extrabold text-[#2D4424] text-xs">—</p>
+                        <p id="pkgd-madinah-dist" class="text-[10px] text-[#567946] font-semibold mt-0.5 mb-2">—</p>
+                    </div>
+                    <div>
+                        <p class="text-[9px] font-bold text-[#567946] mb-1">Madinah Hotel Photos:</p>
+                        <div id="pkgd-madinah-gallery" class="flex flex-wrap gap-1.5 p-1.5 bg-[#F7F3E9] rounded-xl border border-[#D9CBAC] min-h-[38px]"></div>
+                    </div>
                 </div>
             </div>
 

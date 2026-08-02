@@ -175,6 +175,11 @@ urlpatterns = [
     path('dashboard/admin/api/agents/<int:agent_id>/ledger/add/', accounts_views.admin_agent_ledger_create_api, name='admin_agent_ledger_create_api'),
     path('dashboard/admin/api/ledger/<int:entry_id>/delete/', accounts_views.admin_agent_ledger_delete_api, name='admin_agent_ledger_delete_api'),
 
+    # Public Website Client Submission APIs (Bookings, Visas, Flight Quotes)
+    path('api/packages/book/', accounts_views.submit_package_booking_api, name='submit_package_booking_api'),
+    path('api/visa/submit/', accounts_views.submit_visa_application_api, name='submit_visa_application_api'),
+    path('api/flights/quote/', accounts_views.submit_flight_quote_api, name='submit_flight_quote_api'),
+
     # Custom Inquiries APIs
     path('api/packages/custom-inquiry/', accounts_views.submit_custom_inquiry_api, name='submit_custom_inquiry_api'),
     path('dashboard/admin/api/custom-inquiries/', accounts_views.admin_custom_inquiries_list_api, name='admin_custom_inquiries_list_api'),

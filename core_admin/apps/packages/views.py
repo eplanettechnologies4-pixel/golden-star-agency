@@ -1,7 +1,11 @@
+import os
+import uuid
 import json
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 from apps.packages.models import Package
 from apps.blog.admin_views import admin_required_api
 
@@ -25,6 +29,43 @@ def package_detail_view(request, pk):
     })
 
 
+def _handle_hotel_images_upload(request, file_key, folder_name, existing_images=None):
+    """
+    Saves uploaded files under request.FILES for `file_key` and merges with existing/new URL lists.
+    """
+    images_list = list(existing_images) if isinstance(existing_images, list) else []
+    
+    # 1. Process uploaded files from request.FILES
+    files = request.FILES.getlist(file_key)
+    if files:
+        target_dir = os.path.join(settings.MEDIA_ROOT, 'packages', 'hotels', folder_name)
+        os.makedirs(target_dir, exist_ok=True)
+        fs = FileSystemStorage(location=target_dir)
+        for f in files:
+            ext = os.path.splitext(f.name)[1].lower() or '.jpg'
+            filename = f"{uuid.uuid4().hex[:10]}{ext}"
+            saved_name = fs.save(filename, f)
+            url_path = f"{settings.MEDIA_URL}packages/hotels/{folder_name}/{saved_name}"
+            if url_path not in images_list:
+                images_list.append(url_path)
+
+    # 2. Process URL strings passed via form input
+    urls_raw = request.POST.get(f"{file_key}_urls") or request.POST.get(file_key)
+    if urls_raw and isinstance(urls_raw, str):
+        try:
+            parsed = json.loads(urls_raw)
+            if isinstance(parsed, list):
+                for u in parsed:
+                    if isinstance(u, str) and u.strip() and u.strip() not in images_list:
+                        images_list.append(u.strip())
+        except Exception:
+            for u in urls_raw.split(','):
+                if u.strip() and u.strip() not in images_list:
+                    images_list.append(u.strip())
+
+    return images_list
+
+
 # ══════════════════════════════════════════════════════════════════════
 # B2C ADMIN PANEL PACKAGES CRUD REST APIS
 # ══════════════════════════════════════════════════════════════════════
@@ -39,6 +80,10 @@ def admin_packages_list_api(request):
     packages = Package.objects.all().order_by('-created_at')
     data = []
     for pkg in packages:
+        makkah_imgs = pkg.makkah_hotel_images if isinstance(pkg.makkah_hotel_images, list) else []
+        madinah_imgs = pkg.madinah_hotel_images if isinstance(pkg.madinah_hotel_images, list) else []
+        gallery_imgs = pkg.images if isinstance(pkg.images, list) else []
+        
         data.append({
             'id': pkg.id,
             'title': pkg.title,
@@ -51,8 +96,12 @@ def admin_packages_list_api(request):
             'total_seats': pkg.total_seats,
             'makkah_hotel_name': pkg.makkah_hotel_name or 'Anjum Hotel Makkah',
             'makkah_hotel_distance': pkg.makkah_hotel_distance or '350m from Haram',
+            'makkah_hotel_images': makkah_imgs,
             'madinah_hotel_name': pkg.madinah_hotel_name or 'Pullman Zamzam Madinah',
             'madinah_hotel_distance': pkg.madinah_hotel_distance or '150m from Prophet\'s Mosque',
+            'madinah_hotel_images': madinah_imgs,
+            'images': gallery_imgs,
+            'all_hotel_images': pkg.get_all_hotel_and_package_images(),
             'airline': pkg.airline or 'Saudi Airlines',
             'flight_routes': pkg.flight_routes or 'KHI - JED - MED - KHI',
             'flight_route_type': pkg.flight_route_type or 'direct',
@@ -92,6 +141,10 @@ def admin_package_detail_api(request, pk):
     pkg = get_object_or_404(Package, pk=pk)
     
     if request.method == 'GET':
+        makkah_imgs = pkg.makkah_hotel_images if isinstance(pkg.makkah_hotel_images, list) else []
+        madinah_imgs = pkg.madinah_hotel_images if isinstance(pkg.madinah_hotel_images, list) else []
+        gallery_imgs = pkg.images if isinstance(pkg.images, list) else []
+        
         return JsonResponse({
             'success': True,
             'package': {
@@ -113,8 +166,12 @@ def admin_package_detail_api(request, pk):
                 'total_seats': pkg.total_seats,
                 'makkah_hotel_name': pkg.makkah_hotel_name or '',
                 'makkah_hotel_distance': pkg.makkah_hotel_distance or '',
+                'makkah_hotel_images': makkah_imgs,
                 'madinah_hotel_name': pkg.madinah_hotel_name or '',
                 'madinah_hotel_distance': pkg.madinah_hotel_distance or '',
+                'madinah_hotel_images': madinah_imgs,
+                'images': gallery_imgs,
+                'all_hotel_images': pkg.get_all_hotel_and_package_images(),
                 'airline': pkg.airline or '',
                 'flight_routes': pkg.flight_routes or '',
                 'flight_route_type': pkg.flight_route_type or 'direct',
@@ -135,8 +192,9 @@ def admin_package_detail_api(request, pk):
         except Exception:
             body = request.POST
 
-        pkg.title = (body.get('title') or pkg.title).strip()
-        pkg.category = (body.get('category') or pkg.category).strip().lower()
+        pkg.title = (body.get('title') or request.POST.get('title') or pkg.title).strip()
+        pkg.category = (body.get('category') or request.POST.get('category') or pkg.category).strip().lower()
+        
         if 'is_featured' in body or 'is_featured' in request.POST:
             feat_val = body.get('is_featured') if 'is_featured' in body else request.POST.get('is_featured')
             pkg.is_featured = str(feat_val).lower() in ('true', '1', 'on', 'yes')
@@ -144,31 +202,88 @@ def admin_package_detail_api(request, pk):
         if 'cover_image' in request.FILES:
             pkg.cover_image = request.FILES['cover_image']
 
-        if body.get('price')         is not None: pkg.price          = float(body['price'])
-        if body.get('price_sharing') is not None: pkg.price_sharing  = float(body['price_sharing'])
-        if body.get('price_quad')    is not None: pkg.price_quad     = float(body['price_quad'])
-        if body.get('price_triple')  is not None: pkg.price_triple   = float(body['price_triple'])
-        if body.get('price_double')  is not None: pkg.price_double   = float(body['price_double'])
-        if body.get('price_child')   is not None: pkg.price_child    = float(body['price_child'])
-        if body.get('price_infant')  is not None: pkg.price_infant   = float(body['price_infant'])
-        if body.get('discount_percentage') is not None: pkg.discount_percentage = float(body['discount_percentage'])
-        if body.get('duration_days'): pkg.duration_days = int(body['duration_days'])
-        if body.get('total_seats'):   pkg.total_seats   = int(body['total_seats'])
-        if body.get('available_seats'): pkg.available_seats = int(body['available_seats'])
-        if body.get('makkah_hotel_name'):     pkg.makkah_hotel_name     = body['makkah_hotel_name']
-        if body.get('makkah_hotel_distance'): pkg.makkah_hotel_distance = body['makkah_hotel_distance']
-        if body.get('madinah_hotel_name'):    pkg.madinah_hotel_name    = body['madinah_hotel_name']
-        if body.get('madinah_hotel_distance'):pkg.madinah_hotel_distance= body['madinah_hotel_distance']
-        if body.get('airline'):          pkg.airline          = body['airline']
-        if body.get('flight_routes'):    pkg.flight_routes    = body['flight_routes']
-        if body.get('flight_route_type'): pkg.flight_route_type = body['flight_route_type']
-        if body.get('flight_dates'):     pkg.flight_dates     = body['flight_dates']
-        if body.get('departure_date'):  pkg.departure_date   = body['departure_date'] or None
-        if body.get('return_date'):     pkg.return_date      = body['return_date'] or None
-        if body.get('meal_detail'):      pkg.meal_detail      = body['meal_detail']
-        if body.get('transport_type'):   pkg.transport_type   = body['transport_type']
-        if body.get('luggage_weight'):   pkg.luggage_weight   = body['luggage_weight']
-        if body.get('description') is not None: pkg.description = body['description']
+        # Process uploaded / provided Makkah Hotel Images
+        if 'makkah_hotel_images' in request.FILES or 'makkah_hotel_images' in request.POST or 'makkah_hotel_images_urls' in request.POST:
+            pkg.makkah_hotel_images = _handle_hotel_images_upload(request, 'makkah_hotel_images', 'makkah', pkg.makkah_hotel_images)
+
+        # Process uploaded / provided Madinah Hotel Images
+        if 'madinah_hotel_images' in request.FILES or 'madinah_hotel_images' in request.POST or 'madinah_hotel_images_urls' in request.POST:
+            pkg.madinah_hotel_images = _handle_hotel_images_upload(request, 'madinah_hotel_images', 'madinah', pkg.madinah_hotel_images)
+
+        p_val = body.get('price') or request.POST.get('price')
+        if p_val is not None: pkg.price = float(p_val)
+        
+        p_sh = body.get('price_sharing') or request.POST.get('price_sharing')
+        if p_sh is not None: pkg.price_sharing = float(p_sh)
+
+        p_qd = body.get('price_quad') or request.POST.get('price_quad')
+        if p_qd is not None: pkg.price_quad = float(p_qd)
+
+        p_tr = body.get('price_triple') or request.POST.get('price_triple')
+        if p_tr is not None: pkg.price_triple = float(p_tr)
+
+        p_db = body.get('price_double') or request.POST.get('price_double')
+        if p_db is not None: pkg.price_double = float(p_db)
+
+        p_ch = body.get('price_child') or request.POST.get('price_child')
+        if p_ch is not None: pkg.price_child = float(p_ch)
+
+        p_inf = body.get('price_infant') or request.POST.get('price_infant')
+        if p_inf is not None: pkg.price_infant = float(p_inf)
+
+        disc = body.get('discount_percentage') or request.POST.get('discount_percentage')
+        if disc is not None: pkg.discount_percentage = float(disc)
+
+        dur = body.get('duration_days') or request.POST.get('duration_days')
+        if dur: pkg.duration_days = int(dur)
+
+        t_seat = body.get('total_seats') or request.POST.get('total_seats')
+        if t_seat: pkg.total_seats = int(t_seat)
+
+        a_seat = body.get('available_seats') or request.POST.get('available_seats')
+        if a_seat: pkg.available_seats = int(a_seat)
+
+        m_hn = body.get('makkah_hotel_name') or request.POST.get('makkah_hotel_name')
+        if m_hn: pkg.makkah_hotel_name = m_hn
+
+        m_hd = body.get('makkah_hotel_distance') or request.POST.get('makkah_hotel_distance')
+        if m_hd: pkg.makkah_hotel_distance = m_hd
+
+        md_hn = body.get('madinah_hotel_name') or request.POST.get('madinah_hotel_name')
+        if md_hn: pkg.madinah_hotel_name = md_hn
+
+        md_hd = body.get('madinah_hotel_distance') or request.POST.get('madinah_hotel_distance')
+        if md_hd: pkg.madinah_hotel_distance = md_hd
+
+        air = body.get('airline') or request.POST.get('airline')
+        if air: pkg.airline = air
+
+        fr = body.get('flight_routes') or request.POST.get('flight_routes')
+        if fr: pkg.flight_routes = fr
+
+        frt = body.get('flight_route_type') or request.POST.get('flight_route_type')
+        if frt: pkg.flight_route_type = frt
+
+        if 'departure_date' in body or 'departure_date' in request.POST:
+            dep = body.get('departure_date') if 'departure_date' in body else request.POST.get('departure_date')
+            pkg.departure_date = dep.strip() if dep and isinstance(dep, str) and dep.strip() else None
+            
+        if 'return_date' in body or 'return_date' in request.POST:
+            ret = body.get('return_date') if 'return_date' in body else request.POST.get('return_date')
+            pkg.return_date = ret.strip() if ret and isinstance(ret, str) and ret.strip() else None
+
+        md = body.get('meal_detail') or request.POST.get('meal_detail')
+        if md: pkg.meal_detail = md
+
+        tt = body.get('transport_type') or request.POST.get('transport_type')
+        if tt: pkg.transport_type = tt
+
+        lw = body.get('luggage_weight') or request.POST.get('luggage_weight')
+        if lw: pkg.luggage_weight = lw
+
+        desc = body.get('description') if 'description' in body else request.POST.get('description')
+        if desc is not None: pkg.description = desc
+
         if 'addons' in body or 'addons' in request.POST:
             addons_raw = body.get('addons') if 'addons' in body else request.POST.get('addons')
             if isinstance(addons_raw, str):
@@ -179,7 +294,13 @@ def admin_package_detail_api(request, pk):
             pkg.addons = [{'name': a['name'], 'price': int(a.get('price', 0))} for a in (addons_raw or []) if isinstance(a, dict) and a.get('name', '').strip()]
         
         pkg.save()
-        return JsonResponse({'success': True, 'message': 'Package updated successfully.', 'cover_url': pkg.cover_url})
+        return JsonResponse({
+            'success': True,
+            'message': 'Package updated successfully.',
+            'cover_url': pkg.cover_url,
+            'makkah_hotel_images': pkg.makkah_hotel_images,
+            'madinah_hotel_images': pkg.madinah_hotel_images
+        })
 
 
 @csrf_exempt
@@ -187,7 +308,7 @@ def admin_package_detail_api(request, pk):
 def admin_package_create_api(request):
     """
     POST /dashboard/admin/api/packages/create/
-    Creates a new Package.
+    Creates a new Package with optional Cover & Hotel Images upload.
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
@@ -216,6 +337,9 @@ def admin_package_create_api(request):
         except Exception:
             addons_raw = []
 
+    makkah_imgs = _handle_hotel_images_upload(request, 'makkah_hotel_images', 'makkah', [])
+    madinah_imgs = _handle_hotel_images_upload(request, 'madinah_hotel_images', 'madinah', [])
+
     pkg = Package.objects.create(
         title=title,
         category=category,
@@ -233,14 +357,16 @@ def admin_package_create_api(request):
         available_seats=int(body.get('available_seats') or request.POST.get('available_seats') or total_seats),
         makkah_hotel_name=body.get('makkah_hotel_name') or request.POST.get('makkah_hotel_name') or 'Anjum Hotel Makkah',
         makkah_hotel_distance=body.get('makkah_hotel_distance') or request.POST.get('makkah_hotel_distance') or '350m from Haram',
+        makkah_hotel_images=makkah_imgs,
         madinah_hotel_name=body.get('madinah_hotel_name') or request.POST.get('madinah_hotel_name') or 'Pullman Zamzam Madinah',
         madinah_hotel_distance=body.get('madinah_hotel_distance') or request.POST.get('madinah_hotel_distance') or "150m from Prophet's Mosque",
+        madinah_hotel_images=madinah_imgs,
         airline=body.get('airline') or request.POST.get('airline') or 'Saudi Airlines',
         flight_routes=body.get('flight_routes') or request.POST.get('flight_routes') or 'KHI - JED - MED - KHI',
         flight_route_type=body.get('flight_route_type') or request.POST.get('flight_route_type') or 'direct',
         flight_dates=body.get('flight_dates') or request.POST.get('flight_dates') or '15 Aug 2026 - 30 Aug 2026',
-        departure_date=body.get('departure_date') or request.POST.get('departure_date') or None,
-        return_date=body.get('return_date') or request.POST.get('return_date') or None,
+        departure_date=(body.get('departure_date') or request.POST.get('departure_date') or '').strip() or None,
+        return_date=(body.get('return_date') or request.POST.get('return_date') or '').strip() or None,
         meal_detail=body.get('meal_detail') or request.POST.get('meal_detail') or 'Full Board',
         transport_type=body.get('transport_type') or request.POST.get('transport_type') or 'Sharing',
         luggage_weight=body.get('luggage_weight') or request.POST.get('luggage_weight') or '20 kg + 7 kg Hand Carry',
@@ -252,7 +378,14 @@ def admin_package_create_api(request):
         pkg.cover_image = request.FILES['cover_image']
         pkg.save()
 
-    return JsonResponse({'success': True, 'message': f'Package "{pkg.title}" created successfully.', 'id': pkg.id, 'cover_url': pkg.cover_url})
+    return JsonResponse({
+        'success': True,
+        'message': f'Package "{pkg.title}" created successfully.',
+        'id': pkg.id,
+        'cover_url': pkg.cover_url,
+        'makkah_hotel_images': pkg.makkah_hotel_images,
+        'madinah_hotel_images': pkg.madinah_hotel_images
+    })
 
 
 @csrf_exempt
