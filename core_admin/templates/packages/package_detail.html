@@ -34,13 +34,15 @@
 </script>
 {% endblock %}
 {% block content %}
-<!-- Top Level Banner Image Slider -->
+<!-- Top Level Banner Image Showcase (Admin-Submitted Images) -->
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
-    <!-- Sliding Backgrounds -->
+    <!-- Admin-Submitted Backgrounds Showcase -->
     <div class="absolute inset-0 z-0">
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static 'images/umrah_banner.png' %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/hajj_banner.png' %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/flights_banner.png' %}');"></div>
+        {% for img_url in package.get_all_hotel_and_package_images %}
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 {% if forloop.first %}opacity-100{% else %}opacity-0{% endif %}" style="background-image: url('{{ img_url }}');"></div>
+        {% empty %}
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{{ package.cover_url }}');"></div>
+        {% endfor %}
         <div class="absolute inset-0 bg-slate-950/80"></div>
     </div>
 
@@ -68,11 +70,7 @@
     <button onclick="nextBanner()" class="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-right"></i></button>
 
     <!-- Indicators -->
-    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
-        <button onclick="setBanner(0)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-100 transition-all"></button>
-        <button onclick="setBanner(1)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
-        <button onclick="setBanner(2)" class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
-    </div>
+    <div id="banner-dots-container" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20"></div>
 </section>
 
 <section class="py-16 bg-slate-50">
@@ -234,8 +232,8 @@
                         <p class="sm:col-span-2"><i class="fa-solid fa-map-pin text-brand-orange mr-2"></i>Route: <strong>{{ package.flight_routes }}</strong></p>
                         <p><i class="fa-solid fa-suitcase-rolling text-emerald-500 mr-2"></i>Luggage: <strong>{{ package.luggage_weight }}</strong></p>
                         <p><i class="fa-solid fa-bus text-emerald-500 mr-2"></i>Transport: <strong>{{ package.transport_type|default:"Sharing Bus" }}</strong></p>
-                        <p><i class="fa-solid fa-hotel text-emerald-500 mr-2"></i>Makkah Hotel: <strong>{{ package.makkah_hotel_name }}</strong> ({{ package.makkah_hotel_distance }})</p>
-                        <p><i class="fa-solid fa-mosque text-emerald-500 mr-2"></i>Madinah Hotel: <strong>{{ package.madinah_hotel_name }}</strong> ({{ package.madinah_hotel_distance }})</p>
+                        <p><i class="fa-solid fa-hotel text-emerald-500 mr-2"></i>Makkah Hotel: <strong>{{ package.makkah_hotel_name }}</strong> ({% if package.makkah_nights %}{{ package.makkah_nights }} Nights &bull; {% endif %}{{ package.makkah_hotel_distance }})</p>
+                        <p><i class="fa-solid fa-mosque text-emerald-500 mr-2"></i>Madinah Hotel: <strong>{{ package.madinah_hotel_name }}</strong> ({% if package.madinah_nights %}{{ package.madinah_nights }} Nights &bull; {% endif %}{{ package.madinah_hotel_distance }})</p>
                         {% if package.category|lower != 'umrah' and package.meal_detail %}
                         <p><i class="fa-solid fa-utensils text-amber-500 mr-2"></i>Meal Plan: <strong>{{ package.meal_detail }}</strong></p>
                         {% endif %}
@@ -275,25 +273,24 @@
                     {% endif %}
 
                     <form id="package-booking-form" class="border-t border-slate-100 pt-6 space-y-4">
-                        {% if not user.is_authenticated %}
-                        <div class="p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 space-y-2.5">
-                            <span class="text-[11px] font-extrabold text-amber-900 flex items-center gap-1"><i class="fa-solid fa-user-pen text-brand-orange"></i> Client Contact Information</span>
+                        <!-- Short Quick Inquiry / Contact Details -->
+                        <div class="p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200/80 space-y-3 shadow-xs">
+                            <span class="text-[11px] font-extrabold text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-user-pen text-brand-orange"></i> Your Contact Information</span>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Full Name *</label>
-                                <input id="booking-guest-name" type="text" placeholder="e.g. Muhammad Ali" required class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                <label class="block text-[10px] font-extrabold text-slate-700 uppercase mb-1">Full Name *</label>
+                                <input id="booking-guest-name" type="text" value="{{ user.get_full_name|default:user.username }}" placeholder="e.g. Muhammad Ali" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
                             </div>
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">WhatsApp / Phone *</label>
-                                    <input id="booking-guest-phone" type="tel" placeholder="03001234567" required class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                    <label class="block text-[10px] font-extrabold text-slate-700 uppercase mb-1">WhatsApp / Phone *</label>
+                                    <input id="booking-guest-phone" type="tel" value="{{ user.phone_number|default:'' }}" placeholder="03001234567" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Email Address *</label>
-                                    <input id="booking-guest-email" type="email" placeholder="ali@gmail.com" required class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                    <label class="block text-[10px] font-extrabold text-slate-700 uppercase mb-1">Email Address *</label>
+                                    <input id="booking-guest-email" type="email" value="{{ user.email|default:'' }}" placeholder="ali@gmail.com" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
                                 </div>
                             </div>
                         </div>
-                        {% endif %}
 
                         <!-- Room Sharing Choice -->
                         <div>
@@ -577,7 +574,6 @@
 <!-- Gallery Slider JavaScript -->
 <script>
     let currentIdx = 0;
-    const slidesCount = 3;
     function updateSlider() {
         const container = document.querySelector('.slider-container');
         if (container) {
@@ -585,43 +581,70 @@
         }
     }
     function nextSlide() {
-        currentIdx = (currentIdx + 1) % slidesCount;
+        const slides = document.querySelectorAll('.slider-container > div');
+        if (!slides.length) return;
+        currentIdx = (currentIdx + 1) % slides.length;
         updateSlider();
     }
     function prevSlide() {
-        currentIdx = (currentIdx - 1 + slidesCount) % slidesCount;
+        const slides = document.querySelectorAll('.slider-container > div');
+        if (!slides.length) return;
+        currentIdx = (currentIdx - 1 + slides.length) % slides.length;
         updateSlider();
     }
 </script>
 
-<!-- Banner Slider Script -->
+<!-- Dynamic Banner Slider Script (Admin Submitted Images) -->
 <script>
     let currentBannerIdx = 0;
-    const bannerSlides = document.querySelectorAll('.banner-slide');
-    const bannerDots = document.querySelectorAll('.banner-dot');
+    document.addEventListener("DOMContentLoaded", function() {
+        const bannerSlides = document.querySelectorAll('.banner-slide');
+        const bannerDotsContainer = document.getElementById('banner-dots-container');
+
+        if (bannerDotsContainer && bannerSlides.length > 1) {
+            bannerDotsContainer.innerHTML = Array.from(bannerSlides).map((_, idx) => `
+                <button onclick="setBanner(${idx})" class="banner-dot w-2 h-2 rounded-full bg-white ${idx === 0 ? 'opacity-100' : 'opacity-40 hover:opacity-80'} transition-all"></button>
+            `).join('');
+        }
+
+        if (bannerSlides.length > 1) {
+            setInterval(nextBanner, 5000);
+        }
+    });
 
     function updateBanner() {
+        const bannerSlides = document.querySelectorAll('.banner-slide');
+        const bannerDots = document.querySelectorAll('.banner-dot');
         bannerSlides.forEach((slide, idx) => {
             if (idx === currentBannerIdx) {
                 slide.classList.remove('opacity-0');
                 slide.classList.add('opacity-100');
-                bannerDots[idx].classList.remove('opacity-40');
-                bannerDots[idx].classList.add('opacity-100');
             } else {
                 slide.classList.remove('opacity-100');
                 slide.classList.add('opacity-0');
-                bannerDots[idx].classList.remove('opacity-100');
-                bannerDots[idx].classList.add('opacity-40');
+            }
+        });
+        bannerDots.forEach((dot, idx) => {
+            if (idx === currentBannerIdx) {
+                dot.classList.remove('opacity-40');
+                dot.classList.add('opacity-100');
+            } else {
+                dot.classList.remove('opacity-100');
+                dot.classList.add('opacity-40');
             }
         });
     }
 
     function nextBanner() {
+        const bannerSlides = document.querySelectorAll('.banner-slide');
+        if (!bannerSlides.length) return;
         currentBannerIdx = (currentBannerIdx + 1) % bannerSlides.length;
         updateBanner();
     }
 
     function prevBanner() {
+        const bannerSlides = document.querySelectorAll('.banner-slide');
+        if (!bannerSlides.length) return;
         currentBannerIdx = (currentBannerIdx - 1 + bannerSlides.length) % bannerSlides.length;
         updateBanner();
     }
@@ -630,9 +653,6 @@
         currentBannerIdx = idx;
         updateBanner();
     }
-
-    // Auto slide every 5 seconds
-    setInterval(nextBanner, 5000);
 </script>
 
 <!-- Explore More Services Section -->

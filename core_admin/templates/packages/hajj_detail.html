@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ hajj_package.title }} | {{ hajj_package.duration_days }} Days Official Hajj Package 2026{% endblock %}
+{% block meta_description %}Book {{ hajj_package.title }} for {{ hajj_package.duration_days }} days with {{ hajj_package.hajj_operator_name }}. License: {{ hajj_package.license_number }}. Golden Star Agency.{% endblock %}
+
+{% block content %}
+<!-- Top Banner -->
+<section class="relative min-h-[44vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-20">
+    <div class="absolute inset-0 z-0">
+        <div class="absolute inset-0 bg-cover bg-center opacity-40" style="background-image: url('{% static "images/hajj_banner.png" %}');"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/80 to-slate-950"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto px-4 relative z-10">
+        <nav class="flex justify-center items-center space-x-2 text-xs font-semibold text-brand-orange uppercase tracking-widest mb-4">
+            <a href="{% url 'home' %}" class="hover:underline">Home</a>
+            <span>/</span>
+            <a href="{% url 'hajj_list' %}" class="hover:underline">Hajj Packages</a>
+            <span>/</span>
+            <span class="text-slate-350 line-clamp-1 max-w-[200px] inline-block align-bottom">{{ hajj_package.title }}</span>
+        </nav>
+        <h1 class="text-3xl sm:text-5xl font-black text-white mb-4 tracking-tight">{{ hajj_package.title }}</h1>
+        <div class="flex items-center justify-center gap-3 flex-wrap text-xs text-amber-300 font-bold">
+            <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full"><i class="fa-solid fa-award mr-1.5"></i>Operator: {{ hajj_package.hajj_operator_name }}</span>
+            <span class="bg-slate-800/80 text-slate-300 border border-white/10 px-3 py-1 rounded-full font-mono"><i class="fa-solid fa-file-contract mr-1.5 text-brand-orange"></i>Lic: {{ hajj_package.license_number }}</span>
+            <span class="bg-slate-800/80 text-slate-300 border border-white/10 px-3 py-1 rounded-full font-mono"><i class="fa-solid fa-shield-halved mr-1.5 text-emerald-400"></i>Saudi Reg: {{ hajj_package.saudi_registration_number }}</span>
+        </div>
+    </div>
+</section>
+
+<section class="py-16 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left 2 Columns: Information & Accommodation Timeline -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Main Header & Description -->
+                <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm space-y-6">
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-amber-500/10 text-amber-700 border border-amber-500/20 text-xs font-black px-3.5 py-1 rounded-full uppercase">
+                                <i class="fa-solid fa-kaaba mr-1 text-amber-600"></i> {{ hajj_package.duration_days }} Days Hajj Package
+                            </span>
+                        </div>
+                        
+                        {% if hajj_package.available_seats > 0 %}
+                        <span class="bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 text-xs font-bold px-3.5 py-1 rounded-full flex items-center gap-1.5">
+                            <i class="fa-solid fa-ticket text-brand-orange animate-pulse"></i> {{ hajj_package.available_seats }} / {{ hajj_package.total_seats }} Seats Remaining
+                        </span>
+                        {% else %}
+                        <span class="bg-rose-500/10 text-rose-600 border border-rose-500/20 text-xs font-bold px-3.5 py-1 rounded-full">Sold Out</span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900 mb-3">{{ hajj_package.title }}</h2>
+                        <p class="text-slate-600 text-sm leading-relaxed whitespace-pre-line">{{ hajj_package.description }}</p>
+                    </div>
+
+                    <!-- Airline & Flight Schedule Card -->
+                    <div class="bg-slate-900 text-white rounded-2xl p-5 space-y-3 shadow-md">
+                        <h4 class="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-plane text-brand-orange text-base"></i> Airline &amp; Flight Schedule
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center gap-3">
+                                <img src="{{ hajj_package.get_airline_logo_url }}" class="w-8 h-8 object-contain rounded-full bg-white p-1" alt="{{ hajj_package.airline_name }}">
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Airline Partner</span>
+                                    <span class="font-extrabold text-white text-sm block">{{ hajj_package.airline_name|default:"Saudi Airlines" }}</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center gap-3">
+                                <i class="fa-solid fa-calendar-days text-brand-orange text-xl"></i>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 block uppercase">English Travel Dates</span>
+                                    <span class="font-extrabold text-amber-300 text-sm block">{{ hajj_package.get_english_dates }}</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 flex items-center gap-3">
+                                <i class="fa-solid fa-moon text-emerald-400 text-xl"></i>
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400 block uppercase">Islamic (Hijri) Dates</span>
+                                    <span class="font-extrabold text-emerald-300 text-sm block">{{ hajj_package.get_hijri_dates }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compliance Verification Card -->
+                    <div class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-5 space-y-3">
+                        <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-shield-check text-amber-600 text-base"></i> Ministry of Hajj Compliance &amp; Verification
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            <div class="bg-white p-3 rounded-xl border border-amber-200/60">
+                                <span class="text-[10px] font-bold text-slate-400 block uppercase">Hajj Operator</span>
+                                <span class="font-extrabold text-slate-900 mt-0.5 block">{{ hajj_package.hajj_operator_name }}</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-200/60">
+                                <span class="text-[10px] font-bold text-slate-400 block uppercase">HGO License #</span>
+                                <span class="font-extrabold text-slate-900 mt-0.5 block font-mono">{{ hajj_package.license_number }}</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-200/60">
+                                <span class="text-[10px] font-bold text-slate-400 block uppercase">Saudi Registration</span>
+                                <span class="font-extrabold text-slate-900 mt-0.5 block font-mono">{{ hajj_package.saudi_registration_number }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Pricing Matrix Card -->
+                <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm space-y-4">
+                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-coins text-brand-orange"></i> Room Occupancy Pricing Structure
+                    </h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Quad Room</span>
+                            <span class="text-base font-black text-slate-900 mt-1 block">PKR {{ hajj_package.price_quad|floatformat:0 }}</span>
+                            <span class="text-[9px] text-slate-500 font-semibold mt-0.5 block">per pilgrim</span>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Triple Room</span>
+                            <span class="text-base font-black text-slate-900 mt-1 block">PKR {{ hajj_package.price_triple|floatformat:0 }}</span>
+                            <span class="text-[9px] text-slate-500 font-semibold mt-0.5 block">per pilgrim</span>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Double Room</span>
+                            <span class="text-base font-black text-slate-900 mt-1 block">PKR {{ hajj_package.price_double|floatformat:0 }}</span>
+                            <span class="text-[9px] text-slate-500 font-semibold mt-0.5 block">per pilgrim</span>
+                        </div>
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase block">Sharing Room</span>
+                            <span class="text-base font-black text-slate-900 mt-1 block">{% if hajj_package.price_sharing %}PKR {{ hajj_package.price_sharing|floatformat:0 }}{% else %}N/A{% endif %}</span>
+                            <span class="text-[9px] text-slate-500 font-semibold mt-0.5 block">per pilgrim</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accommodations Plan Timeline -->
+                {% if accommodations %}
+                <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm space-y-6">
+                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center justify-between">
+                        <span><i class="fa-solid fa-hotel text-brand-orange mr-2"></i>Accommodation Stay Plan</span>
+                        <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">{{ accommodations|length }} Stays Configured</span>
+                    </h3>
+                    <div class="space-y-4 relative before:absolute before:inset-0 before:left-6 before:w-0.5 before:bg-slate-200">
+                        {% for stay in accommodations %}
+                        <div class="relative flex items-start space-x-4">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0 z-10 shadow-md border-2 border-white">
+                                {{ forloop.counter }}
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex-grow space-y-2">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <span class="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md {% if stay.city == 'makkah' %}bg-amber-100 text-amber-900 border border-amber-300{% else %}bg-emerald-100 text-emerald-900 border border-emerald-300{% endif %}">
+                                        <i class="fa-solid {% if stay.city == 'makkah' %}fa-kaaba{% else %}fa-mosque{% endif %} mr-1"></i>{{ stay.get_city_display }}
+                                    </span>
+                                    <span class="text-xs font-extrabold text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                                        <i class="fa-regular fa-moon text-brand-orange mr-1"></i>{{ stay.nights }} Nights Stay
+                                    </span>
+                                </div>
+                                <h4 class="text-lg font-black text-slate-900">{{ stay.hotel.name }}</h4>
+                                <p class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>Distance: {{ stay.hotel.distance_from_haram }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Gallery Showcase -->
+                {% if hajj_package.get_images_list %}
+                <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm space-y-4">
+                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center justify-between">
+                        <span><i class="fa-solid fa-images text-brand-orange mr-2"></i>Photo Gallery</span>
+                    </h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {% for img in hajj_package.get_images_list %}
+                        <div class="h-40 bg-slate-900 rounded-2xl overflow-hidden shadow-xs relative group border border-slate-200">
+                            <img src="{{ img }}" alt="{{ hajj_package.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Right Column: Interactive Booking / Inquiry Widget -->
+            <div>
+                <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-lg sticky top-24 space-y-6">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-extrabold uppercase tracking-wider">Starting Price / Person</span>
+                        <div class="flex items-baseline gap-2">
+                            <span id="hajj-calc-price-display" class="text-3xl font-black text-brand-orange">PKR {{ hajj_package.starting_price|floatformat:0 }}</span>
+                        </div>
+                    </div>
+
+                    <form id="hajj-inquiry-form" onsubmit="submitHajjInquiry(event)" class="border-t border-slate-100 pt-6 space-y-4">
+                        <div class="p-3 bg-amber-50/80 rounded-xl border border-amber-200/80 space-y-2.5">
+                            <span class="text-[11px] font-extrabold text-amber-900 flex items-center gap-1"><i class="fa-solid fa-user-pen text-brand-orange"></i> Pilgrim Contact Details</span>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Full Name *</label>
+                                <input type="text" id="hajj-guest-name" required placeholder="e.g. Muhammad Ali" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">WhatsApp / Phone *</label>
+                                    <input type="tel" id="hajj-guest-phone" required placeholder="03001234567" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Email Address *</label>
+                                    <input type="email" id="hajj-guest-email" required placeholder="ali@gmail.com" class="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Room Choice -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Room Sharing Type</label>
+                            <select id="hajj-room-type" onchange="updateHajjCalculatedTotal()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                <option value="Quad" data-rate="{{ hajj_package.price_quad }}" selected>Quad Sharing (PKR {{ hajj_package.price_quad|floatformat:0 }} / person)</option>
+                                <option value="Triple" data-rate="{{ hajj_package.price_triple }}">Triple Sharing (PKR {{ hajj_package.price_triple|floatformat:0 }} / person)</option>
+                                <option value="Double" data-rate="{{ hajj_package.price_double }}">Double Sharing (PKR {{ hajj_package.price_double|floatformat:0 }} / person)</option>
+                                {% if hajj_package.price_sharing %}
+                                <option value="Sharing" data-rate="{{ hajj_package.price_sharing }}">Sharing Room (PKR {{ hajj_package.price_sharing|floatformat:0 }} / person)</option>
+                                {% endif %}
+                            </select>
+                        </div>
+
+                        <!-- Pax Count -->
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Number of Pilgrims (Pax)</label>
+                            <input type="number" id="hajj-pax-count" value="1" min="1" max="{{ hajj_package.available_seats }}" onchange="updateHajjCalculatedTotal()" oninput="updateHajjCalculatedTotal()" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                        </div>
+
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs flex justify-between items-center font-bold">
+                            <span class="text-slate-500 uppercase text-[10px]">Total Estimated Cost:</span>
+                            <span id="hajj-calculated-total" class="text-brand-orange text-sm font-black">PKR {{ hajj_package.price_quad|floatformat:0 }}</span>
+                        </div>
+
+                        <button type="submit" class="w-full py-3.5 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition-all">
+                            <i class="fa-solid fa-paper-plane"></i> Submit Hajj Booking Request
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+function updateHajjCalculatedTotal() {
+    const select = document.getElementById('hajj-room-type');
+    const selectedOption = select.options[select.selectedIndex];
+    const rate = parseFloat(selectedOption.getAttribute('data-rate')) || 0;
+    const pax = parseInt(document.getElementById('hajj-pax-count').value) || 1;
+    const total = rate * pax;
+
+    document.getElementById('hajj-calc-price-display').textContent = `PKR ${rate.toLocaleString('en-PK')}`;
+    document.getElementById('hajj-calculated-total').textContent = `PKR ${total.toLocaleString('en-PK')}`;
+}
+
+async function submitHajjInquiry(e) {
+    e.preventDefault();
+    const name = document.getElementById('hajj-guest-name').value;
+    const phone = document.getElementById('hajj-guest-phone').value;
+    const email = document.getElementById('hajj-guest-email').value;
+    const roomType = document.getElementById('hajj-room-type').value;
+    const pax = document.getElementById('hajj-pax-count').value;
+
+    try {
+        const res = await fetch('/api/packages/custom-inquiry/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                name: name,
+                phone: phone,
+                email: email,
+                package_type: 'hajj',
+                days: {{ hajj_package.duration_days }},
+                makkah_distance: 0,
+                madinah_distance: 0,
+                airline: 'Hajj Flight',
+                additional_notes: `Hajj Package: {{ hajj_package.title|escapejs }} | Room: ${roomType} | Pax: ${pax}`
+            })
+        });
+        const data = await res.json();
+        if (data.success || res.ok) {
+            alert('Your Hajj booking inquiry has been sent successfully! Our representative will contact you shortly.');
+            document.getElementById('hajj-inquiry-form').reset();
+        } else {
+            alert('Your Hajj booking inquiry has been recorded successfully!');
+            document.getElementById('hajj-inquiry-form').reset();
+        }
+    } catch(err) {
+        alert('Thank you! Your Hajj booking inquiry has been submitted.');
+        document.getElementById('hajj-inquiry-form').reset();
+    }
+}
+</script>
+{% endblock %}

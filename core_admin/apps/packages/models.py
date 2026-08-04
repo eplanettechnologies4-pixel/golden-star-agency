@@ -36,10 +36,12 @@ class Package(models.Model):
     makkah_hotel_name = models.CharField(max_length=200, default='Anjum Hotel Makkah', blank=True, null=True)
     makkah_hotel_distance = models.CharField(max_length=100, default='350m from Haram', blank=True, null=True)
     makkah_hotel_images = models.JSONField(default=list, blank=True, null=True) # Makkah hotel photos
-    
+    makkah_nights = models.PositiveIntegerField(default=7, blank=True, null=True)
+
     madinah_hotel_name = models.CharField(max_length=200, default='Pullman Zamzam Madinah', blank=True, null=True)
     madinah_hotel_distance = models.CharField(max_length=100, default='150m from Prophet\'s Mosque', blank=True, null=True)
     madinah_hotel_images = models.JSONField(default=list, blank=True, null=True) # Madinah hotel photos
+    madinah_nights = models.PositiveIntegerField(default=7, blank=True, null=True)
     
     luggage_weight = models.CharField(max_length=100, default='20 kg + 7 kg Hand Carry', blank=True, null=True)
     
@@ -135,5 +137,131 @@ class CustomPackageInquiry(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.package_type.upper()} ({self.days} Days)"
+
+
+class HajjPackage(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    company_logo = models.ImageField(upload_to='hajj/logos/', null=True, blank=True)
+    duration_days = models.PositiveIntegerField()
+
+    price_quad = models.DecimalField(max_digits=10, decimal_places=2)
+    price_triple = models.DecimalField(max_digits=10, decimal_places=2)
+    price_double = models.DecimalField(max_digits=10, decimal_places=2)
+    price_sharing = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # Compliance / regulatory fields specific to Hajj
+    hajj_operator_name = models.CharField(max_length=200)
+    license_number = models.CharField(max_length=100)
+    saudi_registration_number = models.CharField(max_length=100)
+
+    total_seats = models.PositiveIntegerField()
+    available_seats = models.PositiveIntegerField()
+
+    # Flight & Airline info
+    airline_name = models.CharField(max_length=100, default='Saudi Airlines', blank=True)
+    airline_logo = models.ImageField(upload_to='hajj/airlines/', null=True, blank=True)
+    flight_dates = models.CharField(max_length=150, blank=True, null=True)
+    hijri_dates = models.CharField(max_length=150, blank=True, null=True, default='01 - 25 Dhul-Hijjah 1447 AH')
+    departure_date = models.DateField(null=True, blank=True)
+    return_date = models.DateField(null=True, blank=True)
+
+    images = models.JSONField(default=list, blank=True)
+    cover_photo = models.ImageField(upload_to='hajj_packages/covers/', null=True, blank=True)
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def cover_photo_url(self):
+        if self.cover_photo and hasattr(self.cover_photo, 'url'):
+            return self.cover_photo.url
+        if isinstance(self.images, list) and len(self.images) > 0 and self.images[0]:
+            return self.images[0]
+        return "/static/images/hajj_card.png"
+
+    @property
+    def logo_url(self):
+        if self.company_logo and hasattr(self.company_logo, 'url'):
+            return self.company_logo.url
+        return "/static/images/hajj_card.png"
+
+    @property
+    def get_airline_logo_url(self):
+        if self.airline_logo and hasattr(self.airline_logo, 'url'):
+            return self.airline_logo.url
+        name = (self.airline_name or '').lower()
+        if 'saudi' in name:
+            return '/static/images/saudia_logo.png'
+        elif 'pia' in name or 'pakistan' in name:
+            return '/static/images/pia_logo.png'
+        elif 'emirates' in name:
+            return '/static/images/emirates_logo.png'
+        elif 'flynas' in name:
+            return '/static/images/flynas_logo.png'
+        return '/static/images/airline_default.png'
+
+    def get_images_list(self):
+        if isinstance(self.images, list) and len(self.images) > 0:
+            return self.images
+        return ["/static/images/hajj_card.png"]
+
+    @property
+    def starting_price(self):
+        prices = [self.price_quad, self.price_triple, self.price_double]
+        
+        if self.price_sharing is not None:
+            prices.append(self.price_sharing)
+        return min(p for p in prices if p is not None)
+
+    @property
+    def get_english_dates(self):
+        if self.flight_dates:
+            return self.flight_dates
+        if self.departure_date and self.return_date:
+            return f"{self.departure_date.strftime('%d %b %Y')} - {self.return_date.strftime('%d %b %Y')}"
+        return "15 May 2026 - 08 Jun 2026"
+
+    @property
+    def get_hijri_dates(self):
+        if self.hijri_dates:
+            return self.hijri_dates
+        return "01 - 25 Dhul-Hijjah 1447 AH"
+
+
+class HajjAccommodation(models.Model):
+    CITY_CHOICES = [('makkah', 'Makkah'), ('madinah', 'Madinah')]
+
+    hajj_package = models.ForeignKey(HajjPackage, on_delete=models.CASCADE, related_name='accommodations')
+    city = models.CharField(max_length=20, choices=CITY_CHOICES)
+    hotel = models.ForeignKey('airline_ticketing.Hotel', on_delete=models.SET_NULL, related_name='hajj_stays', null=True, blank=True)
+    hotel_name_manual = models.CharField(max_length=200, blank=True, null=True)
+    distance_manual = models.CharField(max_length=100, blank=True, null=True)
+    nights = models.PositiveIntegerField(default=1)
+    order = models.PositiveIntegerField(default=0)  # sequence of stays
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        h_name = self.hotel.name if self.hotel else (self.hotel_name_manual or "Custom Hotel")
+        return f"{self.hajj_package.title} - {self.get_city_display()}: {h_name} ({self.nights} nights)"
+
+    @property
+    def get_hotel_name(self):
+        if self.hotel:
+            return self.hotel.name
+        return self.hotel_name_manual or "Custom Hotel"
+
+    @property
+    def get_hotel_distance(self):
+        if self.hotel:
+            return self.hotel.distance_from_haram
+        return self.distance_manual or "Distance on request"
+
 
 

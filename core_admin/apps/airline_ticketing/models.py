@@ -228,8 +228,10 @@ class AgentPackage(models.Model):
 
     makkah_hotel_name = models.CharField(max_length=200, blank=True)
     makkah_hotel_distance = models.CharField(max_length=100, blank=True)
+    makkah_nights = models.PositiveIntegerField(default=7, help_text='Number of nights in Makkah')
     madinah_hotel_name = models.CharField(max_length=200, blank=True)
     madinah_hotel_distance = models.CharField(max_length=100, blank=True)
+    madinah_nights = models.PositiveIntegerField(default=7, help_text='Number of nights in Madinah')
 
     airline = models.ForeignKey(
         Airline,
@@ -247,6 +249,7 @@ class AgentPackage(models.Model):
     transport_type = models.CharField(max_length=100, default='Sharing', blank=True, null=True)
     
     images = models.JSONField(default=list, blank=True, null=True)
+    cover_photo = models.ImageField(upload_to='umrah_packages/covers/', null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -264,6 +267,16 @@ class AgentPackage(models.Model):
     def available_seats(self):
         return max(0, self.total_seats - self.booked_seats)
 
+    @property
+    def cover_photo_url(self):
+        if self.cover_photo and hasattr(self.cover_photo, 'url'):
+            return self.cover_photo.url
+        if isinstance(self.images, list) and len(self.images) > 0 and self.images[0]:
+            return self.images[0]
+        if self.package_type == 'hajj':
+            return "/static/images/hajj_card.png"
+        return "/static/images/umrah_card.png"
+
 
 class AgentTicketOrder(models.Model):
     ORDER_TYPE_CHOICES = (
@@ -276,6 +289,8 @@ class AgentTicketOrder(models.Model):
         ('hold', 'On Hold'),
         ('paid', 'Paid'),
         ('paid_pending', 'Payment Pending'),
+        ('ticketed', 'Ticketed'),
+        ('confirmed', 'Confirmed'),
         ('cancelled', 'Cancelled'),
         ('expired', 'Expired'),
     )
@@ -309,6 +324,13 @@ class AgentTicketOrder(models.Model):
     )
     group_policy = models.ForeignKey(
         GroupFarePolicy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders'
+    )
+    agent_hajj_package = models.ForeignKey(
+        'AgentHajjPackage',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -469,7 +491,97 @@ class BankAccount(models.Model):
         return f"{self.bank_name} - {self.account_number}"
 
 
+class AgentHajjPackage(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    company_logo = models.ImageField(upload_to='agent_hajj/logos/', null=True, blank=True)
+    duration_days = models.PositiveIntegerField()
+
+    price_quad = models.DecimalField(max_digits=10, decimal_places=2)
+    price_triple = models.DecimalField(max_digits=10, decimal_places=2)
+    price_double = models.DecimalField(max_digits=10, decimal_places=2)
+    price_sharing = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    hajj_operator_name = models.CharField(max_length=200)
+    license_number = models.CharField(max_length=100)
+    saudi_registration_number = models.CharField(max_length=100)
+
+    # Travel Dates
+    departure_date = models.DateField(null=True, blank=True)
+    return_date = models.DateField(null=True, blank=True)
+
+    # Meal Plan
+    includes_meal = models.BooleanField(default=True)
+    meal_detail = models.CharField(max_length=150, default='Full Board Buffet', blank=True, null=True)
+
+    # Airline & Flight Info
+    airline_name = models.CharField(max_length=150, default='Saudi Airlines', blank=True, null=True)
+    airline_logo = models.ImageField(upload_to='agent_hajj/airlines/', null=True, blank=True)
+    flight_name = models.CharField(max_length=150, blank=True, null=True)
+    flight_route = models.CharField(max_length=255, default='KHI - JED - MED - KHI', blank=True, null=True)
+
+    # Manual Hotel Summary (Makkah & Madinah)
+    makkah_hotel_name = models.CharField(max_length=200, blank=True, default='')
+    makkah_hotel_distance = models.CharField(max_length=100, blank=True, default='')
+    madinah_hotel_name = models.CharField(max_length=200, blank=True, default='')
+    madinah_hotel_distance = models.CharField(max_length=100, blank=True, default='')
+
+    total_seats = models.PositiveIntegerField()
+    available_seats = models.PositiveIntegerField()
+
+    images = models.JSONField(default=list, blank=True)
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Agent Hajj Package'
+        verbose_name_plural = 'Agent Hajj Packages'
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def logo_url(self):
+        if self.company_logo and hasattr(self.company_logo, 'url'):
+            return self.company_logo.url
+        return "/static/images/hajj_card.png"
+
+    @property
+    def airline_logo_url(self):
+        if self.airline_logo and hasattr(self.airline_logo, 'url'):
+            return self.airline_logo.url
+        return None
+
+    @property
+    def starting_price(self):
+        prices = [self.price_quad, self.price_triple, self.price_double]
+        if self.price_sharing is not None:
+            prices.append(self.price_sharing)
+        valid_prices = [p for p in prices if p is not None]
+        return min(valid_prices) if valid_prices else 0
 
 
+class AgentHajjAccommodation(models.Model):
+    CITY_CHOICES = [('makkah', 'Makkah'), ('madinah', 'Madinah')]
+
+    agent_hajj_package = models.ForeignKey(AgentHajjPackage, on_delete=models.CASCADE, related_name='accommodations')
+    city = models.CharField(max_length=20, choices=CITY_CHOICES)
+    hotel = models.ForeignKey('airline_ticketing.Hotel', on_delete=models.SET_NULL, null=True, blank=True, related_name='agent_hajj_stays')
+    manual_hotel_name = models.CharField(max_length=200, blank=True, default='')
+    manual_hotel_distance = models.CharField(max_length=100, blank=True, default='')
+    nights = models.PositiveIntegerField()
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+        verbose_name = 'Agent Hajj Accommodation'
+        verbose_name_plural = 'Agent Hajj Accommodations'
+
+    def __str__(self):
+        h_name = self.hotel.name if self.hotel else (self.manual_hotel_name or 'Hotel')
+        return f"{self.agent_hajj_package.title} - {self.get_city_display()}: {h_name} ({self.nights} nights)"
 
 

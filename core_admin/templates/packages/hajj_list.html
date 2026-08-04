@@ -41,9 +41,9 @@
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
     <!-- Sliding Backgrounds -->
     <div class="absolute inset-0 z-0">
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static 'images/hajj_banner.png' %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/hero_bg.png' %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/umrah_banner.png' %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static "images/hajj_banner.png" %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static "images/hero_bg.png" %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static "images/umrah_banner.png" %}');"></div>
         <div class="absolute inset-0 bg-slate-950/80"></div>
     </div>
 
@@ -225,17 +225,17 @@
         <div id="packages-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
             {% for pkg in packages %}
             <div class="package-card glass-card bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-200/60 shadow-sm transition-all hover:shadow-lg" data-days="{{ pkg.duration_days }}">
-                <div class="relative h-56 bg-slate-100 overflow-hidden group">
-                    <img src="{{ pkg.cover_url }}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="relative h-56 bg-slate-900 overflow-hidden group">
+                    <img src="{{ pkg.logo_url }}" alt="{{ pkg.title }}" class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500 bg-slate-950/80">
                     
                     <!-- Top Badges: Category & Duration -->
-                    <div class="absolute top-4 left-4 flex flex-wrap gap-1.5">
+                    <div class="absolute top-4 left-4 flex flex-wrap gap-1.5 z-10">
                         <span class="bg-brand-orange text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase shadow">{{ pkg.duration_days }} Days</span>
-                        <span class="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase border border-white/10">{{ pkg.category }}</span>
+                        <span class="bg-amber-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md uppercase shadow"><i class="fa-solid fa-kaaba mr-1"></i>Hajj 2026</span>
                     </div>
 
                     <!-- Live Seats Counter Badge -->
-                    <div class="absolute bottom-4 left-4">
+                    <div class="absolute bottom-4 left-4 z-10">
                         {% if pkg.available_seats > 0 %}
                         <span class="bg-emerald-600/90 backdrop-blur-md text-white text-[11px] font-extrabold px-3 py-1 rounded-full border border-emerald-400/30 shadow-lg flex items-center gap-1.5">
                             <i class="fa-solid fa-ticket animate-pulse text-amber-300"></i>
@@ -250,64 +250,77 @@
                 </div>
 
                 <div class="p-6 flex-grow flex flex-col bg-white">
+                    <!-- Operator & License Badge -->
+                    <div class="mb-2 flex items-center justify-between">
+                        <span class="text-[10px] font-black uppercase text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                            <i class="fa-solid fa-award text-amber-600 mr-1"></i>{{ pkg.hajj_operator_name }}
+                        </span>
+                        <span class="text-[9px] font-mono font-bold text-slate-500">Lic: {{ pkg.license_number }}</span>
+                    </div>
+
                     <h3 class="text-base font-extrabold text-slate-900 mb-2 leading-snug">{{ pkg.title }}</h3>
+
+                    <!-- Airline & Travel Dates Badges (English & Islamic Hijri) -->
+                    <div class="mb-3 flex flex-wrap items-center gap-2">
+                        <div class="inline-flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 text-slate-800 text-[11px] font-extrabold">
+                            <img src="{{ pkg.get_airline_logo_url }}" class="w-4 h-4 object-contain rounded-full" alt="{{ pkg.airline_name }}">
+                            <span>{{ pkg.airline_name|default:"Saudi Airlines" }}</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1 bg-orange-50 text-brand-orange px-2.5 py-1 rounded-lg border border-orange-200 text-[10px] font-extrabold" title="Gregorian (English) Travel Dates">
+                            <i class="fa-solid fa-calendar-days text-[9px]"></i>
+                            <span>{{ pkg.get_english_dates }}</span>
+                        </div>
+                        <div class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-lg border border-emerald-200 text-[10px] font-extrabold" title="Islamic (Hijri) Travel Dates">
+                            <i class="fa-solid fa-moon text-[9px] text-emerald-600"></i>
+                            <span>{{ pkg.get_hijri_dates }}</span>
+                        </div>
+                    </div>
+
                     <p class="text-xs text-slate-500 mb-4 line-clamp-2 leading-relaxed">{{ pkg.description }}</p>
 
+                    <!-- Pricing Breakdown Grid -->
                     <div class="text-xs text-slate-600 space-y-2 mb-6 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                        <!-- Airline with Logo/Icon -->
-                        <div class="flex items-center gap-2">
-                            {% with logo_info=pkg.get_airline_info %}
-                            {% if logo_info.logo_url %}
-                            <img src="{{ logo_info.logo_url }}" alt="{{ logo_info.name }}" class="w-4 h-4 object-contain">
-                            {% else %}
-                            <i class="fa-solid {{ logo_info.icon_class }} text-brand-orange"></i>
-                            {% endif %}
-                            <span class="font-bold text-slate-800">{{ logo_info.name }}</span>
-                            {% endwith %}
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 block">Quad Sharing</span>
+                                <span class="font-extrabold text-slate-800">PKR {{ pkg.price_quad|floatformat:0 }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 block">Triple Sharing</span>
+                                <span class="font-extrabold text-slate-800">PKR {{ pkg.price_triple|floatformat:0 }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 block">Double Sharing</span>
+                                <span class="font-extrabold text-slate-800">PKR {{ pkg.price_double|floatformat:0 }}</span>
+                            </div>
+                            <div class="bg-white p-2 rounded-lg border border-slate-200/60">
+                                <span class="text-[9px] uppercase font-bold text-slate-400 block">Sharing Bed</span>
+                                <span class="font-extrabold text-slate-800">{% if pkg.price_sharing %}PKR {{ pkg.price_sharing|floatformat:0 }}{% else %}N/A{% endif %}</span>
+                            </div>
                         </div>
 
-                        <!-- Duration & Flight Dates -->
-                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-700">
-                            <span><i class="fa-solid fa-clock text-brand-orange mr-1.5"></i>{{ pkg.duration_days }} Days Package</span>
-                            {% if pkg.flight_dates %}
-                            <span class="text-brand-orange"><i class="fa-solid fa-calendar-days mr-1"></i>{{ pkg.flight_dates }}</span>
-                            {% endif %}
+                        <!-- Accommodations Summary -->
+                        {% if pkg.accommodations.all %}
+                        <div class="pt-2 border-t border-slate-200/60 space-y-1">
+                            <span class="text-[10px] font-extrabold uppercase text-slate-500 block">Accommodation Plan:</span>
+                            {% for acc in pkg.accommodations.all %}
+                            <p class="text-[11px] text-slate-700 font-medium flex items-center justify-between">
+                                <span><i class="fa-solid fa-hotel text-brand-orange mr-1"></i>{{ acc.get_city_display }}: <strong>{{ acc.hotel.name }}</strong></span>
+                                <span class="text-[10px] font-bold text-emerald-600">({{ acc.nights }} Nights)</span>
+                            </p>
+                            {% endfor %}
                         </div>
-
-                        <!-- Flight Route -->
-                        <p class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-route text-brand-orange mr-1.5"></i>Route: {{ pkg.flight_routes|default:"KHI - JED - MED - KHI" }}</p>
-
-                        <!-- Makkah Hotel Distance & Photos -->
-                        <div class="flex items-center justify-between text-[11px] gap-2">
-                            <p class="truncate"><i class="fa-solid fa-hotel text-brand-orange mr-1.5"></i><strong>Makkah:</strong> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }} <span class="text-emerald-600 font-bold">({{ pkg.makkah_hotel_distance|default:"350m" }})</span></p>
-                            {% if pkg.makkah_hotel_images %}
-                            <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 border border-amber-200 shadow-xs" title="{{ pkg.makkah_hotel_images|length }} hotel photos uploaded from backend"><i class="fa-solid fa-camera text-amber-600"></i> {{ pkg.makkah_hotel_images|length }}</span>
-                            {% endif %}
-                        </div>
-
-                        <!-- Madinah Hotel Distance & Photos -->
-                        <div class="flex items-center justify-between text-[11px] gap-2">
-                            <p class="truncate"><i class="fa-solid fa-mosque text-brand-orange mr-1.5"></i><strong>Madinah:</strong> {{ pkg.madinah_hotel_name|default:"Hotel Near Markazia" }} <span class="text-emerald-600 font-bold">({{ pkg.madinah_hotel_distance|default:"150m" }})</span></p>
-                            {% if pkg.madinah_hotel_images %}
-                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 border border-emerald-200 shadow-xs" title="{{ pkg.madinah_hotel_images|length }} hotel photos uploaded from backend"><i class="fa-solid fa-camera text-emerald-600"></i> {{ pkg.madinah_hotel_images|length }}</span>
-                            {% endif %}
-                        </div>
-
-                        <!-- Luggage Weight -->
-                        <p class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-suitcase-rolling text-brand-orange mr-1.5"></i>Luggage: {{ pkg.luggage_weight|default:"20 kg + 7 kg Hand Carry" }}</p>
+                        {% endif %}
                     </div>
 
                     <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Per Person Price</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR {{ pkg.price }}</span>
+                            <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Starting From</span>
+                            <span class="text-lg font-extrabold text-brand-orange">PKR {{ pkg.starting_price|floatformat:0 }}</span>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <button onclick="openQuickBookModal({{ pkg.id }}, '{{ pkg.title|escapejs }}', {{ pkg.price_sharing|default:pkg.price }})" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1">
-                                <i class="fa-solid fa-bolt text-amber-300"></i> Book Now
-                            </button>
-                            <a href="{% url 'package_detail' pk=pkg.pk %}" class="px-3 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1">
-                                Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            <a href="{% url 'hajj_detail' pk=pkg.pk %}" class="px-4 py-2.5 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1.5">
+                                View Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </a>
                         </div>
                     </div>
@@ -672,7 +685,7 @@ function filterPackagesByDays(selectedDays) {
 
 <!-- Explore More Services Section with Background Picture -->
 <section class="relative py-20 bg-slate-950 overflow-hidden border-t border-slate-900">
-    <div class="absolute inset-0 z-0 bg-cover bg-center bg-fixed" style="background-image: url('{% static 'images/hajj_banner.png' %}');"></div>
+    <div class="absolute inset-0 z-0 bg-cover bg-center bg-fixed" style="background-image: url('{% static "images/hajj_banner.png" %}');"></div>
     <div class="absolute inset-0 bg-slate-950/85 z-0"></div>
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(234,88,12,0.12),transparent_50%)] z-0"></div>
     

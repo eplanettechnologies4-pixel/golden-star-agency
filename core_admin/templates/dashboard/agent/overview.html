@@ -773,9 +773,10 @@
                             </thead>
                             <tbody id="tickets-booking-tbody"
                                 class="divide-y divide-[#E7DCB9] text-[#1F2E1A] font-semibold">
-                                <tr>
-                                    <td colspan="11" class="px-6 py-8 text-center text-[#567946]">Loading tickets
-                                        bookings...</td>
+                                <tr id="tickets-booking-loading-row">
+                                    <td colspan="11" class="px-6 py-8 text-center text-[#567946]">
+                                        <i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading ticket bookings...
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1201,8 +1202,8 @@
                             </div>
                         </div>
 
-                        <div id="b2b-umrah-container" class="space-y-4">
-                            <div class="col-span-full py-8 text-center text-[#567946] text-xs">Loading Umrah packages...
+                        <div id="b2b-umrah-container" class="space-y-6">
+                            <div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">Loading Umrah packages...
                             </div>
                         </div>
                     </div>
@@ -1265,8 +1266,8 @@
                             </div>
                         </div>
 
-                        <div id="b2b-hajj-container" class="space-y-4">
-                            <div class="col-span-full py-8 text-center text-[#567946] text-xs">Loading Hajj packages...
+                        <div id="b2b-hajj-container" class="space-y-6">
+                            <div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">Loading Hajj packages...
                             </div>
                         </div>
                     </div>
@@ -3595,23 +3596,44 @@
             }
         }
 
+        async function safeFetchJson(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) {
+                    return null;
+                }
+                const contentType = res.headers.get("content-type") || "";
+                if (!contentType.includes("application/json")) {
+                    return null;
+                }
+                return await res.json();
+            } catch (err) {
+                console.error(`safeFetchJson error for ${url}:`, err);
+                return null;
+            }
+        }
+
         // Live syncing
         async function syncData() {
             const loader = document.getElementById("tab-loader");
-            loader.classList.remove("hidden");
+            if (loader) loader.classList.remove("hidden");
 
             try {
                 // Fetch stats counts
-                const statsResp = await fetch("/dashboard/agent/api/overview-stats/");
-                const statsData = await statsResp.json();
+                const statsData = await safeFetchJson("/dashboard/agent/api/overview-stats/");
+                if (statsData && statsData.counts) {
+                    const elB = document.getElementById("stat-overview-bookings");
+                    if (elB) elB.textContent = statsData.counts.bookings_total || 0;
+                    const elV = document.getElementById("stat-overview-visas");
+                    if (elV) elV.textContent = statsData.counts.visas_total || 0;
+                    const elF = document.getElementById("stat-overview-flights");
+                    if (elF) elF.textContent = statsData.counts.flights_total || 0;
 
-                document.getElementById("stat-overview-bookings").textContent = statsData.counts.bookings_total;
-                document.getElementById("stat-overview-visas").textContent = statsData.counts.visas_total;
-                document.getElementById("stat-overview-flights").textContent = statsData.counts.flights_total;
-
-                // Sync B2B Wallet Balance
-                const bal = parseFloat(statsData.wallet_balance || 0);
-                document.getElementById("stat-overview-balance").textContent = "PKR " + bal.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    // Sync B2B Wallet Balance
+                    const bal = parseFloat(statsData.wallet_balance || 0);
+                    const elBal = document.getElementById("stat-overview-balance");
+                    if (elBal) elBal.textContent = "PKR " + bal.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
 
                 if (currentTab === "overview" || currentTab === "b2b-deals" || currentTab === "new-booking" || currentTab === "tickets-booking" || currentTab === "umrah-booking") {
                     await syncB2BDealsData();
@@ -3628,106 +3650,109 @@
                 }
 
                 if (currentTab === "bookings") {
-                    const res = await fetch("/dashboard/agent/api/bookings/");
-                    const data = await res.json();
+                    const data = await safeFetchJson("/dashboard/agent/api/bookings/");
                     const tbody = document.getElementById("bookings-tbody");
-                    tbody.innerHTML = data.bookings.length === 0
-                        ? `<tr><td colspan="6" class="px-6 py-8 text-center text-[#567946]">No bookings logged under your account.</td></tr>`
-                        : "";
+                    if (tbody && data && data.bookings) {
+                        tbody.innerHTML = data.bookings.length === 0
+                            ? `<tr><td colspan="6" class="px-6 py-8 text-center text-[#567946]">No bookings logged under your account.</td></tr>`
+                            : "";
 
-                    data.bookings.forEach(b => {
-                        let badge = "";
-                        if (b.status === "confirmed") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">Confirmed</span>';
-                        else if (b.status === "cancelled") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Cancelled</span>';
-                        else badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">Pending Approval</span>';
+                        data.bookings.forEach(b => {
+                            let badge = "";
+                            if (b.status === "confirmed") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">Confirmed</span>';
+                            else if (b.status === "cancelled") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Cancelled</span>';
+                            else badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">Pending Approval</span>';
 
-                        let letterBtn = b.status === 'confirmed'
-                            ? `<a href="/approval-letter/package/${b.id}/" target="_blank" class="px-2.5 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white rounded-lg text-[10px] font-bold transition-all shadow-sm inline-flex items-center gap-1"><i class="fa-solid fa-print"></i> Print Letter</a>`
-                            : `<span class="text-[10px] text-[#567946] italic">Pending</span>`;
+                            let letterBtn = b.status === 'confirmed'
+                                ? `<a href="/approval-letter/package/${b.id}/" target="_blank" class="px-2.5 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white rounded-lg text-[10px] font-bold transition-all shadow-sm inline-flex items-center gap-1"><i class="fa-solid fa-print"></i> Print Letter</a>`
+                                : `<span class="text-[10px] text-[#567946] italic">Pending</span>`;
 
-                        const row = document.createElement("tr");
-                        row.className = "hover:bg-[#F6FAF3] transition-all border-b border-[#E7DCB9]";
-                        row.innerHTML = `
-                            <td class="px-6 py-4 font-mono font-bold text-[#2D4424] text-[10px]">#B-${b.id}</td>
-                            <td class="px-6 py-4 font-semibold text-[#1F2E1A]">${b.package_title}</td>
-                            <td class="px-6 py-4 text-[10px] text-[#567946] uppercase tracking-wider">${b.booking_type}</td>
-                            <td class="px-6 py-4 font-bold text-[#E06A26]">PKR ${parseFloat(b.total_price).toLocaleString()}</td>
-                            <td class="px-6 py-4">${badge}</td>
-                            <td class="px-6 py-4 text-[#567946] text-[10px]">${b.created_at}</td>
-                            <td class="px-6 py-4 text-right">${letterBtn}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
+                            const row = document.createElement("tr");
+                            row.className = "hover:bg-[#F6FAF3] transition-all border-b border-[#E7DCB9]";
+                            row.innerHTML = `
+                                <td class="px-6 py-4 font-mono font-bold text-[#2D4424] text-[10px]">#B-${b.id}</td>
+                                <td class="px-6 py-4 font-semibold text-[#1F2E1A]">${escapeHTML(b.package_title)}</td>
+                                <td class="px-6 py-4 text-[10px] text-[#567946] uppercase tracking-wider">${escapeHTML(b.booking_type)}</td>
+                                <td class="px-6 py-4 font-bold text-[#E06A26]">PKR ${parseFloat(b.total_price).toLocaleString()}</td>
+                                <td class="px-6 py-4">${badge}</td>
+                                <td class="px-6 py-4 text-[#567946] text-[10px]">${b.created_at}</td>
+                                <td class="px-6 py-4 text-right">${letterBtn}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    }
                 }
 
                 else if (currentTab === "visas") {
-                    const res = await fetch("/dashboard/agent/api/visas/");
-                    const data = await res.json();
+                    const data = await safeFetchJson("/dashboard/agent/api/visas/");
                     const tbody = document.getElementById("visas-tbody");
-                    tbody.innerHTML = data.visas.length === 0
-                        ? `<tr><td colspan="6" class="px-6 py-8 text-center text-[#567946]">No visa applications logged under your account.</td></tr>`
-                        : "";
+                    if (tbody && data && data.visas) {
+                        tbody.innerHTML = data.visas.length === 0
+                            ? `<tr><td colspan="6" class="px-6 py-8 text-center text-[#567946]">No visa applications logged under your account.</td></tr>`
+                            : "";
 
-                    data.visas.forEach(v => {
-                        let badge = "";
-                        if (v.status === "approved") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">Approved</span>';
-                        else if (v.status === "rejected") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Rejected</span>';
-                        else if (v.status === "submitted") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">Sent to Embassy</span>';
-                        else badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FBF5E8] text-[#7A5C28] border border-[#EADBB8]">Pending</span>';
+                        data.visas.forEach(v => {
+                            let badge = "";
+                            if (v.status === "approved") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">Approved</span>';
+                            else if (v.status === "rejected") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Rejected</span>';
+                            else if (v.status === "submitted") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">Sent to Embassy</span>';
+                            else badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FBF5E8] text-[#7A5C28] border border-[#EADBB8]">Pending</span>';
 
-                        let letterBtn = v.status === 'approved'
-                            ? `<a href="/approval-letter/visa/${v.id}/" target="_blank" class="px-2.5 py-1 bg-[#567946] hover:bg-[#38522D] text-white rounded-lg text-[10px] font-bold transition-all shadow-sm inline-flex items-center gap-1"><i class="fa-solid fa-print"></i> Print Letter</a>`
-                            : `<span class="text-[10px] text-[#567946] italic">In Review</span>`;
+                            let letterBtn = v.status === 'approved'
+                                ? `<a href="/approval-letter/visa/${v.id}/" target="_blank" class="px-2.5 py-1 bg-[#567946] hover:bg-[#38522D] text-white rounded-lg text-[10px] font-bold transition-all shadow-sm inline-flex items-center gap-1"><i class="fa-solid fa-print"></i> Print Letter</a>`
+                                : `<span class="text-[10px] text-[#567946] italic">In Review</span>`;
 
-                        const row = document.createElement("tr");
-                        row.className = "hover:bg-[#F6FAF3] transition-all border-b border-[#E7DCB9]";
-                        row.innerHTML = `
-                            <td class="px-6 py-4 font-mono font-bold text-[#2D4424] text-[10px]">#V-${v.id}</td>
-                            <td class="px-6 py-4 font-semibold text-[#1F2E1A]">${v.country}</td>
-                            <td class="px-6 py-4 font-mono text-[10px] text-[#567946]">${v.passport_number}</td>
-                            <td class="px-6 py-4">${badge}</td>
-                            <td class="px-6 py-4 text-[10px] text-[#567946]">${v.created_at}</td>
-                            <td class="px-6 py-4 text-right">${letterBtn}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
+                            const row = document.createElement("tr");
+                            row.className = "hover:bg-[#F6FAF3] transition-all border-b border-[#E7DCB9]";
+                            row.innerHTML = `
+                                <td class="px-6 py-4 font-mono font-bold text-[#2D4424] text-[10px]">#V-${v.id}</td>
+                                <td class="px-6 py-4 font-semibold text-[#1F2E1A]">${escapeHTML(v.country)}</td>
+                                <td class="px-6 py-4 font-mono text-[10px] text-[#567946]">${escapeHTML(v.passport_number)}</td>
+                                <td class="px-6 py-4">${badge}</td>
+                                <td class="px-6 py-4 text-[10px] text-[#567946]">${v.created_at}</td>
+                                <td class="px-6 py-4 text-right">${letterBtn}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    }
                 }
 
                 else if (currentTab === "flights") {
-                    const res = await fetch("/dashboard/agent/api/flights/");
-                    const data = await res.json();
+                    const data = await safeFetchJson("/dashboard/agent/api/flights/");
                     const tbody = document.getElementById("flights-tbody");
-                    tbody.innerHTML = data.flights.length === 0
-                        ? `<tr><td colspan="7" class="px-6 py-8 text-center text-[#567946]">No flight requests logged under your account.</td></tr>`
-                        : "";
+                    if (tbody && data && data.flights) {
+                        tbody.innerHTML = data.flights.length === 0
+                            ? `<tr><td colspan="7" class="px-6 py-8 text-center text-[#567946]">No flight requests logged under your account.</td></tr>`
+                            : "";
 
-                    data.flights.forEach(f => {
-                        let badge = "";
-                        if (f.status === "quoted") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">Quoted</span>';
-                        else if (f.status === "booked") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">Booked</span>';
-                        else if (f.status === "cancelled") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Cancelled</span>';
-                        else badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FBF5E8] text-[#7A5C28] border border-[#EADBB8]">Pending Quote</span>';
+                        data.flights.forEach(f => {
+                            let badge = "";
+                            if (f.status === "quoted") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">Quoted</span>';
+                            else if (f.status === "booked") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">Booked</span>';
+                            else if (f.status === "cancelled") badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FDEDED] text-[#9B2C2C] border border-[#F8C4C4]">Cancelled</span>';
+                            else badge = '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FBF5E8] text-[#7A5C28] border border-[#EADBB8]">Pending Quote</span>';
 
-                        let letterBtn = (f.status === 'booked' || f.status === 'quoted')
-                            ? `<a href="/approval-letter/ticket/${f.id}/" target="_blank" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white rounded-lg text-[10px] font-bold transition-all shadow-sm inline-flex items-center gap-1"><i class="fa-solid fa-print"></i> Print Letter</a>`
-                            : `<span class="text-[10px] text-[#567946] italic">Awaiting Quote</span>`;
+                            let letterBtn = (f.status === 'booked' || f.status === 'quoted')
+                                ? `<a href="/approval-letter/ticket/${f.id}/" target="_blank" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white rounded-lg text-[10px] font-bold transition-all shadow-sm inline-flex items-center gap-1"><i class="fa-solid fa-print"></i> Print Letter</a>`
+                                : `<span class="text-[10px] text-[#567946] italic">Awaiting Quote</span>`;
 
-                        const row = document.createElement("tr");
-                        row.className = "hover:bg-[#F6FAF3] transition-all border-b border-[#E7DCB9]";
-                        row.innerHTML = `
-                            <td class="px-6 py-4 font-mono font-bold text-[#2D4424] text-[10px]">#F-${f.id}</td>
-                            <td class="px-6 py-4 font-semibold text-[#1F2E1A]">${f.departure_city} ⇄ ${f.destination_city}</td>
-                            <td class="px-6 py-4 text-[10px]">
-                                <div class="text-[#1F2E1A]">Dep: ${f.departure_date}</div>
-                                <div class="text-[#567946]">Ret: ${f.return_date}</div>
-                            </td>
-                            <td class="px-6 py-4 font-bold text-[#E06A26]">${f.price_quote !== 'N/A' ? `PKR ${parseFloat(f.price_quote).toLocaleString()}` : 'N/A'}</td>
-                            <td class="px-6 py-4">${badge}</td>
-                            <td class="px-6 py-4 text-[10px] text-[#567946]">${f.created_at}</td>
-                            <td class="px-6 py-4 text-right">${letterBtn}</td>
-                        `;
-                        tbody.appendChild(row);
-                    });
+                            const row = document.createElement("tr");
+                            row.className = "hover:bg-[#F6FAF3] transition-all border-b border-[#E7DCB9]";
+                            row.innerHTML = `
+                                <td class="px-6 py-4 font-mono font-bold text-[#2D4424] text-[10px]">#F-${f.id}</td>
+                                <td class="px-6 py-4 font-semibold text-[#1F2E1A]">${escapeHTML(f.departure_city)} ⇄ ${escapeHTML(f.destination_city)}</td>
+                                <td class="px-6 py-4 text-[10px]">
+                                    <div class="text-[#1F2E1A]">Dep: ${escapeHTML(f.departure_date)}</div>
+                                    <div class="text-[#567946]">Ret: ${escapeHTML(f.return_date)}</div>
+                                </td>
+                                <td class="px-6 py-4 font-bold text-[#E06A26]">${f.price_quote !== 'N/A' ? `PKR ${parseFloat(f.price_quote).toLocaleString()}` : 'N/A'}</td>
+                                <td class="px-6 py-4">${badge}</td>
+                                <td class="px-6 py-4 text-[10px] text-[#567946]">${f.created_at}</td>
+                                <td class="px-6 py-4 text-right">${letterBtn}</td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    }
                 }
                 else if (currentTab === "profile" || currentTab === "id-card") {
                     await fetchAgentIDCardData();
@@ -3756,7 +3781,7 @@
             } catch (e) {
                 console.error("Agent sync error:", e);
             } finally {
-                loader.classList.add("hidden");
+                if (loader) loader.classList.add("hidden");
             }
         }
 
@@ -3998,9 +4023,17 @@
             const tbody = document.getElementById("tickets-booking-tbody");
             if (!tbody) return;
 
+            // Show loading state
+            tbody.innerHTML = `<tr><td colspan="11" class="px-6 py-8 text-center text-[#567946]"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading ticket bookings...</td></tr>`;
+
             try {
-                const res = await fetch("/dashboard/agent/api/my-orders/");
-                const data = await res.json();
+                const data = await safeFetchJson("/dashboard/agent/api/my-orders/");
+
+                if (!data || !data.orders) {
+                    tbody.innerHTML = `<tr><td colspan="11" class="px-6 py-8 text-center text-rose-500 font-semibold"><i class="fa-solid fa-circle-exclamation mr-2"></i>Unable to load ticket bookings. Please refresh or re-login.</td></tr>`;
+                    return;
+                }
+
                 let orders = data.orders || [];
 
                 // Keyword search filter
@@ -4025,7 +4058,7 @@
                 }
 
                 if (orders.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="11" class="px-6 py-8 text-center text-[#567946]">No ticket bookings found matching filter criteria.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="11" class="px-6 py-8 text-center text-[#567946]"><i class="fa-solid fa-ticket mr-2 opacity-50"></i>No ticket bookings found matching filter criteria.</td></tr>`;
                     return;
                 }
 
@@ -4055,7 +4088,7 @@
                             <td class="px-3 py-3 font-mono text-[10px]">${chdCount}</td>
                             <td class="px-3 py-3 font-mono text-[10px]">${infCount}</td>
                             <td class="px-4 py-3 font-mono text-[10px] text-[#567946]">${escapeHTML(o.created_at)}</td>
-                            <td class="px-4 py-3 text-[10px] text-[#567946]">${escapeHTML(o.agent_phone_number || o.agent_contact_email)}</td>
+                            <td class="px-4 py-3 text-[10px] text-[#567946]">${escapeHTML(o.agent_phone_number || o.agent_contact_email || 'N/A')}</td>
                             <td class="px-4 py-3 text-center">
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${badgeClass}">
                                     ${escapeHTML(o.status_display || o.status)}
@@ -4066,6 +4099,7 @@
                 }).join('');
             } catch (err) {
                 console.error("Error syncing agent tickets booking table:", err);
+                tbody.innerHTML = `<tr><td colspan="11" class="px-6 py-8 text-center text-rose-500 font-semibold"><i class="fa-solid fa-circle-exclamation mr-2"></i>Error loading ticket data. Please try again.</td></tr>`;
             }
         }
 
@@ -4317,21 +4351,25 @@
 
         window.allPackagesMasterMap = window.allPackagesMasterMap || {};
 
-        async function bookB2BPackage(packageId) {
+        async function bookB2BPackage(packageId, isHajjModel) {
             let p = (window.allPackagesMasterMap && window.allPackagesMasterMap[packageId]) ||
+                (window._allHajjPackages || []).find(item => String(item.id) === String(packageId)) ||
                 (window._allUmrahPackages || []).find(item => String(item.id) === String(packageId)) ||
                 (window._currentPackagesData || []).find(item => String(item.id) === String(packageId));
 
             if (!p) {
                 try {
-                    const res = await fetch(`/dashboard/agent/api/packages/`);
-                    const data = await res.json();
-                    if (data.packages) {
-                        (data.packages || []).forEach(item => {
-                            window.allPackagesMasterMap[item.id] = item;
-                        });
-                        p = window.allPackagesMasterMap[packageId] || (data.packages || []).find(item => String(item.id) === String(packageId));
-                    }
+                    const [res1, res2] = await Promise.all([
+                        fetch('/dashboard/agent/api/packages/'),
+                        fetch('/dashboard/agent/api/agent-hajj-packages/')
+                    ]);
+                    const data1 = await res1.json();
+                    const data2 = await res2.json();
+                    const allPkgs = [...(data1.packages || []), ...(data2.packages || [])];
+                    allPkgs.forEach(item => {
+                        window.allPackagesMasterMap[item.id] = item;
+                    });
+                    p = window.allPackagesMasterMap[packageId] || allPkgs.find(item => String(item.id) === String(packageId));
                 } catch (e) {
                     console.error("Error fetching package detail:", e);
                 }
@@ -4828,7 +4866,7 @@
 
         function finishB2BOrderSuccess() {
             closeB2BPassengerModal();
-            syncB2BDealsData();
+            syncData();
         }
 
         // ══════════════ LANDSCAPE FLIGHT CARD & CATEGORY PAGE JS ══════════════
@@ -5055,294 +5093,6 @@
             });
 
             select.value = currentVal;
-        }
-
-        async function populateHajjSectorDropdown(packages) {
-            const select = document.getElementById("hajj-filter-sector");
-            if (!select) return;
-
-            const currentVal = select.value || 'all';
-            const sectorMap = await fetchAllSectorsMap();
-
-            (packages || []).forEach(p => {
-                if (p.sector_id && p.sector_name) {
-                    sectorMap.set(String(p.sector_id), p.sector_name);
-                }
-            });
-
-            select.innerHTML = '<option value="all">📍 All Sectors</option>';
-            sectorMap.forEach((name, id) => {
-                const opt = document.createElement("option");
-                opt.value = id;
-                opt.textContent = `📍 ${name}`;
-                select.appendChild(opt);
-            });
-
-            select.value = currentVal;
-        }
-
-        function applyUmrahPackageFilters() {
-            const container = document.getElementById("b2b-umrah-container");
-            if (!container) return;
-
-            const sectorFilter = document.getElementById("umrah-filter-sector")?.value || "all";
-            const durationFilter = document.getElementById("umrah-filter-duration")?.value || "all";
-            const keyword = (document.getElementById("umrah-filter-keyword")?.value || "").toLowerCase().trim();
-
-            let filtered = window._allUmrahPackages || [];
-
-            if (sectorFilter !== "all") {
-                filtered = filtered.filter(p => String(p.sector_id) === String(sectorFilter) || (p.sector_name && p.sector_name.toLowerCase().includes(sectorFilter.toLowerCase())));
-            }
-
-            if (durationFilter !== "all") {
-                filtered = filtered.filter(p => String(p.duration_days) === String(durationFilter));
-            }
-
-            if (keyword) {
-                filtered = filtered.filter(p =>
-                    (p.title || "").toLowerCase().includes(keyword) ||
-                    (p.description || "").toLowerCase().includes(keyword) ||
-                    (p.makkah_hotel_name || "").toLowerCase().includes(keyword) ||
-                    (p.madinah_hotel_name || "").toLowerCase().includes(keyword) ||
-                    (p.airline_name || "").toLowerCase().includes(keyword) ||
-                    (p.sector_name || "").toLowerCase().includes(keyword)
-                );
-            }
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">No Umrah packages found matching the selected filter criteria.</div>`;
-                return;
-            }
-
-            container.innerHTML = filtered.map(p => renderAdminPackageCardHtml(p)).join('');
-        }
-
-        function resetUmrahPackageFilters() {
-            if (document.getElementById("umrah-filter-sector")) document.getElementById("umrah-filter-sector").value = "all";
-            if (document.getElementById("umrah-filter-duration")) document.getElementById("umrah-filter-duration").value = "all";
-            if (document.getElementById("umrah-filter-keyword")) document.getElementById("umrah-filter-keyword").value = "";
-            applyUmrahPackageFilters();
-        }
-
-        function applyHajjPackageFilters() {
-            const container = document.getElementById("b2b-hajj-container");
-            if (!container) return;
-
-            const sectorFilter = document.getElementById("hajj-filter-sector")?.value || "all";
-            const durationFilter = document.getElementById("hajj-filter-duration")?.value || "all";
-            const keyword = (document.getElementById("hajj-filter-keyword")?.value || "").toLowerCase().trim();
-
-            let filtered = window._allHajjPackages || [];
-
-            if (sectorFilter !== "all") {
-                filtered = filtered.filter(p => String(p.sector_id) === String(sectorFilter) || (p.sector_name && p.sector_name.toLowerCase().includes(sectorFilter.toLowerCase())));
-            }
-
-            if (durationFilter !== "all") {
-                filtered = filtered.filter(p => String(p.duration_days) === String(durationFilter));
-            }
-
-            if (keyword) {
-                filtered = filtered.filter(p =>
-                    (p.title || "").toLowerCase().includes(keyword) ||
-                    (p.description || "").toLowerCase().includes(keyword) ||
-                    (p.makkah_hotel_name || "").toLowerCase().includes(keyword) ||
-                    (p.madinah_hotel_name || "").toLowerCase().includes(keyword) ||
-                    (p.airline_name || "").toLowerCase().includes(keyword) ||
-                    (p.sector_name || "").toLowerCase().includes(keyword)
-                );
-            }
-
-            if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">No Hajj packages found matching the selected filter criteria.</div>`;
-                return;
-            }
-
-            container.innerHTML = filtered.map(p => renderAdminPackageCardHtml(p)).join('');
-        }
-
-        function resetHajjPackageFilters() {
-            if (document.getElementById("hajj-filter-sector")) document.getElementById("hajj-filter-sector").value = "all";
-            if (document.getElementById("hajj-filter-duration")) document.getElementById("hajj-filter-duration").value = "all";
-            if (document.getElementById("hajj-filter-keyword")) document.getElementById("hajj-filter-keyword").value = "";
-            applyHajjPackageFilters();
-        }
-
-        window._selectedPackageRooms = window._selectedPackageRooms || {};
-
-        function updatePackageCardPrice(pkgId, roomType, roomPrice) {
-            window._selectedPackageRooms[pkgId] = { type: roomType, price: parseFloat(roomPrice) };
-            const priceEl = document.getElementById(`pkg-price-display-${pkgId}`);
-            if (priceEl) {
-                priceEl.textContent = `PKR ${Number(roomPrice).toLocaleString()}`;
-            }
-        }
-
-        function renderAdminPackageCardHtml(p) {
-            const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : '';
-            const imgHtml = imgUrl
-                ? `<img src="${imgUrl}" alt="${escapeHTML(p.title)}" class="w-full md:w-56 h-48 md:h-full object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none shrink-0">`
-                : `<div class="w-full md:w-56 h-48 md:h-full bg-gradient-to-br from-[#1F2E1A] to-[#2D4424] flex flex-col items-center justify-center text-white font-bold rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none shrink-0 p-4 text-center">
-                    <i class="fa-solid ${p.package_type === 'hajj' ? 'fa-mosque' : 'fa-kaaba'} text-4xl text-[#E06A26] mb-2"></i>
-                    <span class="text-xs uppercase font-extrabold text-[#EBD8B3] tracking-widest">${escapeHTML(p.package_type)} Package</span>
-                   </div>`;
-
-            const typeBadge = p.package_type === 'hajj'
-                ? `<span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2] shadow-xs"><i class="fa-solid fa-mosque mr-1"></i>HAJJ PACKAGE</span>`
-                : `<span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4] shadow-xs"><i class="fa-solid fa-kaaba mr-1"></i>UMRAH PACKAGE</span>`;
-
-            const flightName = p.flight_name || p.airline_name || 'Saudi Airlines';
-            const flightRouteType = (p.flight_route_type || 'direct') === 'direct' ? 'Direct' : 'Via';
-            const flightRoute = p.flight_route || 'KHI - JED - MED - KHI';
-
-            const flightBadge = `<span class="px-3 py-1 rounded-full text-xs font-bold text-[#2D4424] bg-[#F7F3E9] border border-[#D9CBAC] shadow-xs flex items-center gap-1">
-                <i class="fa-solid fa-plane-departure text-[#E06A26]"></i>
-                <strong>${escapeHTML(flightName)}</strong> (${flightRouteType}) &bull; <span class="font-mono text-[#567946]">${escapeHTML(flightRoute)}</span>
-            </span>`;
-
-            const mealBadge = `<span class="px-3 py-1 rounded-full text-xs font-black uppercase ${p.includes_meal !== false ? 'bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]' : 'bg-rose-50 text-rose-700 border border-rose-200'} shadow-xs flex items-center gap-1">
-                <i class="fa-solid fa-utensils"></i> Meal: ${p.includes_meal !== false ? 'Yes' : 'No'}
-            </span>`;
-
-            const sectorBadge = p.sector_name
-                ? `<span class="px-3 py-1 rounded-full text-xs font-black uppercase bg-white text-[#2D4424] border border-[#D9CBAC] shadow-xs"><i class="fa-solid fa-route mr-1.5 text-[#E06A26]"></i>Sector: ${escapeHTML(p.sector_name)}</span>`
-                : '';
-
-            const resaleHtml = p.suggested_resale_price
-                ? `<div class="text-xs text-[#567946] font-semibold">Suggested Resale: <strong class="text-[#2D4424] font-black">PKR ${Number(p.suggested_resale_price).toLocaleString()}</strong></div>`
-                : '';
-            const marginHtml = p.commission_amount
-                ? `<div class="text-xs font-extrabold text-[#38522D] bg-[#F0F6EC] px-2.5 py-1 rounded-lg border border-[#C6DCB4] inline-block">Estimated Margin: +PKR ${Number(p.commission_amount).toLocaleString()}</div>`
-                : '';
-
-            const pSharing = parseFloat(p.price_sharing || p.agent_price);
-            const pQuad = parseFloat(p.price_quad || p.agent_price);
-            const pTriple = parseFloat(p.price_triple || p.agent_price);
-            const pDouble = parseFloat(p.price_double || p.agent_price);
-
-            return `
-                <div class="bg-white border border-[#E7DCB9] rounded-2xl shadow-md hover:shadow-xl hover:border-[#E06A26] transition-all flex flex-col md:flex-row overflow-hidden group mb-4">
-                    <!-- Left Side Image / Badge Header -->
-                    <div class="relative flex shrink-0 bg-slate-100">
-                        ${imgHtml}
-                    </div>
-
-                    <!-- Right Content Area -->
-                    <div class="p-5 md:p-6 flex-1 flex flex-col justify-between space-y-4">
-                        
-                        <!-- Top Row: Badges, Title & Duration -->
-                        <div class="space-y-2">
-                            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#E7DCB9] pb-3">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    ${typeBadge}
-                                    ${flightBadge}
-                                    ${mealBadge}
-                                    ${sectorBadge}
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xs font-extrabold text-[#E06A26] bg-[#FDF2EA] px-3 py-1 rounded-xl border border-[#FCE2D2]"><i class="fa-regular fa-clock mr-1"></i>${p.duration_days} Days Package</span>
-                                    <span class="text-xs font-bold text-[#38522D] bg-[#F0F6EC] px-3 py-1 rounded-xl border border-[#C6DCB4]"><i class="fa-solid fa-chair mr-1"></i>${p.available_seats} Seats Available</span>
-                                </div>
-                            </div>
-
-                            <h4 class="text-base sm:text-lg font-black text-[#2D4424] group-hover:text-[#E06A26] transition-colors leading-snug pt-1">${escapeHTML(p.title)}</h4>
-                            <p class="text-xs text-[#567946] leading-relaxed line-clamp-2">${escapeHTML(p.description || '')}</p>
-                        </div>
-
-                        <!-- Room Occupancy Selection Checkboxes with Dynamic Auto-Calculated Price -->
-                        <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#D9CBAC] space-y-2">
-                            <div class="flex items-center justify-between text-xs font-black text-[#2D4424]">
-                                <span><i class="fa-solid fa-bed text-[#E06A26] mr-1"></i> Select Room Occupancy Type:</span>
-                                <span class="text-[10px] text-[#567946] font-bold">Click option to auto-calculate price</span>
-                            </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                <label onclick="updatePackageCardPrice(${p.id}, 'sharing', ${pSharing})" class="flex items-center gap-2 p-2 bg-white rounded-xl border border-[#E7DCB9] cursor-pointer hover:border-[#E06A26] transition-all shadow-xs">
-                                    <input type="radio" name="pkg_room_${p.id}" value="sharing" checked class="h-4 w-4 text-[#E06A26] border-[#D9CBAC] focus:ring-[#E06A26]">
-                                    <div>
-                                        <div class="font-black text-[#2D4424]">Sharing</div>
-                                        <div class="text-[10px] font-extrabold text-[#E06A26]">PKR ${pSharing.toLocaleString()}</div>
-                                    </div>
-                                </label>
-
-                                <label onclick="updatePackageCardPrice(${p.id}, 'quad', ${pQuad})" class="flex items-center gap-2 p-2 bg-white rounded-xl border border-[#E7DCB9] cursor-pointer hover:border-[#E06A26] transition-all shadow-xs">
-                                    <input type="radio" name="pkg_room_${p.id}" value="quad" class="h-4 w-4 text-[#E06A26] border-[#D9CBAC] focus:ring-[#E06A26]">
-                                    <div>
-                                        <div class="font-black text-[#2D4424]">Quad</div>
-                                        <div class="text-[10px] font-extrabold text-[#E06A26]">PKR ${pQuad.toLocaleString()}</div>
-                                    </div>
-                                </label>
-
-                                <label onclick="updatePackageCardPrice(${p.id}, 'triple', ${pTriple})" class="flex items-center gap-2 p-2 bg-white rounded-xl border border-[#E7DCB9] cursor-pointer hover:border-[#E06A26] transition-all shadow-xs">
-                                    <input type="radio" name="pkg_room_${p.id}" value="triple" class="h-4 w-4 text-[#E06A26] border-[#D9CBAC] focus:ring-[#E06A26]">
-                                    <div>
-                                        <div class="font-black text-[#2D4424]">Triple</div>
-                                        <div class="text-[10px] font-extrabold text-[#E06A26]">PKR ${pTriple.toLocaleString()}</div>
-                                    </div>
-                                </label>
-
-                                <label onclick="updatePackageCardPrice(${p.id}, 'double', ${pDouble})" class="flex items-center gap-2 p-2 bg-white rounded-xl border border-[#E7DCB9] cursor-pointer hover:border-[#E06A26] transition-all shadow-xs">
-                                    <input type="radio" name="pkg_room_${p.id}" value="double" class="h-4 w-4 text-[#E06A26] border-[#D9CBAC] focus:ring-[#E06A26]">
-                                    <div>
-                                        <div class="font-black text-[#2D4424]">Double</div>
-                                        <div class="text-[10px] font-extrabold text-[#E06A26]">PKR ${pDouble.toLocaleString()}</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Middle Section: Detailed Hotels & Transport (Sharing) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#F7F3E9] p-3.5 rounded-xl border border-[#D9CBAC]">
-                            <!-- Makkah Hotel Card -->
-                            <div class="space-y-1 bg-white p-3 rounded-lg border border-[#E7DCB9]">
-                                <div class="flex justify-between items-center text-xs font-black text-[#E06A26]">
-                                    <span>🕋 Makkah Hotel</span>
-                                    <span class="text-[10px] bg-[#FDF2EA] text-[#E06A26] px-2 py-0.5 rounded font-extrabold border border-[#FCE2D2]">${escapeHTML(p.makkah_hotel_distance || 'Standard')}</span>
-                                </div>
-                                <div class="text-xs font-extrabold text-[#2D4424] truncate">${escapeHTML(p.makkah_hotel_name || 'Not Specified')}</div>
-                                <div class="text-[11px] text-[#567946] flex items-center justify-between pt-0.5">
-                                    <span>Nights: <strong>${p.makkah_nights || 'N/A'}</strong></span>
-                                    <span>Sharing: <strong>Quad / Triple / Double</strong></span>
-                                </div>
-                            </div>
-
-                            <!-- Madinah Hotel Card -->
-                            <div class="space-y-1 bg-white p-3 rounded-lg border border-[#E7DCB9]">
-                                <div class="flex justify-between items-center text-xs font-black text-[#38522D]">
-                                    <span>🕌 Madinah Hotel</span>
-                                    <span class="text-[10px] bg-[#F0F6EC] text-[#38522D] px-2 py-0.5 rounded font-extrabold border border-[#C6DCB4]">${escapeHTML(p.madinah_hotel_distance || 'Standard')}</span>
-                                </div>
-                                <div class="text-xs font-extrabold text-[#2D4424] truncate">${escapeHTML(p.madinah_hotel_name || 'Not Specified')}</div>
-                                <div class="text-[11px] text-[#567946] flex items-center justify-between pt-0.5">
-                                    <span>Nights: <strong>${p.madinah_nights || 'N/A'}</strong></span>
-                                    <span>Transfers: <strong>${escapeHTML(p.transport_type || 'Sharing')}</strong></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Bottom Bar: Pricing & Action Buttons -->
-                        <div class="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 border-t border-[#E7DCB9]">
-                            <div class="flex items-center gap-4">
-                                <div>
-                                    <div class="text-[10px] font-bold text-[#567946] uppercase tracking-wider">Agent Net Price (Cost)</div>
-                                    <div id="pkg-price-display-${p.id}" class="text-xl sm:text-2xl font-black text-[#E06A26] font-mono">PKR ${pSharing.toLocaleString()}</div>
-                                </div>
-                                <div class="border-l border-[#E7DCB9] pl-4 space-y-0.5">
-                                    ${marginHtml}
-                                    ${resaleHtml}
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2 shrink-0">
-                                <button onclick="bookB2BPackage(${p.id})" class="flex-1 sm:flex-none px-6 py-3 bg-gradient-to-r from-[#E06A26] to-[#C45517] hover:from-[#C45517] hover:to-[#E06A26] text-white text-xs sm:text-sm font-extrabold rounded-xl transition-all shadow-md shadow-[#E06A26]/20 flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-cart-shopping"></i> Book Package Now
-                                </button>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            `;
         }
 
         window._agentTicketTypeFilter = 'all';
@@ -5809,87 +5559,117 @@
             `;
         }
 
+        async function safeFetchJson(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) return null;
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return null;
+                }
+            } catch (err) {
+                return null;
+            }
+        }
+
         async function syncB2BDealsData() {
             const sub = window._currentB2BSubTab || 'tickets';
 
             if (sub === 'tickets') {
-                const airlinesRes = await fetch("/dashboard/agent/api/airlines/");
-                const airlinesData = await airlinesRes.json();
+                const airlinesData = (await safeFetchJson("/dashboard/agent/api/airlines/")) || {};
 
                 const grid = document.getElementById("b2b-airlines-grid");
-                grid.innerHTML = "";
+                if (grid) {
+                    grid.innerHTML = "";
 
-                if (!airlinesData.airlines || airlinesData.airlines.length === 0) {
-                    grid.innerHTML = `<div class="col-span-full py-4 text-center text-[#567946] text-xs">No active airlines found.</div>`;
-                } else {
-                    airlinesData.airlines.forEach(a => {
-                        const isSelected = window._selectedAirlineFilter === a.id;
-                        const btnClass = isSelected
+                    if (!airlinesData.airlines || airlinesData.airlines.length === 0) {
+                        grid.innerHTML = `<div class="col-span-full py-4 text-center text-[#567946] text-xs font-semibold">No active airlines found.</div>`;
+                    } else {
+                        // Render "All Airlines" button first
+                        const allBtn = document.createElement("button");
+                        allBtn.className = !window._selectedAirlineFilter
                             ? "p-3 rounded-xl border border-[#E06A26] bg-[#FDF2EA] text-[#E06A26] font-bold flex flex-col items-center text-center transition-all shadow-sm"
                             : "p-3 rounded-xl border border-[#E7DCB9] bg-white text-[#2D4424] hover:border-[#E06A26] flex flex-col items-center text-center transition-all shadow-sm";
-
-                        const logoHtml = a.logo_url
-                            ? `<img src="${a.logo_url}" alt="${escapeHTML(a.name)}" class="h-6 w-auto object-contain mb-1">`
-                            : `<div class="w-7 h-7 rounded-lg bg-[#2D4424] text-white flex items-center justify-center font-black text-xs mb-1">${(a.iata_code || a.name.slice(0,2)).slice(0,2).toUpperCase()}</div>`;
-
-                        const iataBadge = a.iata_code ? `<span class="text-[9px] font-mono font-black text-[#E06A26] bg-[#FDF2EA] px-1.5 py-0.5 rounded border border-[#FCE2D2] mt-0.5">${escapeHTML(a.iata_code)}</span>` : '';
-
-                        const btn = document.createElement("button");
-                        btn.className = btnClass;
-                        btn.onclick = () => filterAirlineInventory(a.id);
-                        btn.innerHTML = `
-                            ${logoHtml}
-                            <span class="text-[11px] font-bold truncate max-w-full">${escapeHTML(a.name)}</span>
-                            ${iataBadge}
+                        allBtn.onclick = () => filterAirlineInventory(null);
+                        allBtn.innerHTML = `
+                            <div class="w-7 h-7 rounded-lg bg-[#E06A26] text-white flex items-center justify-center font-black text-xs mb-1"><i class="fa-solid fa-plane"></i></div>
+                            <span class="text-[11px] font-bold truncate max-w-full">All Airlines</span>
                         `;
-                        grid.appendChild(btn);
-                    });
+                        grid.appendChild(allBtn);
+
+                        airlinesData.airlines.forEach(a => {
+                            const isSelected = window._selectedAirlineFilter === a.id;
+                            const btnClass = isSelected
+                                ? "p-3 rounded-xl border border-[#E06A26] bg-[#FDF2EA] text-[#E06A26] font-bold flex flex-col items-center text-center transition-all shadow-sm"
+                                : "p-3 rounded-xl border border-[#E7DCB9] bg-white text-[#2D4424] hover:border-[#E06A26] flex flex-col items-center text-center transition-all shadow-sm";
+
+                            const logoHtml = a.logo_url
+                                ? `<img src="${a.logo_url}" alt="${escapeHTML(a.name)}" class="h-6 w-auto object-contain mb-1">`
+                                : `<div class="w-7 h-7 rounded-lg bg-[#2D4424] text-white flex items-center justify-center font-black text-xs mb-1">${(a.code || a.name.slice(0,2)).slice(0,2).toUpperCase()}</div>`;
+
+                            const iataBadge = a.code ? `<span class="text-[9px] font-mono font-black text-[#E06A26] bg-[#FDF2EA] px-1.5 py-0.5 rounded border border-[#FCE2D2] mt-0.5">${escapeHTML(a.code)}</span>` : '';
+
+                            const btn = document.createElement("button");
+                            btn.className = btnClass;
+                            btn.onclick = () => filterAirlineInventory(a.id);
+                            btn.innerHTML = `
+                                ${logoHtml}
+                                <span class="text-[11px] font-bold truncate max-w-full">${escapeHTML(a.name)}</span>
+                                ${iataBadge}
+                            `;
+                            grid.appendChild(btn);
+                        });
+                    }
                 }
 
                 const invUrl = window._selectedAirlineFilter
                     ? `/dashboard/agent/api/flight-inventory/?airline_id=${window._selectedAirlineFilter}`
                     : `/dashboard/agent/api/flight-inventory/`;
 
-                const invRes = await fetch(invUrl);
-                const invData = await invRes.json();
+                const invData = (await safeFetchJson(invUrl)) || {};
                 window._currentInventoryData = invData.inventory || [];
+                window._agentMasterFlightInventory = invData.inventory || [];
 
                 applyAgentTicketRealtimeFilters();
             }
 
             else if (sub === 'group') {
-                const res = await fetch("/dashboard/agent/api/group-policies/");
-                const data = await res.json();
+                const data = (await safeFetchJson("/dashboard/agent/api/group-policies/")) || {};
                 window._currentGroupPoliciesData = data.policies || [];
                 const container = document.getElementById("b2b-group-container");
-                container.innerHTML = "";
+                if (container) {
+                    container.innerHTML = "";
 
-                if (!data.policies || data.policies.length === 0) {
-                    container.innerHTML = `<div class="col-span-full py-8 text-center text-[#567946] text-xs">No active group fare policies found.</div>`;
-                } else {
-                    container.innerHTML = data.policies.map(p => renderLandscapeGroupTicketCard(p)).join('');
+                    if (!data.policies || data.policies.length === 0) {
+                        container.innerHTML = `<div class="col-span-full py-8 text-center text-[#567946] text-xs">No active group fare policies found.</div>`;
+                    } else {
+                        container.innerHTML = data.policies.map(p => renderLandscapeGroupTicketCard(p)).join('');
+                    }
                 }
             }
 
             else if (sub === 'umrah') {
-                const res = await fetch('/dashboard/agent/api/packages/?type=umrah');
-                const data = await res.json();
+                const data = (await safeFetchJson('/dashboard/agent/api/packages/?type=umrah')) || {};
                 window._allUmrahPackages = data.packages || [];
                 populateUmrahSectorDropdown(window._allUmrahPackages);
                 applyUmrahPackageFilters();
             }
 
             else if (sub === 'hajj') {
-                const res = await fetch('/dashboard/agent/api/packages/?type=hajj');
-                const data = await res.json();
-                window._currentPackagesData = data.packages || [];
-                const container = document.getElementById('b2b-hajj-container');
-                container.innerHTML = "";
-
-                if (!data.packages || data.packages.length === 0) {
-                    container.innerHTML = `<div class="col-span-full py-8 text-center text-[#567946] text-xs">No HAJJ packages available at the moment.</div>`;
-                } else {
-                    container.innerHTML = data.packages.map(p => renderAdminPackageCardHtml(p)).join('');
+                try {
+                    const [data1, data2] = await Promise.all([
+                        safeFetchJson('/dashboard/agent/api/packages/?type=hajj'),
+                        safeFetchJson('/dashboard/agent/api/agent-hajj-packages/')
+                    ]);
+                    const pkgs1 = (data1 && data1.packages) ? data1.packages : [];
+                    const pkgs2 = (data2 && data2.packages) ? data2.packages : [];
+                    window._allHajjPackages = [...pkgs1, ...pkgs2];
+                    populateHajjSectorDropdown(window._allHajjPackages);
+                    applyHajjPackageFilters();
+                } catch (err) {
+                    console.error("Error fetching hajj packages:", err);
                 }
             }
 
@@ -5898,13 +5678,406 @@
             }
         }
 
+        window._allUmrahPackages = [];
+        window._allHajjPackages = [];
+        window._selectedPackageRooms = window._selectedPackageRooms || {};
+
+        function selectPackageRoomType(pkgId, roomType, price, radioInput) {
+            window._selectedPackageRooms[pkgId] = {
+                type: roomType,
+                price: parseFloat(price) || 0
+            };
+
+            const priceEl = document.getElementById(`card-price-display-${pkgId}`);
+            if (priceEl) {
+                priceEl.innerHTML = `<span class="text-xs">PKR</span> ${Number(price).toLocaleString()}`;
+            }
+
+            const typeLabelEl = document.getElementById(`card-room-type-label-${pkgId}`);
+            if (typeLabelEl) {
+                typeLabelEl.textContent = roomType.toUpperCase();
+            }
+
+            const cardEl = radioInput.closest('.group');
+            if (cardEl) {
+                const labels = cardEl.querySelectorAll('.room-type-pill');
+                labels.forEach(lbl => {
+                    lbl.classList.remove('bg-[#E06A26]', 'text-white', 'border-[#E06A26]', 'shadow-sm');
+                    lbl.classList.add('bg-white', 'text-[#2D4424]', 'border-[#D9CBAC]');
+                    const radio = lbl.querySelector('input[type="radio"]');
+                    if (radio) radio.checked = false;
+                });
+                const activeLabel = radioInput.closest('.room-type-pill');
+                if (activeLabel) {
+                    activeLabel.classList.remove('bg-white', 'text-[#2D4424]', 'border-[#D9CBAC]');
+                    activeLabel.classList.add('bg-[#E06A26]', 'text-white', 'border-[#E06A26]', 'shadow-sm');
+                    radioInput.checked = true;
+                }
+            }
+        }
+
+        function renderAdminPackageCardHtml(p) {
+            let imgUrl = '';
+
+            // Priority 1: Use cover_photo / cover_photo_url if explicitly set
+            if (p.cover_photo_url || p.cover_photo) {
+                imgUrl = p.cover_photo_url || p.cover_photo;
+            } else if (p.images) { // Priority 2: Fall back to first image in gallery array
+                let imgArr = p.images;
+                if (typeof imgArr === 'string') {
+                    try { imgArr = JSON.parse(imgArr); } catch(e) { imgArr = []; }
+                }
+                if (Array.isArray(imgArr) && imgArr.length > 0 && imgArr[0]) {
+                    imgUrl = imgArr[0];
+                }
+            }
+
+            // Priority 3: Fall back to single generic placeholder image
+            const fallbackImg = (p.package_type === 'hajj' || p.is_hajj_model) ? '/static/images/hajj_card.png' : '/static/images/umrah_card.png';
+            const displayImgUrl = imgUrl || fallbackImg;
+
+            const imgHtml = displayImgUrl
+                ? `<img src="${displayImgUrl}" alt="${escapeHTML(p.title)}" class="w-full h-full min-h-[220px] max-h-[320px] object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.onerror=null; this.src='${fallbackImg}';">`
+                : `<div class="w-full h-full min-h-[220px] bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A] flex flex-col items-center justify-center text-white relative overflow-hidden p-6">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(224,106,38,0.25),transparent)]"></div>
+                    <i class="fa-solid ${p.package_type === 'hajj' ? 'fa-mosque' : 'fa-kaaba'} text-5xl text-[#E06A26] mb-2 drop-shadow"></i>
+                    <span class="text-xs font-black tracking-widest uppercase opacity-80">${p.package_type === 'hajj' ? 'Hajj Wholesale' : 'Umrah Wholesale'}</span>
+                   </div>`;
+
+            const typeBadge = p.package_type === 'hajj'
+                ? `<span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2] shadow-2xs flex items-center gap-1"><i class="fa-solid fa-mosque"></i> HAJJ PACKAGE</span>`
+                : `<span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-[#F0F6EC] text-[#2D4424] border border-[#C6DCB4] shadow-2xs flex items-center gap-1"><i class="fa-solid fa-kaaba text-[#E06A26]"></i> UMRAH PACKAGE</span>`;
+
+            let staysHtml = '';
+            if (p.is_hajj_model && p.accommodations && p.accommodations.length > 0) {
+                staysHtml = p.accommodations.map(acc => `
+                    <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
+                        <span class="font-extrabold text-[#2D4424] flex items-center gap-1.5">
+                            <i class="fa-solid fa-hotel text-[#E06A26]"></i> ${escapeHTML(acc.city_display)}:
+                        </span>
+                        <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(acc.hotel_name)}">${escapeHTML(acc.hotel_name || 'N/A')}</span>
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#F7F3E9] font-black text-xs text-[#567946] shrink-0">${acc.nights} Nights</span>
+                    </div>
+                `).join('');
+            } else {
+                const makkahNights = p.makkah_nights ? ` (${p.makkah_nights} Nights)` : '';
+                const madinahNights = p.madinah_nights ? ` (${p.madinah_nights} Nights)` : '';
+                staysHtml = `
+                    <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
+                        <span class="font-extrabold text-[#2D4424] flex items-center gap-1">🕋 Makkah Hotel:</span>
+                        <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(p.makkah_hotel_name)}">${escapeHTML(p.makkah_hotel_name || 'N/A')}</span>
+                        <span class="px-2 py-0.5 rounded-md bg-[#F7F3E9] font-black text-[10px] text-[#567946] shrink-0">${escapeHTML(p.makkah_hotel_distance || 'Central')}${makkahNights}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
+                        <span class="font-extrabold text-[#2D4424] flex items-center gap-1">🕌 Madinah Hotel:</span>
+                        <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(p.madinah_hotel_name)}">${escapeHTML(p.madinah_hotel_name || 'N/A')}</span>
+                        <span class="px-2 py-0.5 rounded-md bg-[#F7F3E9] font-black text-[10px] text-[#567946] shrink-0">${escapeHTML(p.madinah_hotel_distance || 'Central')}${madinahNights}</span>
+                    </div>
+                `;
+            }
+
+            const roomOptions = [];
+            const sharingP = parseFloat(p.price_sharing || p.agent_price || p.adult_price || 0);
+            const quadP = parseFloat(p.price_quad || 0);
+            const tripleP = parseFloat(p.price_triple || 0);
+            const doubleP = parseFloat(p.price_double || 0);
+
+            if (sharingP > 0) roomOptions.push({ type: 'sharing', label: 'Sharing', price: sharingP });
+            if (quadP > 0) roomOptions.push({ type: 'quad', label: 'Quad', price: quadP });
+            if (tripleP > 0) roomOptions.push({ type: 'triple', label: 'Triple', price: tripleP });
+            if (doubleP > 0) roomOptions.push({ type: 'double', label: 'Double', price: doubleP });
+
+            if (roomOptions.length === 0) {
+                const fallbackPrice = parseFloat(p.agent_price || 0);
+                roomOptions.push({ type: 'sharing', label: 'Standard', price: fallbackPrice });
+            }
+
+            let defaultOption = roomOptions[0];
+            if (window._selectedPackageRooms && window._selectedPackageRooms[p.id]) {
+                const preSel = roomOptions.find(o => o.type === window._selectedPackageRooms[p.id].type);
+                if (preSel) defaultOption = preSel;
+            } else {
+                window._selectedPackageRooms[p.id] = { type: defaultOption.type, price: defaultOption.price };
+            }
+
+            const roomPillsHtml = roomOptions.map(opt => {
+                const isChecked = opt.type === defaultOption.type;
+                const activeClasses = isChecked ? 'bg-[#E06A26] text-white border-[#E06A26] shadow-sm' : 'bg-white text-[#2D4424] border-[#D9CBAC]';
+                return `
+                    <label class="room-type-pill flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold cursor-pointer hover:border-[#E06A26] transition-all ${activeClasses}">
+                        <input type="radio" name="room_type_${p.id}" value="${opt.type}" ${isChecked ? 'checked' : ''} onchange="selectPackageRoomType(${p.id}, '${opt.type}', ${opt.price}, this)" class="accent-[#E06A26]">
+                        <div>
+                            <span class="block text-[10px] uppercase font-extrabold opacity-80">${opt.label}</span>
+                            <span class="block text-xs font-black">PKR ${Number(opt.price).toLocaleString()}</span>
+                        </div>
+                    </label>
+                `;
+            }).join('');
+
+            const operatorHtml = p.hajj_operator_name ? `
+                <div class="text-xs text-[#567946] font-bold bg-[#FDF2EA] px-3 py-2 rounded-xl border border-[#FCE2D2] flex flex-wrap items-center justify-between gap-1">
+                    <span>👤 <strong>Hajj Operator:</strong> ${escapeHTML(p.hajj_operator_name)}</span>
+                    <div class="flex items-center gap-2 font-mono text-[#E06A26] text-[11px]">
+                        <span>Lic: ${escapeHTML(p.license_number || 'N/A')}</span>
+                        ${p.saudi_registration_number ? `<span>• Reg: ${escapeHTML(p.saudi_registration_number)}</span>` : ''}
+                    </div>
+                </div>
+            ` : '';
+
+            const logoBadge = p.company_logo_url ? `<img src="${p.company_logo_url}" class="h-6 w-auto object-contain bg-white p-0.5 rounded border border-[#E7DCB9] shadow-2xs inline-block ml-2">` : '';
+
+            const availSeats = (p.available_seats !== undefined && p.available_seats !== null) ? parseInt(p.available_seats, 10) : Math.max(0, (parseInt(p.total_seats, 10) || 30) - (parseInt(p.booked_seats, 10) || 0));
+            const totalSeats = parseInt(p.total_seats, 10) || 30;
+            const isSoldOut = availSeats <= 0;
+            const seatBgClass = availSeats > 5 ? 'bg-emerald-500/90 text-white' : (availSeats > 0 ? 'bg-amber-500/90 text-white' : 'bg-rose-600 text-white');
+            const seatDetailsBadgeClass = availSeats > 5 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : (availSeats > 0 ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-rose-100 text-rose-800 border-rose-300');
+
+            return `
+                <div class="group bg-white border border-[#E7DCB9] rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-[#E06A26] transition-all duration-300 grid grid-cols-1 lg:grid-cols-12 gap-0 relative">
+                    <div class="lg:col-span-4 relative overflow-hidden bg-slate-900 min-h-[220px]">
+                        ${imgHtml}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-4 flex flex-col justify-between pointer-events-none">
+                            <div class="flex justify-between items-center">
+                                ${typeBadge}
+                                <span class="px-3 py-1 rounded-full text-xs font-black bg-black/70 backdrop-blur-md text-white shadow-xs">
+                                    <i class="fa-regular fa-clock mr-1 text-[#E06A26]"></i>${p.duration_days} Days
+                                </span>
+                            </div>
+                            <div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold ${seatBgClass} backdrop-blur-md">
+                                    <i class="fa-solid fa-chair mr-1"></i>${isSoldOut ? 'Sold Out (0 Seats)' : `${availSeats} / ${totalSeats} Seats Available`}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-8 p-6 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-[#E7DCB9] pb-3">
+                                <div>
+                                    <h4 class="font-black text-[#2D4424] text-base leading-snug group-hover:text-[#E06A26] transition-colors flex items-center gap-1.5 flex-wrap">
+                                        <span>${escapeHTML(p.title)}</span>
+                                        ${logoBadge}
+                                    </h4>
+                                    ${p.description ? `<p class="text-xs text-gray-500 line-clamp-1 mt-0.5 font-medium">${escapeHTML(p.description)}</p>` : ''}
+                                    ${p.airline_name ? `
+                                        <div class="text-xs font-extrabold text-[#567946] flex items-center gap-2 mt-1">
+                                            <i class="fa-solid fa-plane-departure text-[#E06A26]"></i>
+                                            <span>${escapeHTML(p.airline_name)}</span>
+                                            ${p.flight_route ? `<span class="font-mono text-gray-500">(${escapeHTML(p.flight_route)})</span>` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                                    <span class="px-3 py-1.5 rounded-xl text-xs font-black uppercase border ${seatDetailsBadgeClass} shadow-2xs flex items-center gap-1">
+                                        <i class="fa-solid fa-chair text-[#E06A26]"></i> ${isSoldOut ? 'Sold Out' : `${availSeats} / ${totalSeats} Seats`}
+                                    </span>
+                                    ${p.departure_date ? `
+                                        <div class="text-right text-xs bg-[#F7F3E9] px-3 py-1.5 rounded-xl border border-[#D9CBAC] font-bold text-[#2D4424]">
+                                            <i class="fa-regular fa-calendar-days text-[#E06A26] mr-1"></i>
+                                            ${escapeHTML(p.departure_date)} ${p.return_date ? `➔ ${escapeHTML(p.return_date)}` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <div class="bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC] space-y-2">
+                                <div class="text-[10px] font-black uppercase tracking-wider text-[#567946] flex items-center justify-between border-b border-[#D9CBAC]/60 pb-1">
+                                    <span>Accommodation Plan</span>
+                                    ${p.includes_meal ? `<span class="text-[#E06A26] font-extrabold text-xs"><i class="fa-solid fa-utensils mr-1"></i>${escapeHTML(p.meal_detail || 'Full Board Meals')}</span>` : ''}
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    ${staysHtml}
+                                </div>
+                                ${operatorHtml}
+                            </div>
+                            <!-- Interactive Room Occupancy Selection Radio Pills -->
+                            <div>
+                                <span class="text-xs font-black uppercase text-[#567946] tracking-wider block mb-2 flex items-center justify-between">
+                                    <span>Select Room Occupancy Type (Click option to select price):</span>
+                                    <span class="text-[10px] text-[#E06A26] font-bold">Selected: <span id="card-room-type-label-${p.id}">${defaultOption.type.toUpperCase()}</span></span>
+                                </span>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    ${roomPillsHtml}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Action Bar -->
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-3 border-t border-[#E7DCB9]">
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-[#567946] block">Selected Wholesale Price</span>
+                                <div class="text-2xl font-black text-[#E06A26] flex items-baseline gap-1" id="card-price-display-${p.id}">
+                                    <span class="text-xs">PKR</span> ${Number(defaultOption.price).toLocaleString()}
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                                <button type="button" onclick="copyPackageFlyerImage(${p.id}, ${p.is_hajj_model ? 'true' : 'false'})" class="px-3.5 py-3 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-1.5" title="Copy Flyer Image to Clipboard">
+                                    <i class="fa-solid fa-copy text-[#E06A26]"></i> Copy Image
+                                </button>
+                                <button type="button" onclick="sharePackageFlyerImage(${p.id}, ${p.is_hajj_model ? 'true' : 'false'})" class="px-3.5 py-3 bg-[#567946] hover:bg-[#38522D] text-white text-xs font-bold rounded-2xl transition-all shadow-xs flex items-center justify-center gap-1.5" title="Share Flyer Image">
+                                    <i class="fa-solid fa-share-nodes"></i> Share
+                                </button>
+                                ${isSoldOut ? `
+                                    <button disabled class="w-full sm:w-auto px-6 py-3 bg-gray-400 text-white text-xs font-black rounded-2xl cursor-not-allowed opacity-75 flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-ban"></i> Sold Out
+                                    </button>
+                                ` : `
+                                    <button onclick="bookB2BPackage(${p.id})" class="w-full sm:w-auto px-6 py-3 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-2xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 group-hover:scale-[1.01]">
+                                        <i class="fa-solid fa-cart-shopping"></i> Book Wholesale Package
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function populateUmrahSectorDropdown(packages) {
+            const dropdown = document.getElementById('umrah-filter-sector');
+            if (!dropdown) return;
+            const currentVal = dropdown.value || 'all';
+
+            const sectorsMap = await fetchAllSectorsMap();
+            (packages || []).forEach(p => {
+                if (p.sector_id && p.sector_name) {
+                    sectorsMap.set(String(p.sector_id), p.sector_name);
+                }
+            });
+
+            let html = '<option value="all">📍 All Sectors</option>';
+            sectorsMap.forEach((name, id) => {
+                html += `<option value="${id}">${escapeHTML(name)}</option>`;
+            });
+            dropdown.innerHTML = html;
+            dropdown.value = sectorsMap.has(currentVal) ? currentVal : 'all';
+        }
+
+        function applyUmrahPackageFilters() {
+            const container = document.getElementById('b2b-umrah-container');
+            if (!container) return;
+
+            let packages = window._allUmrahPackages || [];
+            const sectorVal = (document.getElementById('umrah-filter-sector')?.value || 'all').trim();
+            const durationVal = (document.getElementById('umrah-filter-duration')?.value || 'all').trim();
+            const keyword = (document.getElementById('umrah-filter-keyword')?.value || '').toLowerCase().trim();
+
+            if (sectorVal !== 'all') {
+                packages = packages.filter(p => String(p.sector_id) === sectorVal);
+            }
+
+            if (durationVal !== 'all') {
+                const targetDays = parseInt(durationVal, 10);
+                if (!isNaN(targetDays)) {
+                    packages = packages.filter(p => p.duration_days === targetDays);
+                }
+            }
+
+            if (keyword) {
+                packages = packages.filter(p =>
+                    (p.title || '').toLowerCase().includes(keyword) ||
+                    (p.description || '').toLowerCase().includes(keyword) ||
+                    (p.makkah_hotel_name || '').toLowerCase().includes(keyword) ||
+                    (p.madinah_hotel_name || '').toLowerCase().includes(keyword) ||
+                    (p.airline_name || '').toLowerCase().includes(keyword) ||
+                    (p.flight_name || '').toLowerCase().includes(keyword)
+                );
+            }
+
+            if (packages.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">No Umrah packages matching your filter criteria.</div>`;
+                return;
+            }
+
+            container.innerHTML = packages.map(p => renderAdminPackageCardHtml(p)).join('');
+        }
+
+        function resetUmrahPackageFilters() {
+            const sec = document.getElementById('umrah-filter-sector');
+            if (sec) sec.value = 'all';
+            const dur = document.getElementById('umrah-filter-duration');
+            if (dur) dur.value = 'all';
+            const key = document.getElementById('umrah-filter-keyword');
+            if (key) key.value = '';
+            applyUmrahPackageFilters();
+        }
+
+        async function populateHajjSectorDropdown(packages) {
+            const dropdown = document.getElementById('hajj-filter-sector');
+            if (!dropdown) return;
+            const currentVal = dropdown.value || 'all';
+
+            const sectorsMap = await fetchAllSectorsMap();
+            (packages || []).forEach(p => {
+                if (p.sector_id && p.sector_name) {
+                    sectorsMap.set(String(p.sector_id), p.sector_name);
+                }
+            });
+
+            let html = '<option value="all">📍 All Sectors</option>';
+            sectorsMap.forEach((name, id) => {
+                html += `<option value="${id}">${escapeHTML(name)}</option>`;
+            });
+            dropdown.innerHTML = html;
+            dropdown.value = sectorsMap.has(currentVal) ? currentVal : 'all';
+        }
+
+        function applyHajjPackageFilters() {
+            const container = document.getElementById('b2b-hajj-container');
+            if (!container) return;
+
+            let packages = window._allHajjPackages || [];
+            const sectorVal = (document.getElementById('hajj-filter-sector')?.value || 'all').trim();
+            const durationVal = (document.getElementById('hajj-filter-duration')?.value || 'all').trim();
+            const keyword = (document.getElementById('hajj-filter-keyword')?.value || '').toLowerCase().trim();
+
+            if (sectorVal !== 'all') {
+                packages = packages.filter(p => String(p.sector_id) === sectorVal);
+            }
+
+            if (durationVal !== 'all') {
+                const targetDays = parseInt(durationVal, 10);
+                if (!isNaN(targetDays)) {
+                    packages = packages.filter(p => p.duration_days === targetDays);
+                }
+            }
+
+            if (keyword) {
+                packages = packages.filter(p =>
+                    (p.title || '').toLowerCase().includes(keyword) ||
+                    (p.description || '').toLowerCase().includes(keyword) ||
+                    (p.makkah_hotel_name || '').toLowerCase().includes(keyword) ||
+                    (p.madinah_hotel_name || '').toLowerCase().includes(keyword) ||
+                    (p.airline_name || '').toLowerCase().includes(keyword) ||
+                    (p.flight_name || '').toLowerCase().includes(keyword)
+                );
+            }
+
+            if (packages.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-8 text-center text-[#567946] text-xs font-semibold">No Hajj packages matching your filter criteria.</div>`;
+                return;
+            }
+
+            container.innerHTML = packages.map(p => renderAdminPackageCardHtml(p)).join('');
+        }
+
+        function resetHajjPackageFilters() {
+            const sec = document.getElementById('hajj-filter-sector');
+            if (sec) sec.value = 'all';
+            const dur = document.getElementById('hajj-filter-duration');
+            if (dur) dur.value = 'all';
+            const key = document.getElementById('hajj-filter-keyword');
+            if (key) key.value = '';
+            applyHajjPackageFilters();
+        }
+
         async function syncUmrahTabPackages() {
             try {
                 const grid = document.getElementById("umrah-tab-admin-packages-grid");
                 if (!grid) return;
 
-                const res = await fetch("/dashboard/agent/api/packages/");
-                const data = await res.json();
+                const data = (await safeFetchJson("/dashboard/agent/api/packages/")) || {};
                 const packages = data.packages || [];
 
                 if (packages.length === 0) {
@@ -5913,14 +6086,25 @@
                 }
 
                 grid.innerHTML = packages.map(p => {
-                    const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : '';
-                    const imgHtml = imgUrl
-                        ? `<img src="${imgUrl}" alt="${escapeHTML(p.title)}" class="w-full h-32 object-cover rounded-t-2xl">`
-                        : `<div class="w-full h-24 bg-[#2D4424] flex items-center justify-center text-white font-bold rounded-t-2xl"><i class="fa-solid fa-kaaba text-2xl text-[#90B576]"></i></div>`;
+                    const fallbackImg = p.package_type === 'hajj' ? '/static/images/hajj_card.png' : '/static/images/umrah_card.png';
+                    let imgUrl = p.cover_photo_url || p.cover_photo || '';
+                    if (!imgUrl && p.images && p.images.length > 0) {
+                        imgUrl = p.images[0];
+                    }
+                    if (!imgUrl) imgUrl = fallbackImg;
+
+                    const imgHtml = `<img src="${imgUrl}" alt="${escapeHTML(p.title)}" class="w-full h-32 object-cover rounded-t-2xl" onerror="this.onerror=null; this.src='${fallbackImg}';">`;
 
                     const typeBadge = p.package_type === 'hajj'
                         ? `<span class="px-2 py-0.5 rounded text-[9px] font-bold bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">HAJJ</span>`
                         : `<span class="px-2 py-0.5 rounded text-[9px] font-bold bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">UMRAH</span>`;
+
+                    const availSeats = p.available_seats !== undefined ? p.available_seats : (p.total_seats || 30);
+                    const totalSeats = p.total_seats || 30;
+                    const isSoldOut = availSeats <= 0;
+                    const seatBadgeClass = availSeats > 5 
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
+                        : (availSeats > 0 ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-rose-100 text-rose-800 border-rose-200');
 
                     return `
                         <div class="bg-white border border-[#E7DCB9] rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between hover:shadow-md hover:border-[#E06A26] transition-all">
@@ -5933,6 +6117,12 @@
                                     </div>
                                     <h4 class="font-extrabold text-[#2D4424] text-xs line-clamp-1">${escapeHTML(p.title)}</h4>
                                     
+                                    <div class="flex items-center justify-between">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${seatBadgeClass}">
+                                            <i class="fa-solid fa-chair mr-1"></i>${isSoldOut ? 'Sold Out (0 Seats)' : `${availSeats} / ${totalSeats} Seats Available`}
+                                        </span>
+                                    </div>
+
                                     <div class="bg-[#F7F3E9] p-2 rounded-xl border border-[#D9CBAC] text-[10px] text-[#1F2E1A] space-y-0.5">
                                         <div>🕋 <strong>Makkah:</strong> ${escapeHTML(p.makkah_hotel_name || 'N/A')}</div>
                                         <div>🕌 <strong>Madinah:</strong> ${escapeHTML(p.madinah_hotel_name || 'N/A')}</div>
@@ -5949,10 +6139,24 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-4 pt-0 mt-auto">
-                                <button onclick="bookB2BPackage(${p.id})" class="w-full py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
-                                    <i class="fa-solid fa-cart-shopping"></i> Book Package Now
-                                </button>
+                            <div class="p-4 pt-0 mt-auto space-y-2">
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button type="button" onclick="copyPackageFlyerImage(${p.id}, false)" class="py-1.5 px-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1" title="Copy Flyer Image to Clipboard">
+                                        <i class="fa-solid fa-copy text-[#E06A26]"></i> Copy Image
+                                    </button>
+                                    <button type="button" onclick="sharePackageFlyerImage(${p.id}, false)" class="py-1.5 px-2 bg-[#567946] hover:bg-[#38522D] text-white text-[11px] font-bold rounded-lg transition-all flex items-center justify-center gap-1" title="Share Flyer Image">
+                                        <i class="fa-solid fa-share-nodes"></i> Share
+                                    </button>
+                                </div>
+                                ${isSoldOut ? `
+                                    <button disabled class="w-full py-2 bg-gray-400 text-white text-xs font-bold rounded-xl cursor-not-allowed opacity-75 flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-ban"></i> Sold Out
+                                    </button>
+                                ` : `
+                                    <button onclick="bookB2BPackage(${p.id})" class="w-full py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-cart-shopping"></i> Book Package Now
+                                    </button>
+                                `}
                             </div>
                         </div>
                     `;
@@ -5962,6 +6166,260 @@
             } catch (err) {
                 console.error("Error loading Umrah tab admin packages:", err);
             }
+        }
+
+        // ══════════════ UNBRANDED FLYER GENERATOR & SHARE / COPY JS ══════════════
+        function getPackageObjById(packageId, isHajjModel) {
+            const idStr = String(packageId);
+            let p = (window.allPackagesMasterMap && window.allPackagesMasterMap[packageId]) ||
+                    (window._allHajjPackages || []).find(item => String(item.id) === idStr) ||
+                    (window._allUmrahPackages || []).find(item => String(item.id) === idStr) ||
+                    (window._currentPackagesData || []).find(item => String(item.id) === idStr);
+            return p;
+        }
+
+        function buildPackageFlyerHtml(p) {
+            const isHajj = p.package_type === 'hajj' || p.is_hajj_model;
+            const typeLabel = isHajj ? 'HAJJ PACKAGE' : 'UMRAH PACKAGE';
+
+            const roomOptions = [];
+            const sharingP = parseFloat(p.price_sharing || p.agent_price || p.adult_price || 0);
+            const quadP = parseFloat(p.price_quad || 0);
+            const tripleP = parseFloat(p.price_triple || 0);
+            const doubleP = parseFloat(p.price_double || 0);
+
+            if (quadP > 0) roomOptions.push({ label: 'Quad Room', price: quadP });
+            if (tripleP > 0) roomOptions.push({ label: 'Triple Room', price: tripleP });
+            if (doubleP > 0) roomOptions.push({ label: 'Double Room', price: doubleP });
+            if (sharingP > 0) roomOptions.push({ label: 'Sharing Room', price: sharingP });
+
+            if (roomOptions.length === 0 && parseFloat(p.agent_price || 0) > 0) {
+                roomOptions.push({ label: 'Package Price', price: parseFloat(p.agent_price) });
+            }
+
+            let staysHtml = '';
+            if (p.accommodations && p.accommodations.length > 0) {
+                staysHtml = p.accommodations.map(acc => `
+                    <div style="background: #F7F3E9; padding: 10px 14px; border-radius: 12px; border: 1px solid #D9CBAC; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 800; color: #2D4424; font-size: 13px;">🏨 ${escapeHTML(acc.city_display || acc.city)}:</span>
+                        <span style="font-weight: 700; color: #1F2E1A; font-size: 13px;">${escapeHTML(acc.hotel_name || 'N/A')}</span>
+                        <span style="font-weight: 800; color: #E06A26; font-size: 12px; background: #FFF; padding: 3px 8px; border-radius: 6px; border: 1px solid #E7DCB9;">${acc.nights} Nights</span>
+                    </div>
+                `).join('');
+            } else {
+                const makkahNights = p.makkah_nights ? ` (${p.makkah_nights} Nights)` : '';
+                const madinahNights = p.madinah_nights ? ` (${p.madinah_nights} Nights)` : '';
+                staysHtml = `
+                    <div style="background: #F7F3E9; padding: 10px 14px; border-radius: 12px; border: 1px solid #D9CBAC; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-weight: 800; color: #2D4424; font-size: 13px;">🕋 Makkah Hotel:</span>
+                        <span style="font-weight: 700; color: #1F2E1A; font-size: 13px;">${escapeHTML(p.makkah_hotel_name || 'N/A')}</span>
+                        <span style="font-weight: 800; color: #E06A26; font-size: 12px; background: #FFF; padding: 3px 8px; border-radius: 6px; border: 1px solid #E7DCB9;">${escapeHTML(p.makkah_hotel_distance || 'Central')}${makkahNights}</span>
+                    </div>
+                    <div style="background: #F7F3E9; padding: 10px 14px; border-radius: 12px; border: 1px solid #D9CBAC; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 800; color: #2D4424; font-size: 13px;">🕌 Madinah Hotel:</span>
+                        <span style="font-weight: 700; color: #1F2E1A; font-size: 13px;">${escapeHTML(p.madinah_hotel_name || 'N/A')}</span>
+                        <span style="font-weight: 800; color: #E06A26; font-size: 12px; background: #FFF; padding: 3px 8px; border-radius: 6px; border: 1px solid #E7DCB9;">${escapeHTML(p.madinah_hotel_distance || 'Central')}${madinahNights}</span>
+                    </div>
+                `;
+            }
+
+            const priceGridHtml = roomOptions.map(opt => `
+                <div style="background: #FFFFFF; border: 2px solid #E06A26; padding: 12px; border-radius: 14px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+                    <div style="font-size: 11px; font-weight: 800; color: #567946; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHTML(opt.label)}</div>
+                    <div style="font-size: 18px; font-weight: 900; color: #E06A26; margin-top: 4px;">PKR ${Number(opt.price).toLocaleString()}</div>
+                </div>
+            `).join('');
+
+            const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : (p.company_logo_url || p.airline_logo_url || '');
+
+            return `
+                <div style="width: 580px; background: #FFFFFF; border-radius: 24px; border: 1px solid #E7DCB9; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; box-shadow: 0 10px 25px rgba(0,0,0,0.1); color: #1F2E1A;">
+                    <div style="background: linear-gradient(135deg, #2D4424 0%, #38522D 100%); padding: 24px 28px; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="background: #E06A26; color: #FFFFFF; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 8px;">${typeLabel}</span>
+                            <h2 style="font-size: 20px; font-weight: 900; margin: 0; line-height: 1.3; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${escapeHTML(p.title)}</h2>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 16px; padding: 10px 16px; text-align: center; flex-shrink: 0;">
+                            <div style="font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.9;">Duration</div>
+                            <div style="font-size: 18px; font-weight: 900; color: #F7F3E9;">${p.duration_days} Days</div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 24px 28px;">
+                        ${imgUrl ? `<div style="width: 100%; height: 160px; border-radius: 16px; overflow: hidden; margin-bottom: 16px;"><img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: cover;"></div>` : ''}
+
+                        <div style="background: #F7F3E9; padding: 12px 16px; border-radius: 14px; border: 1px solid #D9CBAC; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 12px; font-weight: 800; color: #2D4424;">
+                                ✈️ <strong>Airline:</strong> ${escapeHTML(p.airline_name || p.flight_name || 'Saudi Airlines')}
+                                ${p.flight_route ? `<span style="font-family: monospace; color: #567946; margin-left: 6px;">(${escapeHTML(p.flight_route)})</span>` : ''}
+                            </div>
+                            ${p.departure_date ? `<div style="font-size: 11px; font-weight: 700; color: #E06A26;">🗓️ ${escapeHTML(p.departure_date)} ${p.return_date ? `➔ ${escapeHTML(p.return_date)}` : ''}</div>` : ''}
+                        </div>
+
+                        <div style="margin-bottom: 18px;">
+                            <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; color: #567946; letter-spacing: 0.8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                <span>Accommodations Plan</span>
+                                ${p.includes_meal ? `<span style="color: #E06A26; font-weight: 800;">🍽️ ${escapeHTML(p.meal_detail || 'Full Board Meals')}</span>` : ''}
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                ${staysHtml}
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; color: #567946; letter-spacing: 0.8px; margin-bottom: 10px;">Package Pricing Tiers (Per Person)</div>
+                            <div style="display: grid; grid-template-columns: repeat(${Math.min(roomOptions.length, 4)}, 1fr); gap: 10px;">
+                                ${priceGridHtml}
+                            </div>
+                        </div>
+
+                        <div style="border-top: 1px border #E7DCB9; padding-top: 14px; margin-top: 16px; font-size: 10px; font-weight: 700; color: #567946; text-align: center; line-height: 1.4;">
+                            * Rates & seat availability are subject to change. Contact your travel consultant for bookings.
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function generatePackageFlyerBlob(packageId, isHajjModel) {
+            let p = getPackageObjById(packageId, isHajjModel);
+            if (!p) {
+                try {
+                    const [res1, res2] = await Promise.all([
+                        fetch('/dashboard/agent/api/packages/'),
+                        fetch('/dashboard/agent/api/agent-hajj-packages/')
+                    ]);
+                    const data1 = await res1.json();
+                    const data2 = await res2.json();
+                    const allPkgs = [...(data1.packages || []), ...(data2.packages || [])];
+                    allPkgs.forEach(item => {
+                        window.allPackagesMasterMap[item.id] = item;
+                    });
+                    p = getPackageObjById(packageId, isHajjModel);
+                } catch (e) {
+                    console.error("Error fetching package detail for flyer:", e);
+                }
+            }
+
+            if (!p) return null;
+
+            let flyerContainer = document.getElementById('package-flyer-render-container');
+            if (!flyerContainer) {
+                flyerContainer = document.createElement('div');
+                flyerContainer.id = 'package-flyer-render-container';
+                flyerContainer.style.position = 'fixed';
+                flyerContainer.style.left = '-9999px';
+                flyerContainer.style.top = '-9999px';
+                flyerContainer.style.zIndex = '-9999';
+                flyerContainer.style.pointerEvents = 'none';
+                document.body.appendChild(flyerContainer);
+            }
+
+            flyerContainer.innerHTML = buildPackageFlyerHtml(p);
+
+            if (typeof html2canvas === 'undefined') {
+                alert("html2canvas library is not loaded. Please refresh the page.");
+                return null;
+            }
+
+            const targetEl = flyerContainer.firstElementChild;
+            const canvas = await html2canvas(targetEl, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: null,
+                logging: false
+            });
+
+            return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        }
+
+        async function copyPackageFlyerImage(packageId, isHajjModel) {
+            try {
+                showAdminToast("Generating package flyer image...", "info");
+                const blob = await generatePackageFlyerBlob(packageId, isHajjModel);
+                if (!blob) {
+                    alert("Could not generate flyer image.");
+                    return;
+                }
+
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    showAdminToast("📋 Package flyer image copied to clipboard!", "success");
+                } else {
+                    const p = getPackageObjById(packageId, isHajjModel);
+                    const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
+                    downloadBlobAsFile(blob, fileName);
+                    showAdminToast("Flyer image downloaded! (Clipboard not supported in this browser)", "info");
+                }
+            } catch (err) {
+                console.error("Error copying package flyer:", err);
+                const p = getPackageObjById(packageId, isHajjModel);
+                try {
+                    const blob = await generatePackageFlyerBlob(packageId, isHajjModel);
+                    if (blob) {
+                        const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
+                        downloadBlobAsFile(blob, fileName);
+                        showAdminToast("Flyer image downloaded!", "success");
+                        return;
+                    }
+                } catch (e) {}
+                alert("Unable to copy flyer image to clipboard.");
+            }
+        }
+
+        async function sharePackageFlyerImage(packageId, isHajjModel) {
+            try {
+                showAdminToast("Generating package flyer image...", "info");
+                const blob = await generatePackageFlyerBlob(packageId, isHajjModel);
+                if (!blob) {
+                    alert("Could not generate flyer image.");
+                    return;
+                }
+
+                const p = getPackageObjById(packageId, isHajjModel);
+                const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
+                const file = new File([blob], fileName, { type: 'image/png' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: p ? p.title : 'Package Flyer',
+                        text: p ? `Check out this ${p.title} (${p.duration_days} Days)!` : 'Package Flyer'
+                    });
+                    showAdminToast("Shared successfully!", "success");
+                } else {
+                    downloadBlobAsFile(blob, fileName);
+                    showAdminToast("Flyer image downloaded! (Web Share API not supported on this browser)", "info");
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error("Error sharing package flyer:", err);
+                    const p = getPackageObjById(packageId, isHajjModel);
+                    const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
+                    try {
+                        const blob = await generatePackageFlyerBlob(packageId, isHajjModel);
+                        if (blob) {
+                            downloadBlobAsFile(blob, fileName);
+                            showAdminToast("Flyer image downloaded!", "success");
+                            return;
+                        }
+                    } catch (e) {}
+                }
+            }
+        }
+
+        function downloadBlobAsFile(blob, fileName) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
         }
 
         async function syncAgentMyOrders() {
@@ -6585,6 +7043,9 @@
         document.addEventListener("DOMContentLoaded", () => {
             syncData();
             loadCharts();
+            if (!window._agentRealtimeSyncTimer) {
+                window._agentRealtimeSyncTimer = setInterval(syncData, 10000);
+            }
         });
     </script>
 

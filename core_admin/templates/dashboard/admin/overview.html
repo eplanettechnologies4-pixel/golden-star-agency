@@ -375,8 +375,12 @@
                     <span>B2C Overview</span>
                 </button>
                 <button onclick="switchTab('packages')" id="tab-btn-packages" class="tab-btn flex items-center space-x-2.5 px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-white hover:bg-white/15 shrink-0">
-                    <i class="fa-solid fa-box-archive w-4 text-white"></i>
-                    <span>Packages</span>
+                    <i class="fa-solid fa-moon w-4 text-emerald-400"></i>
+                    <span>Umrah Packages</span>
+                </button>
+                <button onclick="switchTab('b2c-hajj-packages')" id="tab-btn-b2c-hajj-packages" class="tab-btn flex items-center space-x-2.5 px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-white hover:bg-white/15 shrink-0">
+                    <i class="fa-solid fa-kaaba w-4 text-emerald-400"></i>
+                    <span>Hajj Packages</span>
                 </button>
                 <button onclick="switchTab('bookings')" id="tab-btn-bookings" class="tab-btn flex items-center space-x-2.5 px-3.5 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-white hover:bg-white/15 shrink-0">
                     <i class="fa-solid fa-receipt w-4 text-white"></i>
@@ -1066,10 +1070,11 @@
                                     <th class="p-3">Airline Name</th>
                                     <th class="p-3">IATA Code</th>
                                     <th class="p-3">Active Status</th>
+                                    <th class="p-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-admin-airlines" class="divide-y divide-[#E7DCB9]">
-                                <tr><td colspan="4" class="p-4 text-center text-[#567946]">Loading airlines list...</td></tr>
+                                <tr><td colspan="5" class="p-4 text-center text-[#567946]"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading airlines list...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1181,13 +1186,30 @@
                     </div>
                 </div>
 
-                <!-- Agent Packages List Table -->
-                <div class="bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm space-y-4">
+                <!-- Sub-Tab Navigation Bar -->
+                <div class="flex items-center gap-2 border-b border-[#E7DCB9] pb-3">
+                    <button type="button" id="btn-admin-pkg-subtab-umrah" onclick="switchAdminAgentPkgSubTab('umrah')" class="px-4 py-2 rounded-xl text-xs font-black transition-all bg-[#2D4424] text-white shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-kaaba text-[#E06A26]"></i> Umrah Packages
+                        <span id="badge-agent-packages-count-umrah" class="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white font-extrabold">0</span>
+                    </button>
+                    <button type="button" id="btn-admin-pkg-subtab-hajj" onclick="switchAdminAgentPkgSubTab('hajj')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#F7F3E9] text-[#567946] hover:bg-[#EBD8B3] border border-[#D9CBAC] flex items-center gap-2">
+                        <i class="fa-solid fa-mosque text-[#E06A26]"></i> Hajj Packages
+                        <span id="badge-agent-packages-count-hajj" class="px-2 py-0.5 rounded-full text-[10px] bg-[#E7DCB9] text-[#2D4424] font-extrabold">0</span>
+                    </button>
+                </div>
+
+                <!-- SUB-PANE 1: UMRAH PACKAGES -->
+                <div id="admin-agent-pkg-subpane-umrah" class="admin-agent-pkg-subpane bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm space-y-4">
                     <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
                         <h3 class="text-sm font-extrabold text-[#2D4424] flex items-center gap-2">
-                            <i class="fa-solid fa-kaaba text-[#E06A26]"></i> Configured Wholesale Agent Packages
+                            <i class="fa-solid fa-kaaba text-[#E06A26]"></i> Configured Wholesale Umrah Packages
                         </h3>
-                        <span id="badge-agent-packages-count" class="text-[10px] font-black uppercase bg-[#F0F6EC] text-[#567946] px-2.5 py-0.5 rounded-full border border-[#C6DCB4]">0 Packages</span>
+                        <div class="flex items-center gap-2">
+                            <span id="badge-agent-packages-count" class="text-[10px] font-black uppercase bg-[#F0F6EC] text-[#567946] px-2.5 py-0.5 rounded-full border border-[#C6DCB4]">0 Packages</span>
+                            <button type="button" onclick="openAdminAddAgentPackageModal('umrah')" class="px-3 py-1.5 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus text-[#E06A26]"></i> Add Umrah Package
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs border-collapse">
@@ -1201,10 +1223,46 @@
                                     <th class="p-3">Makkah / Madinah Hotels</th>
                                     <th class="p-3">Available Seats</th>
                                     <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="tbody-admin-agent-packages" class="divide-y divide-[#E7DCB9]">
-                                <tr><td colspan="8" class="p-4 text-center text-[#567946]">Loading agent packages...</td></tr>
+                            <tbody id="tbody-admin-agent-packages-umrah" class="divide-y divide-[#E7DCB9]">
+                                <tr><td colspan="9" class="p-4 text-center text-[#567946]">Loading Umrah packages...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SUB-PANE 2: HAJJ PACKAGES -->
+                <div id="admin-agent-pkg-subpane-hajj" class="admin-agent-pkg-subpane hidden bg-white border border-[#E7DCB9] rounded-3xl p-6 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
+                        <h3 class="text-sm font-extrabold text-[#2D4424] flex items-center gap-2">
+                            <i class="fa-solid fa-mosque text-[#E06A26]"></i> Configured Wholesale Hajj Packages
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span id="badge-agent-hajj-packages-count" class="text-[10px] font-black uppercase bg-[#FDF2EA] text-[#E06A26] px-2.5 py-0.5 rounded-full border border-[#FCE2D2]">0 Packages</span>
+                            <button type="button" onclick="openAgentHajjPackageModal()" class="px-3 py-1.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Add Hajj Package
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-[#2D4424] text-white text-[10px] uppercase font-extrabold">
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Package Title</th>
+                                    <th class="p-3">Duration</th>
+                                    <th class="p-3">Agent Price (PKR)</th>
+                                    <th class="p-3">Makkah / Madinah Hotels</th>
+                                    <th class="p-3">Available Seats</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-admin-agent-packages-hajj" class="divide-y divide-[#E7DCB9]">
+                                <tr><td colspan="9" class="p-4 text-center text-[#567946]">Loading Hajj packages...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1636,15 +1694,15 @@
                 <div class="bg-gradient-to-r from-white via-[#FDF2EA] to-[#F7F3E9] border-2 border-[#E06A26] p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="px-3 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#E06A26] text-white">B2C PACKAGES</span>
+                            <span class="px-3 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#E06A26] text-white">B2C UMRAH PACKAGES</span>
                             <span id="badge-pkg-count" class="text-[10px] font-black text-[#E06A26]">0 Packages</span>
                         </div>
-                        <h2 class="text-xl font-black text-[#2D4424]">Tour &amp; Umrah Packages Studio</h2>
-                        <p class="text-xs text-[#567946] font-semibold mt-1">Manage all public packages. Live-synced every 30 seconds.</p>
+                        <h2 class="text-xl font-black text-[#2D4424]">Public B2C Umrah Packages Studio</h2>
+                        <p class="text-xs text-[#567946] font-semibold mt-1">Manage official retail Umrah packages, itineraries, pricing tiers, and hotel stays.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="openAddB2CPackageModal()" class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md">
-                            <i class="fa-solid fa-plus"></i> + Create New Package
+                            <i class="fa-solid fa-plus"></i> + Create New Umrah Package
                         </button>
                         <button onclick="fetchAdminB2CPackages()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-extrabold rounded-xl flex items-center gap-2 transition-all">
                             <i id="icon-refresh-pkg" class="fa-solid fa-rotate-right text-[#E06A26]"></i> Refresh
@@ -1689,6 +1747,68 @@
                             </thead>
                             <tbody id="tbody-b2c-packages" class="divide-y divide-[#E7DCB9]">
                                 <tr><td colspan="7" class="p-6 text-center text-[#567946]"><i class="fa-solid fa-circle-notch animate-spin mr-2 text-[#E06A26]"></i>Loading packages...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== B2C: HAJJ PACKAGES TAB ==================== -->
+            <div id="tab-content-b2c-hajj-packages" class="tab-pane hidden space-y-6">
+                <!-- Header Card -->
+                <div class="bg-gradient-to-r from-white via-[#FDF2EA] to-[#F7F3E9] border-2 border-[#E06A26] p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-3 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#E06A26] text-white">B2C RETAIL HAJJ</span>
+                            <span id="badge-b2c-hajj-pkg-count" class="text-[10px] font-black text-[#E06A26]">0 Packages</span>
+                        </div>
+                        <h2 class="text-xl font-black text-[#2D4424]">Public B2C Hajj Packages Catalog</h2>
+                        <p class="text-xs text-[#567946] font-semibold">Manage official B2C retail Hajj packages, pricing tiers, compliance data, and accommodation stays.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="openB2cAdminHajjPackageModal()" class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md">
+                            <i class="fa-solid fa-plus"></i> + Create New Hajj Package
+                        </button>
+                        <button onclick="fetchB2cAdminHajjPackages()" class="px-4 py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-extrabold rounded-xl flex items-center gap-2 transition-all">
+                            <i id="icon-refresh-b2c-hajj-pkg" class="fa-solid fa-rotate-right text-[#E06A26]"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats row -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-[#E06A26] p-4 rounded-2xl shadow-sm">
+                        <span class="text-[10px] font-extrabold text-[#567946] uppercase">Total Hajj Packages</span>
+                        <div id="stat-b2c-hajj-pkg-total" class="text-2xl font-black text-[#2D4424] mt-1">0</div>
+                    </div>
+                    <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-emerald-500 p-4 rounded-2xl shadow-sm">
+                        <span class="text-[10px] font-extrabold text-[#567946] uppercase">Active Packages</span>
+                        <div id="stat-b2c-hajj-pkg-active" class="text-2xl font-black text-emerald-700 mt-1">0</div>
+                    </div>
+                    <div class="bg-white border border-[#E7DCB9] border-t-4 border-t-blue-500 p-4 rounded-2xl shadow-sm">
+                        <span class="text-[10px] font-extrabold text-[#567946] uppercase">Seats (Avail / Total)</span>
+                        <div id="stat-b2c-hajj-seats-avail" class="text-2xl font-black text-blue-700 mt-1">0 / 0</div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="bg-white border border-[#E7DCB9] rounded-3xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-[#F7F3E9] text-[#2D4424] text-[10px] uppercase font-extrabold border-b border-[#E7DCB9]">
+                                    <th class="p-3">ID</th>
+                                    <th class="p-3">Logo</th>
+                                    <th class="p-3">Title &amp; Duration</th>
+                                    <th class="p-3">Pricing (Quad / Triple / Double / Sharing)</th>
+                                    <th class="p-3">Hajj Operator &amp; License</th>
+                                    <th class="p-3">Seats</th>
+                                    <th class="p-3 text-center">Active</th>
+                                    <th class="p-3 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-b2c-hajj-packages" class="divide-y divide-[#E7DCB9]">
+                                <tr><td colspan="8" class="p-6 text-center text-[#567946]"><i class="fa-solid fa-circle-notch animate-spin mr-2 text-[#E06A26]"></i>Loading B2C Hajj packages...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -2279,6 +2399,21 @@
                 .replace(/'/g, '&#039;');
         }
 
+        async function safeFetchJson(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) return null;
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return null;
+                }
+            } catch (err) {
+                return null;
+            }
+        }
+
         function selectDedicatedPortal(mode) {
             currentActiveAdminPortal = mode;
             localStorage.setItem('goldenstar_admin_portal_mode', mode);
@@ -2390,6 +2525,8 @@
                 fetchAdminB2COverview();
             } else if (tabId === 'packages') {
                 fetchAdminB2CPackages();
+            } else if (tabId === 'b2c-hajj-packages') {
+                fetchB2cAdminHajjPackages();
             } else if (tabId === 'bookings') {
                 fetchAdminB2CBookings();
             } else if (tabId === 'visas') {
@@ -3076,20 +3213,31 @@
                 if (tbodyA && dataA.airlines) {
                     document.getElementById("badge-airlines-count").textContent = `${dataA.airlines.length} Airlines`;
                     if (dataA.airlines.length === 0) {
-                        tbodyA.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-[#567946]">No airlines configured yet. Click 'Add New Airline' above.</td></tr>`;
+                        tbodyA.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#567946]">No airlines configured yet. Click 'Add New Airline' above.</td></tr>`;
                     } else {
                         tbodyA.innerHTML = dataA.airlines.map(a => `
-                            <tr class="hover:bg-[#F6FAF3]">
+                            <tr class="hover:bg-[#F6FAF3] transition-all">
                                 <td class="p-3 font-mono font-bold text-[#2D4424]">#${a.id}</td>
-                                <td class="p-3 font-bold text-[#2D4424] flex items-center gap-2">
-                                    ${a.logo_url ? `<img src="${a.logo_url}" class="h-5 w-5 object-contain rounded">` : ''}
-                                    ${a.name}
+                                <td class="p-3 font-bold text-[#2D4424]">
+                                    <div class="flex items-center gap-2">
+                                        ${a.logo_url ? `<img src="${a.logo_url}" class="h-6 w-6 object-contain rounded shadow-sm border border-[#E7DCB9]">` : '<span class="h-6 w-6 rounded bg-[#F0F6EC] border border-[#C6DCB4] flex items-center justify-center text-[10px] text-[#567946] font-black">' + (a.iata_code || a.name.charAt(0)) + '</span>'}
+                                        ${escapeHTML(a.name)}
+                                    </div>
                                 </td>
-                                <td class="p-3 font-mono font-bold text-[#E06A26]">${a.iata_code || 'N/A'}</td>
+                                <td class="p-3 font-mono font-bold text-[#E06A26]">${a.iata_code || '<span class="text-[#9aac94] italic font-normal">N/A</span>'}</td>
                                 <td class="p-3">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${a.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${a.is_active ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-rose-100 text-rose-800 border border-rose-200'}">
+                                        <i class="fa-solid ${a.is_active ? 'fa-circle-check' : 'fa-circle-xmark'} mr-1"></i>
                                         ${a.is_active ? 'Active' : 'Inactive'}
                                     </span>
+                                </td>
+                                <td class="p-3 text-right space-x-1">
+                                    <button type="button" onclick="openAdminEditAirlineModal(${a.id}, ${JSON.stringify(a.name)}, ${JSON.stringify(a.iata_code || '')}, ${a.is_active}, ${JSON.stringify(a.logo_url || '')})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all" title="Edit Airline">
+                                        <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
+                                    </button>
+                                    <button type="button" onclick="adminDeleteAirline(${a.id}, ${JSON.stringify(a.name)})" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all" title="Delete Airline">
+                                        <i class="fa-solid fa-trash mr-1"></i>Delete
+                                    </button>
                                 </td>
                             </tr>
                         `).join('');
@@ -3397,54 +3545,450 @@
             }
         }
 
+        let _activeAdminPkgSubTab = 'umrah';
+
+        function switchAdminAgentPkgSubTab(subTab) {
+            _activeAdminPkgSubTab = subTab;
+            const btnUmrah = document.getElementById('btn-admin-pkg-subtab-umrah');
+            const btnHajj = document.getElementById('btn-admin-pkg-subtab-hajj');
+            const paneUmrah = document.getElementById('admin-agent-pkg-subpane-umrah');
+            const paneHajj = document.getElementById('admin-agent-pkg-subpane-hajj');
+
+            if (subTab === 'hajj') {
+                if (btnUmrah) btnUmrah.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#F7F3E9] text-[#567946] hover:bg-[#EBD8B3] border border-[#D9CBAC] flex items-center gap-2";
+                if (btnHajj) btnHajj.className = "px-4 py-2 rounded-xl text-xs font-black transition-all bg-[#2D4424] text-white shadow-sm flex items-center gap-2";
+                if (paneUmrah) paneUmrah.classList.add('hidden');
+                if (paneHajj) paneHajj.classList.remove('hidden');
+                fetchAdminAgentHajjPackages();
+            } else {
+                if (btnUmrah) btnUmrah.className = "px-4 py-2 rounded-xl text-xs font-black transition-all bg-[#2D4424] text-white shadow-sm flex items-center gap-2";
+                if (btnHajj) btnHajj.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all bg-[#F7F3E9] text-[#567946] hover:bg-[#EBD8B3] border border-[#D9CBAC] flex items-center gap-2";
+                if (paneUmrah) paneUmrah.classList.remove('hidden');
+                if (paneHajj) paneHajj.classList.add('hidden');
+                fetchAdminAgentPackages();
+            }
+        }
+
+        window._allAdminAgentHajjPackages = [];
+
+        async function ensureAdminHotelsMasterLoaded() {
+            if (window.windowAllAdminHotelsMaster && window.windowAllAdminHotelsMaster.length > 0) {
+                return window.windowAllAdminHotelsMaster;
+            }
+            try {
+                const res = await fetch('/dashboard/admin/api/hotels/');
+                const data = await res.json();
+                window.windowAllAdminHotelsMaster = data.hotels || [];
+                return window.windowAllAdminHotelsMaster;
+            } catch (err) {
+                console.error("Error fetching master hotels:", err);
+                return [];
+            }
+        }
+
+        async function fetchAdminAgentHajjPackages() {
+            try {
+                const res = await fetch('/dashboard/admin/api/agent-hajj-packages/');
+                const data = await res.json();
+                const packages = data.packages || [];
+                window._allAdminAgentHajjPackages = packages;
+
+                const elBadgeBtn = document.getElementById('badge-agent-packages-count-hajj');
+                const elBadgePane = document.getElementById('badge-agent-hajj-packages-count');
+                if (elBadgeBtn) elBadgeBtn.textContent = packages.length;
+                if (elBadgePane) elBadgePane.textContent = `${packages.length} Packages`;
+
+                const tbody = document.getElementById('tbody-admin-agent-packages-hajj');
+                if (tbody) {
+                    if (packages.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-[#567946]">No B2B Hajj packages configured yet. Click 'Add Hajj Package' to create one.</td></tr>`;
+                    } else {
+                        tbody.innerHTML = packages.map(pkg => renderAgentHajjPackageTableRow(pkg)).join('');
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching admin agent hajj packages:", err);
+            }
+        }
+
+        function renderAgentHajjPackageTableRow(pkg) {
+            const accSummary = (pkg.accommodations || []).map(acc => 
+                `🏨 ${escapeHTML(acc.city_display)}: ${escapeHTML(acc.hotel_name || 'N/A')} (${acc.nights}n)`
+            ).join('<br>') || 'No hotel stays specified';
+
+            const operatorBadge = pkg.hajj_operator_name 
+                ? `<div class="text-[10px] text-[#567946] mt-0.5">👤 <strong>Op:</strong> ${escapeHTML(pkg.hajj_operator_name)} (Lic: ${escapeHTML(pkg.license_number || 'N/A')})</div>`
+                : '';
+
+            const flightBadge = pkg.airline_name 
+                ? `<div class="text-[10px] text-[#2D4424]">✈️ ${escapeHTML(pkg.airline_name)} (${escapeHTML(pkg.flight_route || '')})</div>`
+                : '';
+
+            return `
+                <tr class="hover:bg-[#F6FAF3]">
+                    <td class="p-3 font-mono font-bold text-[#2D4424]">#${pkg.id}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-[#E06A26] text-white">
+                            HAJJ
+                        </span>
+                    </td>
+                    <td class="p-3 font-bold text-[#2D4424]">
+                        ${escapeHTML(pkg.title)}
+                        ${operatorBadge}
+                        ${flightBadge}
+                    </td>
+                    <td class="p-3 font-bold text-[#567946]">
+                        ${pkg.duration_days} Days
+                        ${pkg.departure_date ? `<div class="text-[9px] text-[#567946]">Dep: ${pkg.departure_date}</div>` : ''}
+                    </td>
+                    <td class="p-3 font-mono font-black text-[#E06A26]">
+                        <div>From PKR ${Number(pkg.starting_price).toLocaleString()}</div>
+                        <div class="text-[9px] text-[#567946] font-normal">Quad: PKR ${Number(pkg.price_quad).toLocaleString()}</div>
+                    </td>
+                    <td class="p-3 text-[11px] text-[#1F2E1A]">
+                        ${accSummary}
+                    </td>
+                    <td class="p-3 font-mono font-bold text-[#2D4424]">
+                        ${pkg.available_seats} / ${pkg.total_seats}
+                    </td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${pkg.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                            ${pkg.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-right space-x-1">
+                        <button type="button" onclick="openAgentHajjPackageModal(${pkg.id})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all">
+                            Edit
+                        </button>
+                        <button type="button" onclick="deleteAdminAgentHajjPackage(${pkg.id})" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        async function openAgentHajjPackageModal(pkgOrId) {
+            await ensureAdminHotelsMasterLoaded();
+
+            const modal = document.getElementById('modal-agent-hajj-package-form');
+            const form = document.getElementById('form-admin-agent-hajj-package');
+            const titleEl = document.getElementById('modal-agent-hajj-package-title');
+            const containerAcc = document.getElementById('container-agent-hajj-accommodations');
+
+            if (!modal || !form) return;
+
+            containerAcc.innerHTML = '';
+
+            let pkg = null;
+            if (typeof pkgOrId === 'number' || (typeof pkgOrId === 'string' && pkgOrId !== '')) {
+                pkg = (window._allAdminAgentHajjPackages || []).find(p => String(p.id) === String(pkgOrId));
+            } else if (typeof pkgOrId === 'object' && pkgOrId !== null) {
+                pkg = pkgOrId;
+            }
+
+            if (pkg) {
+                titleEl.innerHTML = '<i class="fa-solid fa-mosque text-[#E06A26]"></i> Edit Agent Hajj Package';
+                document.getElementById('input-agent-hajj-pkg-id').value = pkg.id;
+                document.getElementById('input-agent-hajj-pkg-title').value = pkg.title || '';
+                document.getElementById('input-agent-hajj-pkg-duration').value = pkg.duration_days || 25;
+                document.getElementById('input-agent-hajj-pkg-seats').value = pkg.total_seats || 30;
+                document.getElementById('input-agent-hajj-pkg-desc').value = pkg.description || '';
+
+                if (document.getElementById('input-agent-hajj-pkg-airline')) document.getElementById('input-agent-hajj-pkg-airline').value = pkg.airline_name || 'Saudi Airlines';
+                if (document.getElementById('input-agent-hajj-pkg-route')) document.getElementById('input-agent-hajj-pkg-route').value = pkg.flight_route || 'KHI - JED - MED - KHI';
+                if (document.getElementById('input-agent-hajj-pkg-dep-date')) document.getElementById('input-agent-hajj-pkg-dep-date').value = pkg.departure_date || '';
+                if (document.getElementById('input-agent-hajj-pkg-ret-date')) document.getElementById('input-agent-hajj-pkg-ret-date').value = pkg.return_date || '';
+
+                if (document.getElementById('input-agent-hajj-pkg-includes-meal')) document.getElementById('input-agent-hajj-pkg-includes-meal').value = pkg.includes_meal !== undefined ? String(pkg.includes_meal) : 'true';
+                if (document.getElementById('input-agent-hajj-pkg-meal-detail')) document.getElementById('input-agent-hajj-pkg-meal-detail').value = pkg.meal_detail || 'Full Board Buffet';
+
+                if (document.getElementById('input-agent-hajj-pkg-makkah-name')) document.getElementById('input-agent-hajj-pkg-makkah-name').value = pkg.makkah_hotel_name || '';
+                if (document.getElementById('input-agent-hajj-pkg-makkah-dist')) document.getElementById('input-agent-hajj-pkg-makkah-dist').value = pkg.makkah_hotel_distance || '';
+                if (document.getElementById('input-agent-hajj-pkg-madinah-name')) document.getElementById('input-agent-hajj-pkg-madinah-name').value = pkg.madinah_hotel_name || '';
+                if (document.getElementById('input-agent-hajj-pkg-madinah-dist')) document.getElementById('input-agent-hajj-pkg-madinah-dist').value = pkg.madinah_hotel_distance || '';
+
+                document.getElementById('input-agent-hajj-pkg-price-quad').value = pkg.price_quad || '';
+                document.getElementById('input-agent-hajj-pkg-price-triple').value = pkg.price_triple || '';
+                document.getElementById('input-agent-hajj-pkg-price-double').value = pkg.price_double || '';
+                document.getElementById('input-agent-hajj-pkg-price-sharing').value = pkg.price_sharing || '';
+
+                document.getElementById('input-agent-hajj-pkg-operator').value = pkg.hajj_operator_name || '';
+                document.getElementById('input-agent-hajj-pkg-license').value = pkg.license_number || '';
+                document.getElementById('input-agent-hajj-pkg-saudi-reg').value = pkg.saudi_registration_number || '';
+                document.getElementById('input-agent-hajj-pkg-active').checked = pkg.is_active !== false;
+
+                if (pkg.accommodations && pkg.accommodations.length > 0) {
+                    pkg.accommodations.forEach(acc => {
+                        addAgentHajjAccommodationRow({
+                            city: acc.city,
+                            hotel_id: acc.hotel_id,
+                            manual_hotel_name: acc.manual_hotel_name || '',
+                            manual_hotel_distance: acc.manual_hotel_distance || '',
+                            nights: acc.nights
+                        });
+                    });
+                } else {
+                    addAgentHajjAccommodationRow({ city: 'makkah', nights: 14 });
+                    addAgentHajjAccommodationRow({ city: 'madinah', nights: 10 });
+                }
+            } else {
+                titleEl.innerHTML = '<i class="fa-solid fa-mosque text-[#E06A26]"></i> Add Agent Hajj Package';
+                form.reset();
+                document.getElementById('input-agent-hajj-pkg-id').value = '';
+                document.getElementById('input-agent-hajj-pkg-active').checked = true;
+
+                addAgentHajjAccommodationRow({ city: 'makkah', nights: 14 });
+                addAgentHajjAccommodationRow({ city: 'madinah', nights: 10 });
+            }
+
+            modal.style.display = 'flex';
+            modal.classList.remove('hidden');
+        }
+
+        function closeAgentHajjPackageModal() {
+            const modal = document.getElementById('modal-agent-hajj-package-form');
+            if (modal) {
+                modal.style.display = 'none';
+                modal.classList.add('hidden');
+            }
+        }
+
+        function addAgentHajjAccommodationRow(stayData = {}) {
+            const container = document.getElementById('container-agent-hajj-accommodations');
+            if (!container) return;
+
+            const selectedCity = stayData.city || 'makkah';
+            const selectedHotelId = stayData.hotel_id ? String(stayData.hotel_id) : '';
+            const manualHotelName = stayData.manual_hotel_name || '';
+            const manualHotelDistance = stayData.manual_hotel_distance || '';
+            const nights = stayData.nights || 10;
+
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'agent-hajj-acc-row flex flex-wrap items-center gap-2 bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-sm';
+
+            rowDiv.innerHTML = `
+                <div class="w-full sm:w-28">
+                    <label class="block text-[9px] font-bold text-[#567946] uppercase">City</label>
+                    <select onchange="onAgentHajjAccommodationCityChange(this)" class="acc-city-select w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-bold text-[#2D4424]">
+                        <option value="makkah" ${selectedCity === 'makkah' ? 'selected' : ''}>Makkah</option>
+                        <option value="madinah" ${selectedCity === 'madinah' ? 'selected' : ''}>Madinah</option>
+                    </select>
+                </div>
+                <div class="w-full sm:flex-1">
+                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Hotel (Master Catalog)</label>
+                    <select class="acc-hotel-select w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-semibold text-[#1F2E1A]">
+                        <option value="">-- Select Catalog Hotel --</option>
+                    </select>
+                </div>
+                <div class="w-full sm:flex-1">
+                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Or Manual Hotel Name</label>
+                    <input type="text" value="${escapeHTML(manualHotelName)}" placeholder="e.g. Azizia Building / Custom" class="acc-manual-hotel-name w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                </div>
+                <div class="w-full sm:w-28">
+                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Manual Distance</label>
+                    <input type="text" value="${escapeHTML(manualHotelDistance)}" placeholder="e.g. 500m / Shifting" class="acc-manual-hotel-dist w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                </div>
+                <div class="w-full sm:w-20">
+                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Nights</label>
+                    <input type="number" min="1" value="${nights}" class="acc-nights-input w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                </div>
+                <div class="self-end pt-1 sm:pt-0">
+                    <button type="button" onclick="removeAgentHajjAccommodationRow(this)" class="p-2 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs font-bold transition-all" title="Remove Stay">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(rowDiv);
+            const citySelect = rowDiv.querySelector('.acc-city-select');
+            populateHajjRowHotelDropdown(rowDiv, citySelect.value, selectedHotelId);
+        }
+
+        function populateHajjRowHotelDropdown(rowDiv, city, selectedHotelId = '') {
+            const hotelSelect = rowDiv.querySelector('.acc-hotel-select');
+            if (!hotelSelect) return;
+
+            const hotels = window.windowAllAdminHotelsMaster || [];
+            const filteredHotels = hotels.filter(h => h.city === city);
+
+            let html = '<option value="">-- Select Catalog Hotel --</option>';
+            filteredHotels.forEach(h => {
+                const isSel = String(h.id) === String(selectedHotelId) ? 'selected' : '';
+                const distText = h.distance_from_haram ? ` (${h.distance_from_haram})` : '';
+                html += `<option value="${h.id}" ${isSel}>${escapeHTML(h.name)}${distText}</option>`;
+            });
+
+            hotelSelect.innerHTML = html;
+        }
+
+        function onAgentHajjAccommodationCityChange(selectElem) {
+            const rowDiv = selectElem.closest('.agent-hajj-acc-row');
+            if (rowDiv) {
+                populateHajjRowHotelDropdown(rowDiv, selectElem.value);
+            }
+        }
+
+        function removeAgentHajjAccommodationRow(btnElem) {
+            const rowDiv = btnElem.closest('.agent-hajj-acc-row');
+            if (rowDiv) {
+                rowDiv.remove();
+            }
+        }
+
+        async function submitAgentHajjPackageForm(event) {
+            event.preventDefault();
+            const form = event.target;
+            const pkgId = document.getElementById('input-agent-hajj-pkg-id').value;
+
+            const stayRows = form.querySelectorAll('.agent-hajj-acc-row');
+            const accommodations = [];
+            stayRows.forEach(row => {
+                const city = row.querySelector('.acc-city-select')?.value || 'makkah';
+                const hotel_id = row.querySelector('.acc-hotel-select')?.value;
+                const manual_hotel_name = row.querySelector('.acc-manual-hotel-name')?.value || '';
+                const manual_hotel_distance = row.querySelector('.acc-manual-hotel-dist')?.value || '';
+                const nights = parseInt(row.querySelector('.acc-nights-input')?.value || '1', 10);
+                if (hotel_id || manual_hotel_name) {
+                    accommodations.push({ city, hotel_id, manual_hotel_name, manual_hotel_distance, nights });
+                }
+            });
+
+            const formData = new FormData(form);
+            formData.set('accommodations', JSON.stringify(accommodations));
+
+            const btnSubmit = document.getElementById('btn-submit-agent-hajj-package');
+            if (btnSubmit) {
+                btnSubmit.disabled = true;
+                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            }
+
+            try {
+                const url = pkgId 
+                    ? `/dashboard/admin/api/agent-hajj-packages/${pkgId}/` 
+                    : '/dashboard/admin/api/agent-hajj-packages/';
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    closeAgentHajjPackageModal();
+                    await fetchAdminAgentHajjPackages();
+                    alert(data.message || 'Agent Hajj package saved successfully!');
+                } else {
+                    alert(data.message || 'Error saving Agent Hajj package.');
+                }
+            } catch (err) {
+                console.error("Error submitting agent hajj package form:", err);
+                alert("Server error saving Agent Hajj package.");
+            } finally {
+                if (btnSubmit) {
+                    btnSubmit.disabled = false;
+                    btnSubmit.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Hajj Package';
+                }
+            }
+        }
+
+        async function deleteAdminAgentHajjPackage(id) {
+            if (!confirm("Are you sure you want to delete this Agent Hajj Package?")) return;
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken') || '';
+                const res = await fetch(`/dashboard/admin/api/agent-hajj-packages/${id}/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    await fetchAdminAgentHajjPackages();
+                } else {
+                    alert(data.message || 'Failed to delete Hajj package.');
+                }
+            } catch (err) {
+                console.error("Error deleting hajj package:", err);
+                alert("Server error deleting Hajj package.");
+            }
+        }
+
+        function renderAdminAgentPackageTableRow(pkg) {
+            return `
+                <tr class="hover:bg-[#F6FAF3]">
+                    <td class="p-3 font-mono font-bold text-[#2D4424]">#${pkg.id}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase ${pkg.package_type === 'hajj' ? 'bg-[#E06A26] text-white' : 'bg-[#2D4424] text-white'}">
+                            ${pkg.package_type_display || pkg.package_type}
+                        </span>
+                    </td>
+                    <td class="p-3 font-bold text-[#2D4424]">${escapeHTML(pkg.title)}</td>
+                    <td class="p-3 font-bold text-[#567946]">${pkg.duration_days} Days</td>
+                    <td class="p-3 font-mono font-black text-[#E06A26]">PKR ${Number(pkg.agent_price).toLocaleString()}</td>
+                    <td class="p-3 text-[11px] text-[#1F2E1A]">
+                        🏨 Makkah: ${escapeHTML(pkg.makkah_hotel_name || 'N/A')}<br>
+                        🏨 Madinah: ${escapeHTML(pkg.madinah_hotel_name || 'N/A')}
+                    </td>
+                    <td class="p-3 font-mono font-bold text-[#2D4424]">
+                        <div class="flex items-center gap-1.5">
+                            <span>${pkg.available_seats} / ${pkg.total_seats}</span>
+                            <button type="button" onclick="openSeatAdjustmentModal('package', ${pkg.id}, ${pkg.total_seats}, ${pkg.booked_seats})" class="px-1.5 py-0.5 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-[10px] font-bold rounded" title="Edit Package Seats">
+                                ✏️ Seats
+                            </button>
+                        </div>
+                    </td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${pkg.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                            ${pkg.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-right space-x-1">
+                        <button type="button" onclick="openAdminAddAgentPackageModal(${JSON.stringify(pkg).replace(/"/g, '&quot;')})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all">
+                            Edit
+                        </button>
+                        <button type="button" onclick="adminDeleteAgentPackage(${pkg.id})" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
         async function fetchAdminAgentPackages() {
             try {
                 const res = await fetch("/dashboard/admin/api/agent-packages/");
                 const data = await res.json();
-                const tbody = document.getElementById("tbody-admin-agent-packages");
-                if (tbody && data.packages) {
-                    document.getElementById("badge-agent-packages-count").textContent = `${data.packages.length} Packages`;
-                    if (data.packages.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-[#567946]">No agent packages created yet. Click 'Add Agent Package' above.</td></tr>`;
+                const packages = data.packages || [];
+                const umrahPkgs = packages.filter(p => (p.package_type || 'umrah').toLowerCase() === 'umrah');
+                const hajjPkgs = packages.filter(p => (p.package_type || '').toLowerCase() === 'hajj');
+
+                // Update count badges
+                const elBadgeUmrah = document.getElementById("badge-agent-packages-count-umrah");
+                const elBadgeMain = document.getElementById("badge-agent-packages-count");
+                const elBadgeHajjBtn = document.getElementById("badge-agent-packages-count-hajj");
+                const elBadgeHajjPane = document.getElementById("badge-agent-hajj-packages-count");
+
+                if (elBadgeUmrah) elBadgeUmrah.textContent = umrahPkgs.length;
+                if (elBadgeMain) elBadgeMain.textContent = `${umrahPkgs.length} Packages`;
+                if (elBadgeHajjBtn) elBadgeHajjBtn.textContent = hajjPkgs.length;
+                if (elBadgeHajjPane) elBadgeHajjPane.textContent = `${hajjPkgs.length} Packages`;
+
+                // Render Umrah Table
+                const tbodyUmrah = document.getElementById("tbody-admin-agent-packages-umrah") || document.getElementById("tbody-admin-agent-packages");
+                if (tbodyUmrah) {
+                    if (umrahPkgs.length === 0) {
+                        tbodyUmrah.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-[#567946]">No Umrah wholesale packages created yet. Click 'Add Agent Package' above.</td></tr>`;
                     } else {
-                        tbody.innerHTML = data.packages.map(pkg => `
-                            <tr class="hover:bg-[#F6FAF3]">
-                                <td class="p-3 font-mono font-bold text-[#2D4424]">#${pkg.id}</td>
-                                <td class="p-3">
-                                    <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-[#2D4424] text-white">
-                                        ${pkg.package_type_display}
-                                    </span>
-                                </td>
-                                <td class="p-3 font-bold text-[#2D4424]">${pkg.title}</td>
-                                <td class="p-3 font-bold text-[#567946]">${pkg.duration_days} Days</td>
-                                <td class="p-3 font-mono font-black text-[#E06A26]">PKR ${Number(pkg.agent_price).toLocaleString()}</td>
-                                <td class="p-3 text-[11px] text-[#1F2E1A]">
-                                    🏨 Makkah: ${pkg.makkah_hotel_name || 'N/A'}<br>
-                                    🏨 Madinah: ${pkg.madinah_hotel_name || 'N/A'}
-                                </td>
-                                <td class="p-3 font-mono font-bold text-[#2D4424]">
-                                    <div class="flex items-center gap-1.5">
-                                        <span>${pkg.available_seats} / ${pkg.total_seats}</span>
-                                        <button type="button" onclick="openSeatAdjustmentModal('package', ${pkg.id}, ${pkg.total_seats}, ${pkg.booked_seats})" class="px-1.5 py-0.5 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-[10px] font-bold rounded" title="Edit Package Seats">
-                                            ✏️ Seats
-                                        </button>
-                                    </div>
-                                </td>
-                                <td class="p-3">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${pkg.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
-                                        ${pkg.is_active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td class="p-3 text-right space-x-1">
-                                    <button type="button" onclick="openAdminAddAgentPackageModal(${JSON.stringify(pkg).replace(/"/g, '&quot;')})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all">
-                                        Edit
-                                    </button>
-                                    <button type="button" onclick="adminDeleteAgentPackage(${pkg.id})" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all">
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        `).join('');
+                        tbodyUmrah.innerHTML = umrahPkgs.map(pkg => renderAdminAgentPackageTableRow(pkg)).join('');
+                    }
+                }
+
+                // Render Hajj Table
+                const tbodyHajj = document.getElementById("tbody-admin-agent-packages-hajj");
+                if (tbodyHajj) {
+                    if (hajjPkgs.length === 0) {
+                        tbodyHajj.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-[#567946]">No Hajj wholesale packages created yet. Click 'Add Agent Package' above.</td></tr>`;
+                    } else {
+                        tbodyHajj.innerHTML = hajjPkgs.map(pkg => renderAdminAgentPackageTableRow(pkg)).join('');
                     }
                 }
             } catch (err) {
@@ -4474,6 +5018,111 @@
             }
         }
 
+        // ── Edit Airline Modal ──────────────────────────────────────────────────
+        function openAdminEditAirlineModal(id, name, iataCode, isActive, logoUrl) {
+            document.getElementById('edit-airline-id').value = id;
+            document.getElementById('edit-airline-name').value = name;
+            document.getElementById('edit-airline-iata').value = iataCode || '';
+            document.getElementById('chk-edit-airline-active').checked = !!isActive;
+            document.getElementById('edit-airline-badge').textContent = '#' + id;
+
+            // Show logo preview if one exists
+            const logoPreview = document.getElementById('edit-airline-logo-preview');
+            const logoImg = document.getElementById('edit-airline-logo-img');
+            if (logoUrl) {
+                logoImg.src = logoUrl;
+                logoPreview.style.display = 'flex';
+            } else {
+                logoPreview.style.display = 'none';
+            }
+
+            // Reset file input
+            const form = document.getElementById('form-admin-edit-airline');
+            if (form) {
+                const fileInput = form.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
+            }
+
+            openModal('modal-admin-edit-airline');
+        }
+
+        function closeAdminEditAirlineModal() {
+            closeModal('modal-admin-edit-airline');
+        }
+
+        async function submitAdminEditAirline(e) {
+            e.preventDefault();
+            const form = e.target;
+            const airlineId = document.getElementById('edit-airline-id').value;
+            if (!airlineId) return;
+
+            const formData = new FormData(form);
+            // Convert checkbox to string expected by backend
+            formData.set('is_active', document.getElementById('chk-edit-airline-active').checked ? 'true' : 'false');
+
+            const btn = document.getElementById('btn-edit-airline-submit');
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Saving...';
+
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+                const res = await fetch(`/dashboard/admin/api/airlines/${airlineId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeAdminEditAirlineModal();
+                    fetchAdminAirlinesAndInventory();
+                    // Show a brief success notification
+                    showAdminToast('Airline updated successfully!', 'success');
+                } else {
+                    alert(data.message || data.error || 'Failed to update airline.');
+                }
+            } catch (err) {
+                alert('Server error updating airline.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+        }
+
+        async function adminDeleteAirline(id, name) {
+            if (!confirm(`⚠️ Delete Airline: "${name}"?\n\nThis will permanently remove the airline and ALL linked flight route inventories. This cannot be undone.`)) return;
+            try {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+                const res = await fetch(`/dashboard/admin/api/airlines/${id}/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    fetchAdminAirlinesAndInventory();
+                    showAdminToast(`Airline "${name}" deleted.`, 'danger');
+                } else {
+                    alert(data.message || data.error || 'Failed to delete airline.');
+                }
+            } catch (err) {
+                alert('Server error deleting airline.');
+            }
+        }
+
+        // Lightweight toast helper (reuses existing toast if present, else falls back to a quick banner)
+        function showAdminToast(message, type) {
+            const colors = {
+                success: 'bg-emerald-600',
+                danger:  'bg-rose-600',
+                info:    'bg-[#2D4424]',
+            };
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 z-[9999] px-5 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl flex items-center gap-2 ${colors[type] || colors.info} animate-fade-in`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'danger' ? 'fa-circle-xmark' : 'fa-circle-info'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2800);
+        }
+
         function openSeatAdjustmentModal(itemType, itemId, currentTotal, currentBooked) {
             document.getElementById('adjust-seat-item-type').value = itemType;
             document.getElementById('adjust-seat-item-id').value = itemId;
@@ -4896,16 +5545,35 @@
             }
         }
 
-        async function openAdminAddAgentPackageModal(pkg = null) {
+        async function openAdminAddAgentPackageModal(pkgOrDefaultType = null) {
+            let defaultType = _activeAdminPkgSubTab || 'umrah';
+            if (typeof pkgOrDefaultType === 'string') {
+                defaultType = pkgOrDefaultType;
+            } else if (pkgOrDefaultType && typeof pkgOrDefaultType === 'object') {
+                if ((pkgOrDefaultType.package_type || '').toLowerCase() === 'hajj' || pkgOrDefaultType.is_hajj_model) {
+                    defaultType = 'hajj';
+                }
+            }
+
+            if (defaultType === 'hajj') {
+                openAgentHajjPackageModal(pkgOrDefaultType);
+                return;
+            }
+
             const modal = document.getElementById('modal-admin-add-agent-package');
             const form = document.getElementById('form-admin-add-agent-package');
             const container = document.getElementById('container-modal-package-hotels');
             if (!modal || !form) return;
 
+            let pkg = null;
+            if (pkgOrDefaultType && typeof pkgOrDefaultType === 'object') {
+                pkg = pkgOrDefaultType;
+            }
+
             if (pkg) {
                 document.getElementById('modal-package-title').innerHTML = '<i class="fa-solid fa-box-archive text-[#E06A26]"></i> Edit Agent Package';
                 document.getElementById('input-pkg-id').value = pkg.id;
-                document.getElementById('input-pkg-type').value = pkg.package_type;
+                document.getElementById('input-pkg-type').value = pkg.package_type || 'umrah';
                 document.getElementById('input-pkg-duration').value = pkg.duration_days;
                 document.getElementById('input-pkg-seats').value = pkg.total_seats;
                 document.getElementById('input-pkg-title').value = pkg.title;
@@ -4931,14 +5599,21 @@
                 document.getElementById('input-pkg-ret-date').value = pkg.return_date || '';
                 document.getElementById('input-pkg-makkah-name').value = pkg.makkah_hotel_name || '';
                 if (document.getElementById('input-pkg-makkah-distance')) document.getElementById('input-pkg-makkah-distance').value = pkg.makkah_hotel_distance || '';
+                if (document.getElementById('input-pkg-makkah-nights')) document.getElementById('input-pkg-makkah-nights').value = pkg.makkah_nights || 7;
+
                 document.getElementById('input-pkg-madinah-name').value = pkg.madinah_hotel_name || '';
                 if (document.getElementById('input-pkg-madinah-distance')) document.getElementById('input-pkg-madinah-distance').value = pkg.madinah_hotel_distance || '';
+                if (document.getElementById('input-pkg-madinah-nights')) document.getElementById('input-pkg-madinah-nights').value = pkg.madinah_nights || 7;
+
                 document.getElementById('input-pkg-desc').value = pkg.description || '';
                 document.getElementById('input-pkg-active').checked = pkg.is_active;
             } else {
                 document.getElementById('modal-package-title').innerHTML = '<i class="fa-solid fa-box-archive text-[#E06A26]"></i> Add Agent Wholesale Package';
                 form.reset();
                 document.getElementById('input-pkg-id').value = '';
+                if (document.getElementById('input-pkg-type')) document.getElementById('input-pkg-type').value = defaultType;
+                if (document.getElementById('input-pkg-makkah-nights')) document.getElementById('input-pkg-makkah-nights').value = 7;
+                if (document.getElementById('input-pkg-madinah-nights')) document.getElementById('input-pkg-madinah-nights').value = 7;
                 toggleViaFlightRoutes('direct');
             }
 
@@ -5404,11 +6079,12 @@
         function renderB2CPackagesTable() {
             const tbody = document.getElementById('tbody-b2c-packages');
             if (!tbody) return;
-            if (!_b2cPackagesData.length) {
-                tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-[#567946] font-bold">No packages found. Click "+ Create New Package" to add one.</td></tr>';
+            const umrahPackages = _b2cPackagesData.filter(pkg => !pkg.category || pkg.category.toLowerCase() === 'umrah');
+            if (!umrahPackages.length) {
+                tbody.innerHTML = '<tr><td colspan="9" class="p-8 text-center text-[#567946] font-bold">No B2C Umrah packages found. Click "+ Create New Umrah Package" to add one.</td></tr>';
                 return;
             }
-            tbody.innerHTML = _b2cPackagesData.map(pkg => {
+            tbody.innerHTML = umrahPackages.map(pkg => {
                 const catColor = pkg.category === 'hajj' ? 'bg-[#2D4424]/10 text-[#2D4424] border-[#2D4424]/20' : pkg.category === 'tour' ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200';
                 const seats = pkg.available_seats;
                 const seatColor = seats <= 5 ? 'text-rose-600 font-black' : seats <= 10 ? 'text-amber-600 font-bold' : 'text-emerald-700 font-bold';
@@ -8095,6 +8771,56 @@
         </div>
     </div>
 
+    <!-- 1.1 Edit Airline Modal -->
+    <div id="modal-admin-edit-airline" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4" style="display: none;">
+        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 relative animate-fade-in">
+            <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-4">
+                <h3 class="text-lg font-black text-[#2D4424] flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-[#E06A26]"></i> Edit Airline
+                    <span id="edit-airline-badge" class="text-xs font-mono font-bold bg-[#FDF2EA] text-[#E06A26] px-2 py-0.5 rounded-full border border-[#FCE2D2]"></span>
+                </h3>
+                <button type="button" onclick="closeAdminEditAirlineModal()" class="text-[#567946] hover:text-[#2D4424] text-lg font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Current logo preview -->
+            <div id="edit-airline-logo-preview" class="hidden items-center gap-3 p-3 bg-[#F7F3E9] rounded-xl border border-[#E7DCB9]">
+                <img id="edit-airline-logo-img" src="" alt="Current Logo" class="h-10 w-10 object-contain rounded-lg border border-[#D9CBAC] shadow-sm">
+                <div>
+                    <p class="text-xs font-bold text-[#2D4424]">Current Logo</p>
+                    <p class="text-[10px] text-[#567946]">Upload a new file below to replace it</p>
+                </div>
+            </div>
+
+            <form id="form-admin-edit-airline" onsubmit="submitAdminEditAirline(event)" class="space-y-4">
+                <input type="hidden" id="edit-airline-id" name="airline_id" value="">
+                <div>
+                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Airline Name *</label>
+                    <input type="text" name="name" id="edit-airline-name" required placeholder="e.g. PIA, Emirates, Airblue" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC] focus:border-[#567946] focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1">IATA Code (Optional)</label>
+                    <input type="text" name="iata_code" id="edit-airline-iata" placeholder="e.g. PK, EK, PA" maxlength="3" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC] font-mono uppercase focus:border-[#567946] focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Replace Logo (Optional)</label>
+                    <input type="file" name="logo" accept="image/*" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9]">
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="chk-edit-airline-active" class="rounded border-[#D9CBAC] text-[#E06A26] w-4 h-4">
+                    <label for="chk-edit-airline-active" class="text-xs font-bold text-[#2D4424]">Active for Agent Bookings</label>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-[#E7DCB9]">
+                    <button type="button" onclick="closeAdminEditAirlineModal()" class="px-4 py-2 bg-[#F7F3E9] text-[#2D4424] text-xs font-bold rounded-xl border border-[#D9CBAC] hover:bg-[#EBD8B3] transition-all">Cancel</button>
+                    <button type="submit" id="btn-edit-airline-submit" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 1.5 Add Sector Modal -->
     <div id="modal-admin-add-sector" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4" style="display: none;">
         <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 relative animate-fade-in">
@@ -8632,17 +9358,25 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <span class="text-[10px] font-bold text-[#2D4424] block">🕋 Makkah Hotel</span>
+                            <span class="text-[10px] font-bold text-[#2D4424] block">🕋 Makkah Hotel & Nights</span>
                             <input type="text" name="makkah_hotel_name" id="input-pkg-makkah-name" list="datalist-makkah-hotels" placeholder="e.g. Anjum Hotel Makkah" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                             <datalist id="datalist-makkah-hotels"></datalist>
                             <input type="text" name="makkah_hotel_distance" id="input-pkg-makkah-distance" placeholder="Distance e.g. 150m from Haram" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase">Makkah Nights</label>
+                                <input type="number" name="makkah_nights" id="input-pkg-makkah-nights" min="1" value="7" placeholder="e.g. 7" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            </div>
                         </div>
 
                         <div class="space-y-2">
-                            <span class="text-[10px] font-bold text-[#2D4424] block">🕌 Madinah Hotel</span>
+                            <span class="text-[10px] font-bold text-[#2D4424] block">🕌 Madinah Hotel & Nights</span>
                             <input type="text" name="madinah_hotel_name" id="input-pkg-madinah-name" list="datalist-madinah-hotels" placeholder="e.g. Pullman Zamzam Madinah" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                             <datalist id="datalist-madinah-hotels"></datalist>
                             <input type="text" name="madinah_hotel_distance" id="input-pkg-madinah-distance" placeholder="Distance e.g. 200m from Nabawi" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase">Madinah Nights</label>
+                                <input type="number" name="madinah_nights" id="input-pkg-madinah-nights" min="1" value="7" placeholder="e.g. 7" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            </div>
                         </div>
                     </div>
 
@@ -8672,6 +9406,198 @@
                     <button type="button" onclick="closeAdminAddAgentPackageModal()" class="px-5 py-2.5 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-xs font-extrabold rounded-xl border border-[#D9CBAC] transition-all">Cancel</button>
                     <button type="submit" class="px-6 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center gap-2">
                         <i class="fa-solid fa-floppy-disk"></i> Save Wholesale Package
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dedicated B2B Agent Hajj Package Modal -->
+    <div id="modal-agent-hajj-package-form" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm p-4" style="display: none;">
+        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 relative animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-4">
+                <h3 id="modal-agent-hajj-package-title" class="text-lg font-black text-[#2D4424] flex items-center gap-2">
+                    <i class="fa-solid fa-mosque text-[#E06A26]"></i> Add Agent Hajj Package
+                </h3>
+                <button type="button" onclick="closeAgentHajjPackageModal()" class="text-[#567946] hover:text-[#2D4424] text-lg font-bold">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="form-admin-agent-hajj-package" onsubmit="submitAgentHajjPackageForm(event)" class="space-y-4">
+                <input type="hidden" name="package_id" id="input-agent-hajj-pkg-id" value="">
+
+                <!-- Section 1: Basic Info -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Package Title *</label>
+                        <input type="text" name="title" id="input-agent-hajj-pkg-title" required placeholder="e.g. Executive 25-Day Shifting Hajj Package" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Duration (Days) *</label>
+                        <input type="number" name="duration_days" id="input-agent-hajj-pkg-duration" required min="1" value="25" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Total Available Seats *</label>
+                        <input type="number" name="total_seats" id="input-agent-hajj-pkg-seats" required min="1" value="30" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Company / Operator Logo</label>
+                        <input type="file" name="company_logo" accept="image/*" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9]">
+                    </div>
+                </div>
+
+                <!-- Section 2: Travel Dates & Flight Specifications -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <label class="block text-xs font-black text-[#2D4424] flex items-center justify-between">
+                        <span><i class="fa-solid fa-plane-departure text-[#E06A26] mr-1"></i> Airline Details, Flight Route & Travel Dates</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Airline / Flight Name</span>
+                            <input type="text" name="airline_name" id="input-agent-hajj-pkg-airline" value="Saudi Airlines" placeholder="e.g. Saudi Airlines, PIA, Flynas" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Flight Route Summary</span>
+                            <input type="text" name="flight_route" id="input-agent-hajj-pkg-route" value="KHI - JED - MED - KHI" placeholder="e.g. KHI - JED - MED - KHI" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Departure Date</span>
+                            <input type="date" name="departure_date" id="input-agent-hajj-pkg-dep-date" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Return Date</span>
+                            <input type="date" name="return_date" id="input-agent-hajj-pkg-ret-date" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-[#567946] block mb-1">Airline Logo Upload (Optional)</span>
+                        <input type="file" name="airline_logo" accept="image/*" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC] bg-white">
+                    </div>
+                </div>
+
+                <!-- Section 3: Meal Plan Specifications -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-2">
+                    <label class="block text-xs font-black text-[#2D4424] flex items-center gap-1.5">
+                        <i class="fa-solid fa-utensils text-[#E06A26]"></i> Meal Plan & Catering Inclusions
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Includes Meal *</span>
+                            <select name="includes_meal" id="input-agent-hajj-pkg-includes-meal" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                                <option value="true">Meal Included: Yes</option>
+                                <option value="false">Meal Included: No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Meal Details / Description</span>
+                            <input type="text" name="meal_detail" id="input-agent-hajj-pkg-meal-detail" value="Full Board Buffet" placeholder="e.g. Full Board Buffet, Breakfast & Dinner" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4: Manual Hotel & Distance Summary (Makkah & Madinah) -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <label class="block text-xs font-black text-[#2D4424] flex items-center justify-between">
+                        <span><i class="fa-solid fa-hotel text-[#E06A26] mr-1"></i> Makkah & Madinah Hotel Overview (Manual Text Input Option)</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-[#2D4424] block">🕋 Makkah Hotel Name & Distance</span>
+                            <input type="text" name="makkah_hotel_name" id="input-agent-hajj-pkg-makkah-name" placeholder="e.g. Swissotel Makkah / Azizia Building" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            <input type="text" name="makkah_hotel_distance" id="input-agent-hajj-pkg-makkah-dist" placeholder="Distance e.g. Zero meters / Shifting" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-[#2D4424] block">🕌 Madinah Hotel Name & Distance</span>
+                            <input type="text" name="madinah_hotel_name" id="input-agent-hajj-pkg-madinah-name" placeholder="e.g. Pullman Zamzam Madinah" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            <input type="text" name="madinah_hotel_distance" id="input-agent-hajj-pkg-madinah-dist" placeholder="Distance e.g. 150m from Nabawi" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Description / Notes</label>
+                    <textarea name="description" id="input-agent-hajj-pkg-desc" rows="3" placeholder="Detailed package description, inclusions, and terms..." class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]"></textarea>
+                </div>
+
+                <!-- Section 5: Pricing Tiers -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-2">
+                    <label class="block text-xs font-black text-[#2D4424] flex items-center gap-1.5">
+                        <i class="fa-solid fa-tags text-[#E06A26]"></i> Room Occupancy Wholesale Pricing per Person (PKR)
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Quad Price *</span>
+                            <input type="number" name="price_quad" id="input-agent-hajj-pkg-price-quad" required placeholder="e.g. 1250000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Triple Price *</span>
+                            <input type="number" name="price_triple" id="input-agent-hajj-pkg-price-triple" required placeholder="e.g. 1350000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Double Price *</span>
+                            <input type="number" name="price_double" id="input-agent-hajj-pkg-price-double" required placeholder="e.g. 1500000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Sharing Price</span>
+                            <input type="number" name="price_sharing" id="input-agent-hajj-pkg-price-sharing" placeholder="e.g. 1150000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 6: Compliance Info -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-2">
+                    <label class="block text-xs font-black text-[#2D4424] flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-[#E06A26]"></i> Hajj Operator Regulatory Compliance Info
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Hajj Operator Name *</span>
+                            <input type="text" name="hajj_operator_name" id="input-agent-hajj-pkg-operator" required placeholder="e.g. Al-Falah Travel Services" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">License Number *</span>
+                            <input type="text" name="license_number" id="input-agent-hajj-pkg-license" required placeholder="e.g. HGO-7890" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">Saudi Registration # *</span>
+                            <input type="text" name="saudi_registration_number" id="input-agent-hajj-pkg-saudi-reg" required placeholder="e.g. KSA-HAJJ-4421" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 7: Accommodation Plan (Repeatable Hotel Stays) -->
+                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-black text-[#2D4424] flex items-center gap-1.5">
+                            <i class="fa-solid fa-hotel text-[#E06A26]"></i> Accommodation Plan & Hotel Stays (Catalog or Manual Type)
+                        </label>
+                        <button type="button" onclick="addAgentHajjAccommodationRow()" class="px-3 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[11px] font-bold rounded-lg transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Add Another Stay
+                        </button>
+                    </div>
+                    <div id="container-agent-hajj-accommodations" class="space-y-2">
+                        <!-- Dynamic accommodation stay rows appended here -->
+                    </div>
+                </div>
+
+                <!-- Section 8: Gallery Images Upload -->
+                <div>
+                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Gallery Images (Optional)</label>
+                    <input type="file" name="images" accept="image/*" multiple class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9]">
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="is_active" id="input-agent-hajj-pkg-active" checked class="rounded border-[#D9CBAC] text-[#E06A26]">
+                    <label for="input-agent-hajj-pkg-active" class="text-xs font-bold text-[#2D4424]">Active for Wholesale Booking</label>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-[#E7DCB9]">
+                    <button type="button" onclick="closeAgentHajjPackageModal()" class="px-4 py-2 bg-[#F7F3E9] text-[#2D4424] text-xs font-bold rounded-xl border border-[#D9CBAC]">Cancel</button>
+                    <button type="submit" id="btn-submit-agent-hajj-package" class="px-5 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-black rounded-xl shadow-md">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Hajj Package
                     </button>
                 </div>
             </form>
@@ -10002,9 +10928,7 @@
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Category</label>
                             <select id="pkg-form-category" onchange="onPkgCategoryChange(this.value)" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                                <option value="umrah">Umrah</option>
-                                <option value="hajj">Hajj</option>
-                                <option value="tour">Tour Package</option>
+                                <option value="umrah" selected>Umrah Package</option>
                             </select>
                         </div>
                         <div>
@@ -10854,11 +11778,662 @@
             `).join('');
         }
 
+        // ══════════════════════════════════════════════════════════════════════
+        // B2C ADMIN HAJJ PACKAGES TAB MANAGEMENT
+        // ══════════════════════════════════════════════════════════════════════
+        let _b2cAdminHajjPackagesData = [];
+        let _b2cAdminHotelsCatalog = [];
+
+        async function fetchB2cAdminHotelsCatalog() {
+            try {
+                const data = await safeFetchJson('/dashboard/admin/api/hotels/');
+                if (data && data.hotels) {
+                    _b2cAdminHotelsCatalog = data.hotels;
+                }
+            } catch (e) {
+                console.error("Error fetching hotels catalog:", e);
+            }
+        }
+
+        async function fetchB2cAdminHajjPackages() {
+            const icon = document.getElementById("icon-refresh-b2c-hajj-pkg");
+            if (icon) icon.classList.add("animate-spin");
+            
+            try {
+                await fetchB2cAdminHotelsCatalog();
+                const data = await safeFetchJson("/dashboard/admin/api/hajj-packages/");
+                _b2cAdminHajjPackagesData = (data && (data.hajj_packages || data.packages)) ? (data.hajj_packages || data.packages) : [];
+                renderB2cAdminHajjPackagesTable();
+            } catch (e) {
+                console.error("Error fetching B2C admin Hajj packages:", e);
+                const tbody = document.getElementById("tbody-b2c-hajj-packages");
+                if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-rose-600 font-bold">Failed to load Hajj packages.</td></tr>`;
+            } finally {
+                if (icon) icon.classList.remove("animate-spin");
+            }
+        }
+
+        function renderB2cAdminHajjPackagesTable() {
+            const tbody = document.getElementById("tbody-b2c-hajj-packages");
+            if (!tbody) return;
+
+            const total = _b2cAdminHajjPackagesData.length;
+            const active = _b2cAdminHajjPackagesData.filter(p => p.is_active).length;
+            const availSeats = _b2cAdminHajjPackagesData.reduce((acc, p) => acc + (p.available_seats || 0), 0);
+            const totalSeats = _b2cAdminHajjPackagesData.reduce((acc, p) => acc + (p.total_seats || 0), 0);
+
+            const countEl = document.getElementById("badge-b2c-hajj-pkg-count");
+            if (countEl) countEl.textContent = `${total} Packages`;
+
+            const elTot = document.getElementById("stat-b2c-hajj-pkg-total");
+            if (elTot) elTot.textContent = total;
+            const elAct = document.getElementById("stat-b2c-hajj-pkg-active");
+            if (elAct) elAct.textContent = active;
+            const elSeats = document.getElementById("stat-b2c-hajj-seats-avail");
+            if (elSeats) elSeats.textContent = `${availSeats} / ${totalSeats}`;
+
+            if (total === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#567946] font-semibold">No B2C Hajj packages created yet. Click "+ Create New Hajj Package" to add one.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = _b2cAdminHajjPackagesData.map(pkg => {
+                const logoUrl = pkg.logo_url || '/static/images/hajj_card.png';
+                const logoHtml = `<img src="${logoUrl}" alt="${escapeHTML(pkg.title)}" class="h-8 w-8 object-contain rounded-lg bg-slate-100 p-0.5 border border-[#E7DCB9]">`;
+                const quadPrice = pkg.price_quad ? `PKR ${parseFloat(pkg.price_quad).toLocaleString('en-PK')}` : '-';
+                const triplePrice = pkg.price_triple ? `PKR ${parseFloat(pkg.price_triple).toLocaleString('en-PK')}` : '-';
+                const doublePrice = pkg.price_double ? `PKR ${parseFloat(pkg.price_double).toLocaleString('en-PK')}` : '-';
+                const sharingPrice = pkg.price_sharing ? `PKR ${parseFloat(pkg.price_sharing).toLocaleString('en-PK')}` : '-';
+
+                return `
+                    <tr class="hover:bg-[#FDF2EA]/60 transition-all text-xs border-b border-[#E7DCB9]">
+                        <td class="p-3 font-mono font-bold text-[#567946]">#${pkg.id}</td>
+                        <td class="p-3">${logoHtml}</td>
+                        <td class="p-3 font-bold text-[#2D4424]">
+                            <div class="font-extrabold text-sm text-[#2D4424]">${escapeHTML(pkg.title)}</div>
+                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                <span class="text-[9px] font-black uppercase text-[#E06A26] bg-[#FDF2EA] px-2 py-0.5 rounded border border-[#FCE2D2]">${pkg.duration_days} Days</span>
+                                <span class="text-[9px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200" title="Gregorian (English) Travel Dates">📅 ${escapeHTML(pkg.english_dates || pkg.flight_dates || '15 May - 08 Jun 2026')}</span>
+                                <span class="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200" title="Islamic (Hijri) Travel Dates">🌙 ${escapeHTML(pkg.hijri_dates || '01 - 25 Dhul-Hijjah 1447 AH')}</span>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <div class="space-y-0.5 text-[10px]">
+                                <div><span class="font-bold text-slate-400">Quad:</span> <span class="font-extrabold text-[#2D4424]">${quadPrice}</span></div>
+                                <div><span class="font-bold text-slate-400">Triple:</span> <span class="font-extrabold text-[#2D4424]">${triplePrice}</span></div>
+                                <div><span class="font-bold text-slate-400">Double:</span> <span class="font-extrabold text-[#2D4424]">${doublePrice}</span></div>
+                                <div><span class="font-bold text-slate-400">Sharing:</span> <span class="font-extrabold text-[#2D4424]">${sharingPrice}</span></div>
+                            </div>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-extrabold text-[#2D4424]">${escapeHTML(pkg.hajj_operator_name || '-')}</div>
+                            <div class="text-[10px] text-[#567946] font-mono">Lic: ${escapeHTML(pkg.license_number || '-')}</div>
+                            <div class="text-[9px] text-slate-400 font-mono">Reg: ${escapeHTML(pkg.saudi_registration_number || '-')}</div>
+                        </td>
+                        <td class="p-3">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold ${pkg.available_seats > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                                🪑 ${pkg.available_seats} / ${pkg.total_seats} Seats
+                            </span>
+                        </td>
+                        <td class="p-3 text-center">
+                            <button onclick="toggleB2cAdminHajjPackageStatus(${pkg.id}, ${!pkg.is_active})" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold transition-all ${pkg.is_active ? 'bg-emerald-500 text-white hover:bg-emerald-600' : 'bg-slate-300 text-slate-700 hover:bg-slate-400'}">
+                                ${pkg.is_active ? 'Active' : 'Disabled'}
+                            </button>
+                        </td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <button onclick="openB2cAdminHajjPackageModal(${pkg.id})" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] rounded-lg transition-all shadow-xs" title="Edit Hajj Package">
+                                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                                </button>
+                                <button onclick="deleteB2cAdminHajjPackage(${pkg.id})" class="px-2 py-1 bg-rose-500 hover:bg-rose-600 text-white font-bold text-[11px] rounded-lg transition-all shadow-xs" title="Delete Package">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function openB2cAdminHajjPackageModal(pkgId = null) {
+            if (_b2cAdminHotelsCatalog.length === 0) {
+                await fetchB2cAdminHotelsCatalog();
+            }
+
+            const form = document.getElementById("form-b2c-admin-hajj-package");
+            if (form) form.reset();
+
+            document.getElementById("b2c-admin-hajj-pkg-id").value = "";
+            document.getElementById("b2c-admin-hajj-form-error").textContent = "";
+            document.getElementById("b2c-admin-hajj-accommodations-container").innerHTML = "";
+            document.getElementById("b2c-admin-hajj-existing-images-container").innerHTML = "";
+            document.getElementById("b2c-admin-hajj-logo-preview").classList.add("hidden");
+
+            const modalTitle = document.getElementById("b2c-admin-hajj-modal-title");
+
+            if (pkgId) {
+                modalTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-[#E06A26]"></i> Edit B2C Hajj Package #${pkgId}`;
+                const data = await safeFetchJson(`/dashboard/admin/api/hajj-packages/${pkgId}/`);
+                if (data && data.hajj_package) {
+                    const p = data.hajj_package;
+                    document.getElementById("b2c-admin-hajj-pkg-id").value = p.id;
+                    document.getElementById("b2c-admin-hajj-title").value = p.title || '';
+                    document.getElementById("b2c-admin-hajj-duration").value = p.duration_days || 25;
+                    document.getElementById("b2c-admin-hajj-total-seats").value = p.total_seats || 50;
+                    document.getElementById("b2c-admin-hajj-available-seats").value = p.available_seats || 50;
+                    document.getElementById("b2c-admin-hajj-description").value = p.description || '';
+                    document.getElementById("b2c-admin-hajj-price-quad").value = p.price_quad || '';
+                    document.getElementById("b2c-admin-hajj-price-triple").value = p.price_triple || '';
+                    document.getElementById("b2c-admin-hajj-price-double").value = p.price_double || '';
+                    document.getElementById("b2c-admin-hajj-price-sharing").value = p.price_sharing !== null ? p.price_sharing : '';
+                    document.getElementById("b2c-admin-hajj-operator-name").value = p.hajj_operator_name || '';
+                    document.getElementById("b2c-admin-hajj-license-number").value = p.license_number || '';
+                    document.getElementById("b2c-admin-hajj-saudi-registration-number").value = p.saudi_registration_number || '';
+                    
+                    const airlineNameInput = document.getElementById("b2c-admin-hajj-airline-name");
+                    if (airlineNameInput) airlineNameInput.value = p.airline_name || 'Saudi Airlines';
+
+                    const depDateEl = document.getElementById("b2c-admin-hajj-departure-date");
+                    if (depDateEl) depDateEl.value = p.departure_date || '';
+                    const retDateEl = document.getElementById("b2c-admin-hajj-return-date");
+                    if (retDateEl) retDateEl.value = p.return_date || '';
+                    const flightDatesEl = document.getElementById("b2c-admin-hajj-flight-dates");
+                    if (flightDatesEl) flightDatesEl.value = p.flight_dates || '';
+                    const hijriDatesEl = document.getElementById("b2c-admin-hajj-hijri-dates");
+                    if (hijriDatesEl) hijriDatesEl.value = p.hijri_dates || '';
+
+                    if (p.logo_url) {
+                        document.getElementById("b2c-admin-hajj-logo-img").src = p.logo_url;
+                        document.getElementById("b2c-admin-hajj-logo-preview").classList.remove("hidden");
+                    }
+
+                    const coverPreviewImg = document.getElementById("b2c-admin-hajj-cover-preview-img");
+                    if (coverPreviewImg) {
+                        coverPreviewImg.src = p.cover_photo_url || p.cover_photo || '/static/images/hajj_card.png';
+                    }
+
+                    if (p.accommodations && p.accommodations.length > 0) {
+                        p.accommodations.forEach(acc => addB2cAdminHajjStayRow(acc));
+                    } else {
+                        addB2cAdminHajjStayRow({ city: 'makkah', nights: 14 });
+                        addB2cAdminHajjStayRow({ city: 'madinah', nights: 10 });
+                    }
+
+                    if (p.images && p.images.length > 0) {
+                        const galleryContainer = document.getElementById("b2c-admin-hajj-existing-images-container");
+                        galleryContainer.innerHTML = p.images.map(imgUrl => `
+                            <div class="relative group w-20 h-16 rounded-lg overflow-hidden border border-[#E7DCB9]">
+                                <img src="${imgUrl}" class="w-full h-full object-cover">
+                            </div>
+                        `).join('');
+                    }
+                }
+            } else {
+                modalTitle.innerHTML = `<i class="fa-solid fa-kaaba text-[#E06A26]"></i> Create New B2C Hajj Package`;
+                const coverPreviewImg = document.getElementById("b2c-admin-hajj-cover-preview-img");
+                if (coverPreviewImg) coverPreviewImg.src = '/static/images/hajj_card.png';
+                addB2cAdminHajjStayRow({ city: 'makkah', nights: 14 });
+                addB2cAdminHajjStayRow({ city: 'madinah', nights: 10 });
+            }
+
+            const modal = document.getElementById("modal-b2c-admin-hajj-package-form");
+            if (modal) {
+                modal.classList.remove("hidden");
+                modal.style.display = "flex";
+            }
+        }
+
+        function previewB2cHajjCover(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.getElementById('b2c-admin-hajj-cover-preview-img');
+                    if (img) img.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function closeB2cAdminHajjPackageModal() {
+            const modal = document.getElementById("modal-b2c-admin-hajj-package-form");
+            if (modal) {
+                modal.classList.add("hidden");
+                modal.style.display = "none";
+            }
+        }
+
+        function addB2cAdminHajjStayRow(accData = null) {
+            const container = document.getElementById("b2c-admin-hajj-accommodations-container");
+            if (!container) return;
+
+            const rowId = 'hajj-stay-row-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+            const selectedCity = accData ? (accData.city || 'makkah') : 'makkah';
+            const hotelNameManual = accData ? (accData.hotel_name_manual || accData.hotel_name || '') : '';
+            const distanceManual = accData ? (accData.distance_manual || accData.hotel_distance || '') : '';
+            const selectedHotelId = accData ? (accData.hotel_id || '') : '';
+            const nights = accData ? (accData.nights || 7) : 7;
+
+            const rowDiv = document.createElement("div");
+            rowDiv.id = rowId;
+            rowDiv.className = "b2c-hajj-stay-row grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-xs";
+
+            rowDiv.innerHTML = `
+                <div class="sm:col-span-2">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">City</label>
+                    <select class="b2c-hajj-acc-city w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]" onchange="onB2cAdminHajjCityChange(this)">
+                        <option value="makkah" ${selectedCity === 'makkah' ? 'selected' : ''}>Makkah</option>
+                        <option value="madinah" ${selectedCity === 'madinah' ? 'selected' : ''}>Madinah</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-3">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Hotel Name (Manual Input)</label>
+                    <input type="text" value="${escapeHTML(hotelNameManual)}" placeholder="e.g. Anjum Hotel Makkah" class="b2c-hajj-acc-hotel-name w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
+                </div>
+                <div class="sm:col-span-3">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Distance from Haram</label>
+                    <input type="text" value="${escapeHTML(distanceManual)}" placeholder="e.g. 350m from Haram" class="b2c-hajj-acc-distance w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Or Choose Catalog</label>
+                    <select class="b2c-hajj-acc-hotel-select w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]" onchange="onB2cAdminHajjHotelSelectChange(this)">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="sm:col-span-1">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Nights</label>
+                    <input type="number" min="1" value="${nights}" class="b2c-hajj-acc-nights w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
+                </div>
+                <div class="sm:col-span-1 text-right pt-3 sm:pt-0">
+                    <button type="button" onclick="removeB2cAdminHajjStayRow(this)" class="p-1.5 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-lg text-xs font-bold transition-all" title="Remove Stay">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(rowDiv);
+            const citySelect = rowDiv.querySelector(".b2c-hajj-acc-city");
+            populateB2cAdminHajjHotelSelect(rowDiv, citySelect.value, selectedHotelId);
+        }
+
+        function populateB2cAdminHajjHotelSelect(rowElement, city, selectedHotelId = null) {
+            const hotelSelect = rowElement.querySelector(".b2c-hajj-acc-hotel-select");
+            if (!hotelSelect) return;
+
+            const filteredHotels = _b2cAdminHotelsCatalog.filter(h => (h.city || '').toLowerCase() === city.toLowerCase());
+            
+            let html = `<option value="">-- Manual Entry / Select Catalog --</option>`;
+            html += filteredHotels.map(h => `
+                <option value="${h.id}" ${String(h.id) === String(selectedHotelId) ? 'selected' : ''}>
+                    ${escapeHTML(h.name)} (${h.distance_from_haram || 'Distance N/A'})
+                </option>
+            `).join('');
+
+            hotelSelect.innerHTML = html;
+        }
+
+        function onB2cAdminHajjHotelSelectChange(selectEl) {
+            const row = selectEl.closest(".b2c-hajj-stay-row");
+            if (!row) return;
+            const hotelId = selectEl.value;
+            if (hotelId) {
+                const hotelObj = _b2cAdminHotelsCatalog.find(h => String(h.id) === String(hotelId));
+                if (hotelObj) {
+                    const nameInput = row.querySelector(".b2c-hajj-acc-hotel-name");
+                    const distInput = row.querySelector(".b2c-hajj-acc-distance");
+                    if (nameInput) nameInput.value = hotelObj.name || '';
+                    if (distInput) distInput.value = hotelObj.distance_from_haram || '';
+                }
+            }
+        }
+
+        function onB2cAdminHajjCityChange(citySelect) {
+            const rowElement = citySelect.closest(".b2c-hajj-stay-row");
+            if (rowElement) {
+                populateB2cAdminHajjHotelSelect(rowElement, citySelect.value);
+            }
+        }
+
+        function removeB2cAdminHajjStayRow(btn) {
+            const row = btn.closest(".b2c-hajj-stay-row");
+            if (row) row.remove();
+        }
+
+        async function submitB2cAdminHajjPackageForm(e) {
+            e.preventDefault();
+            const errorEl = document.getElementById("b2c-admin-hajj-form-error");
+            if (errorEl) errorEl.textContent = "";
+
+            const id = document.getElementById("b2c-admin-hajj-pkg-id").value;
+            const formData = new FormData();
+
+            formData.append("title", document.getElementById("b2c-admin-hajj-title").value);
+            formData.append("duration_days", document.getElementById("b2c-admin-hajj-duration").value);
+            formData.append("total_seats", document.getElementById("b2c-admin-hajj-total-seats").value);
+            formData.append("available_seats", document.getElementById("b2c-admin-hajj-available-seats").value);
+            formData.append("description", document.getElementById("b2c-admin-hajj-description").value);
+
+            formData.append("price_quad", document.getElementById("b2c-admin-hajj-price-quad").value);
+            formData.append("price_triple", document.getElementById("b2c-admin-hajj-price-triple").value);
+            formData.append("price_double", document.getElementById("b2c-admin-hajj-price-double").value);
+            
+            const pSharing = document.getElementById("b2c-admin-hajj-price-sharing").value;
+            if (pSharing) formData.append("price_sharing", pSharing);
+
+            formData.append("hajj_operator_name", document.getElementById("b2c-admin-hajj-operator-name").value);
+            formData.append("license_number", document.getElementById("b2c-admin-hajj-license-number").value);
+            formData.append("saudi_registration_number", document.getElementById("b2c-admin-hajj-saudi-registration-number").value);
+
+            const airlineNameEl = document.getElementById("b2c-admin-hajj-airline-name");
+            if (airlineNameEl) formData.append("airline_name", airlineNameEl.value);
+
+            const depDateVal = document.getElementById("b2c-admin-hajj-departure-date").value;
+            if (depDateVal) formData.append("departure_date", depDateVal);
+
+            const retDateVal = document.getElementById("b2c-admin-hajj-return-date").value;
+            if (retDateVal) formData.append("return_date", retDateVal);
+
+            const flightDatesVal = document.getElementById("b2c-admin-hajj-flight-dates").value;
+            if (flightDatesVal) formData.append("flight_dates", flightDatesVal);
+
+            const hijriDatesVal = document.getElementById("b2c-admin-hajj-hijri-dates").value;
+            if (hijriDatesVal) formData.append("hijri_dates", hijriDatesVal);
+
+            const logoInput = document.getElementById("b2c-admin-hajj-company-logo");
+            if (logoInput && logoInput.files[0]) {
+                formData.append("company_logo", logoInput.files[0]);
+            }
+
+            const airlineLogoInput = document.getElementById("b2c-admin-hajj-airline-logo");
+            if (airlineLogoInput && airlineLogoInput.files[0]) {
+                formData.append("airline_logo", airlineLogoInput.files[0]);
+            }
+
+            const galleryInput = document.getElementById("b2c-admin-hajj-gallery-files");
+            if (galleryInput && galleryInput.files.length > 0) {
+                for (let i = 0; i < galleryInput.files.length; i++) {
+                    formData.append("images", galleryInput.files[i]);
+                }
+            }
+
+            const accommodationRows = document.querySelectorAll(".b2c-hajj-stay-row");
+            const accommodationsData = [];
+            accommodationRows.forEach(row => {
+                const city = row.querySelector(".b2c-hajj-acc-city").value;
+                const hotelName = row.querySelector(".b2c-hajj-acc-hotel-name").value.trim();
+                const distance = row.querySelector(".b2c-hajj-acc-distance").value.trim();
+                const hotelSelect = row.querySelector(".b2c-hajj-acc-hotel-select");
+                const hotelId = hotelSelect ? hotelSelect.value : "";
+                const nights = row.querySelector(".b2c-hajj-acc-nights").value;
+
+                if (hotelName || hotelId) {
+                    accommodationsData.push({
+                        city: city,
+                        hotel_id: hotelId ? parseInt(hotelId) : null,
+                        hotel_name_manual: hotelName,
+                        distance_manual: distance,
+                        nights: parseInt(nights) || 1
+                    });
+                }
+            });
+
+            formData.append("accommodations", JSON.stringify(accommodationsData));
+
+            const url = id ? `/dashboard/admin/api/hajj-packages/${id}/` : '/dashboard/admin/api/hajj-packages/';
+            
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    },
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    closeB2cAdminHajjPackageModal();
+                    fetchB2cAdminHajjPackages();
+                } else {
+                    if (errorEl) errorEl.textContent = data.message || "Failed to save Hajj package.";
+                }
+            } catch (err) {
+                console.error("Error submitting B2C Hajj package form:", err);
+                if (errorEl) errorEl.textContent = "Server error while saving package.";
+            }
+        }
+
+        async function deleteB2cAdminHajjPackage(id) {
+            if (!confirm(`Are you sure you want to delete Hajj Package #${id}?`)) return;
+
+            try {
+                const res = await fetch(`/dashboard/admin/api/hajj-packages/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    fetchB2cAdminHajjPackages();
+                } else {
+                    alert(data.message || "Failed to delete Hajj package.");
+                }
+            } catch (err) {
+                console.error("Error deleting B2C Hajj package:", err);
+                alert("Error deleting Hajj package.");
+            }
+        }
+
+        async function toggleB2cAdminHajjPackageStatus(id, newStatus) {
+            const formData = new FormData();
+            formData.append("is_active", newStatus);
+
+            try {
+                const res = await fetch(`/dashboard/admin/api/hajj-packages/${id}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken') || ''
+                    },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    fetchB2cAdminHajjPackages();
+                } else {
+                    alert(data.message || "Failed to update package status.");
+                }
+            } catch (err) {
+                console.error("Error toggling B2C Hajj package status:", err);
+            }
+        }
+
         // Initialize admin notifications on page load
         document.addEventListener('DOMContentLoaded', function () {
             setTimeout(syncAdminNotifications, 1000);
             setInterval(syncAdminNotifications, 30000);
         });
     </script>
+
+    <!-- ==================== MODAL: CREATE / EDIT B2C HAJJ PACKAGE ==================== -->
+    <div id="modal-b2c-admin-hajj-package-form" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto" style="display: none;">
+        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl space-y-0 relative my-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-4 mb-5">
+                <h3 id="b2c-admin-hajj-modal-title" class="text-base font-black text-[#2D4424] flex items-center gap-2">
+                    <i class="fa-solid fa-kaaba text-[#E06A26]"></i> Create New B2C Hajj Package
+                </h3>
+                <button type="button" onclick="closeB2cAdminHajjPackageModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 text-sm font-bold transition-all">✕</button>
+            </div>
+            <div id="b2c-admin-hajj-form-error" class="text-rose-600 text-xs font-bold mb-3 empty:hidden"></div>
+
+            <form id="form-b2c-admin-hajj-package" onsubmit="submitB2cAdminHajjPackageForm(event)" class="space-y-6 text-xs max-h-[75vh] overflow-y-auto pr-2">
+                <input type="hidden" id="b2c-admin-hajj-pkg-id">
+
+                <!-- ── SECTION 1: Company & Basic Info ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Company &amp; Package Basic Information</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Company / Hajj Operator Name *</label>
+                            <input type="text" id="b2c-admin-hajj-operator-name" required placeholder="e.g. Golden Star Hajj &amp; Umrah Agency" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Company / Brand Logo</label>
+                            <input type="file" id="b2c-admin-hajj-company-logo" accept="image/*" class="w-full px-3 py-1.5 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424]">
+                            <div id="b2c-admin-hajj-logo-preview" class="mt-2 hidden flex items-center gap-2">
+                                <img src="" class="h-10 w-auto object-contain rounded border border-[#E7DCB9]" id="b2c-admin-hajj-logo-img">
+                                <span class="text-[10px] text-[#567946] font-bold">Current Logo</span>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Hajj Package Title *</label>
+                            <input type="text" id="b2c-admin-hajj-title" required placeholder="e.g. Executive 25-Day Non-Shifting Hajj Package 2026" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Airline Partner Name</label>
+                            <input type="text" id="b2c-admin-hajj-airline-name" placeholder="e.g. Saudi Airlines / PIA / Flynas" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Airline Logo (Optional)</label>
+                            <input type="file" id="b2c-admin-hajj-airline-logo" accept="image/*" class="w-full px-3 py-1.5 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424]">
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Duration (Days) *</label>
+                            <input type="number" id="b2c-admin-hajj-duration" required min="1" value="25" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Total Seats *</label>
+                            <input type="number" id="b2c-admin-hajj-total-seats" required min="1" value="50" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Available Seats *</label>
+                            <input type="number" id="b2c-admin-hajj-available-seats" required min="0" value="50" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+
+                        <div class="sm:col-span-3">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Package Description *</label>
+                            <textarea id="b2c-admin-hajj-description" rows="3" required placeholder="Full details, Maktab category, Mina/Arafat services, meals, guided lectures, etc." class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 1.25: Package Cover Photo ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-image"></i> Dedicated Package Cover Photo</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-24 h-16 rounded-xl overflow-hidden border-2 border-dashed border-[#D9CBAC] bg-white flex items-center justify-center shrink-0 shadow-inner">
+                            <img id="b2c-admin-hajj-cover-preview-img" src="/static/images/hajj_card.png" class="w-full h-full object-cover" alt="Cover Preview" onerror="this.src='/static/images/hajj_card.png'">
+                        </div>
+                        <div class="flex-1 space-y-1.5">
+                            <input type="file" id="b2c-admin-hajj-cover-photo" name="cover_photo" accept="image/*" onchange="previewB2cHajjCover(this)" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-[#E06A26] file:text-white cursor-pointer">
+                            <p class="text-[10px] text-[#567946] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Dedicated card cover photo explicitly used on Agent Portal Hajj package cards.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 1.5: Travel Dates & Dual Calendar Schedule ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-calendar-days"></i> Travel Dates &amp; Calendar Schedule</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Departure Date (Gregorian Calendar Picker) 📅</label>
+                            <input type="date" id="b2c-admin-hajj-departure-date" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Return Date (Gregorian Calendar Picker) 📅</label>
+                            <input type="date" id="b2c-admin-hajj-return-date" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">English Travel Dates Text (Optional)</label>
+                            <input type="text" id="b2c-admin-hajj-flight-dates" placeholder="e.g. 15 May 2026 - 08 Jun 2026" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Islamic (Hijri) Travel Dates 🌙</label>
+                            <input type="text" id="b2c-admin-hajj-hijri-dates" placeholder="e.g. 01 - 25 Dhul-Hijjah 1447 AH" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 2: Pricing ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-tags"></i> Room Pricing Options (PKR)</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Price Quad *</label>
+                            <input type="number" step="0.01" id="b2c-admin-hajj-price-quad" required placeholder="PKR Quad" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Price Triple *</label>
+                            <input type="number" step="0.01" id="b2c-admin-hajj-price-triple" required placeholder="PKR Triple" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Price Double *</label>
+                            <input type="number" step="0.01" id="b2c-admin-hajj-price-double" required placeholder="PKR Double" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Price Sharing (Optional)</label>
+                            <input type="number" step="0.01" id="b2c-admin-hajj-price-sharing" placeholder="PKR Sharing" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 3: Compliance Section ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-shield-check"></i> Hajj Regulatory &amp; Compliance Details</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Hajj Operator Name *</label>
+                            <input type="text" id="b2c-admin-hajj-operator-name" required placeholder="e.g. Golden Star Hajj Services" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">HGO License Number *</label>
+                            <input type="text" id="b2c-admin-hajj-license-number" required placeholder="e.g. HGO-4092/2026" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Saudi Registration # *</label>
+                            <input type="text" id="b2c-admin-hajj-saudi-registration-number" required placeholder="e.g. SAUDI-REG-98124" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 4: Accommodation Plan Section (Repeatable Hotel Stays) ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <div class="flex justify-between items-center">
+                        <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-hotel"></i> Accommodation Plan (Hotel Stays Sequence)</p>
+                        <button type="button" onclick="addB2cAdminHajjStayRow()" class="px-3 py-1 bg-[#E06A26] hover:bg-[#C45517] text-white text-[10px] font-bold rounded-lg transition-all shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> + Add Another Stay
+                        </button>
+                    </div>
+
+                    <div id="b2c-admin-hajj-accommodations-container" class="space-y-2">
+                        <!-- Dynamic stay rows injected here -->
+                    </div>
+                </div>
+
+                <!-- ── SECTION 5: Multi-Image Gallery ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-images"></i> Package Gallery Photos</p>
+                    <div>
+                        <label class="block font-extrabold text-[#2D4424] mb-1">Upload New Gallery Photos</label>
+                        <input type="file" id="b2c-admin-hajj-gallery-files" multiple accept="image/*" class="w-full px-3 py-1.5 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424]">
+                    </div>
+                    <div id="b2c-admin-hajj-existing-images-container" class="flex flex-wrap gap-2 pt-2">
+                        <!-- Previews of uploaded gallery images -->
+                    </div>
+                </div>
+
+                <!-- Submit buttons -->
+                <div class="flex justify-end gap-3 border-t border-[#E7DCB9] pt-4">
+                    <button type="button" onclick="closeB2cAdminHajjPackageModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-all">Cancel</button>
+                    <button type="submit" class="px-6 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white font-extrabold rounded-xl text-xs shadow-md transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Hajj Package
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

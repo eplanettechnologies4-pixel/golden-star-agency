@@ -61,6 +61,18 @@ def admin_required_api(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped
 
+
+def agent_required_api(view_func):
+    """API decorator for agent-only endpoints. Returns JSON 403 instead of HTML redirect,
+    so AJAX calls don't silently fail when session expires or user is not an agent."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not is_agent_or_admin(request.user):
+            from django.http import JsonResponse
+            return JsonResponse({'success': False, 'message': 'Agent authentication required.', 'orders': [], 'bookings': [], 'visas': [], 'flights': []}, status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ⚡ Global Email Thread Pool — reusable, 4 background workers, no per-email
 #    thread creation overhead. Fire-and-forget async email delivery.
@@ -1410,11 +1422,34 @@ def admin_visas_api(request):
 @csrf_exempt
 @admin_required_api
 def admin_visa_status_api(request, pk):
+    visa = get_object_or_404(VisaApplication, pk=pk)
     if request.method == 'POST':
-        visa = get_object_or_404(VisaApplication, pk=pk)
-        visa.status = request.POST.get('status', visa.status)
+        try:
+            body = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            body = request.POST
+
+        if 'status' in body:
+            visa.status = body.get('status')
+        if 'full_name' in body or 'applicant_name' in body:
+            visa.full_name = body.get('full_name') or body.get('applicant_name')
+        if 'country' in body:
+            visa.country = body.get('country')
+        if 'passport_number' in body:
+            visa.passport_number = body.get('passport_number')
+        if 'visa_type' in body:
+            visa.visa_type = body.get('visa_type')
+        if 'phone' in body:
+            visa.phone = body.get('phone')
+        if 'email' in body:
+            visa.email = body.get('email')
+        if 'additional_notes' in body:
+            visa.additional_notes = body.get('additional_notes')
         visa.save()
         return JsonResponse({'success': True, 'status': visa.status})
+    elif request.method == 'DELETE':
+        visa.delete()
+        return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
 
@@ -1865,7 +1900,7 @@ def agent_dashboard_view(request):
     return render(request, 'dashboard/agent/overview.html')
 
 
-@user_passes_test(is_agent)
+@agent_required_api
 def agent_dashboard_overview_api(request):
     counts = {
         'bookings_total': Booking.objects.filter(user=request.user).count(),
@@ -1878,7 +1913,7 @@ def agent_dashboard_overview_api(request):
     return JsonResponse({'counts': counts, 'wallet_balance': request.user.wallet_balance})
 
 
-@user_passes_test(is_agent)
+@agent_required_api
 def agent_bookings_api(request):
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
     bookings_data = []
@@ -1894,7 +1929,7 @@ def agent_bookings_api(request):
     return JsonResponse({'bookings': bookings_data})
 
 
-@user_passes_test(is_agent)
+@agent_required_api
 def agent_visas_api(request):
     visas = VisaApplication.objects.filter(user=request.user).order_by('-created_at')
     visas_data = []
@@ -1909,7 +1944,7 @@ def agent_visas_api(request):
     return JsonResponse({'visas': visas_data})
 
 
-@user_passes_test(is_agent)
+@agent_required_api
 def agent_flights_api(request):
     flights = FlightQuoteRequest.objects.filter(user=request.user).order_by('-created_at')
     flights_data = []

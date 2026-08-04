@@ -281,7 +281,7 @@
 
                         <!-- Makkah Hotel Distance & Photos -->
                         <div class="flex items-center justify-between text-[11px] gap-2">
-                            <p class="truncate"><i class="fa-solid fa-hotel text-brand-orange mr-1.5"></i><strong>Makkah:</strong> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }} <span class="text-emerald-600 font-bold">({{ pkg.makkah_hotel_distance|default:"350m" }})</span></p>
+                            <p class="truncate"><i class="fa-solid fa-hotel text-brand-orange mr-1.5"></i><strong>Makkah:</strong> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }} <span class="text-emerald-600 font-bold">({% if pkg.makkah_nights %}{{ pkg.makkah_nights }} Nights &bull; {% endif %}{{ pkg.makkah_hotel_distance|default:"350m" }})</span></p>
                             {% if pkg.makkah_hotel_images %}
                             <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 border border-amber-200 shadow-xs" title="{{ pkg.makkah_hotel_images|length }} hotel photos uploaded from backend"><i class="fa-solid fa-camera text-amber-600"></i> {{ pkg.makkah_hotel_images|length }}</span>
                             {% endif %}
@@ -289,7 +289,7 @@
 
                         <!-- Madinah Hotel Distance & Photos -->
                         <div class="flex items-center justify-between text-[11px] gap-2">
-                            <p class="truncate"><i class="fa-solid fa-mosque text-brand-orange mr-1.5"></i><strong>Madinah:</strong> {{ pkg.madinah_hotel_name|default:"Hotel Near Markazia" }} <span class="text-emerald-600 font-bold">({{ pkg.madinah_hotel_distance|default:"150m" }})</span></p>
+                            <p class="truncate"><i class="fa-solid fa-mosque text-brand-orange mr-1.5"></i><strong>Madinah:</strong> {{ pkg.madinah_hotel_name|default:"Hotel Near Markazia" }} <span class="text-emerald-600 font-bold">({% if pkg.madinah_nights %}{{ pkg.madinah_nights }} Nights &bull; {% endif %}{{ pkg.madinah_hotel_distance|default:"150m" }})</span></p>
                             {% if pkg.madinah_hotel_images %}
                             <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 border border-emerald-200 shadow-xs" title="{{ pkg.madinah_hotel_images|length }} hotel photos uploaded from backend"><i class="fa-solid fa-camera text-emerald-600"></i> {{ pkg.madinah_hotel_images|length }}</span>
                             {% endif %}
@@ -305,11 +305,8 @@
                             <span class="text-lg font-extrabold text-brand-orange">PKR {{ pkg.price }}</span>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <button onclick="openQuickBookModal({{ pkg.id }}, '{{ pkg.title|escapejs }}', {{ pkg.price_sharing|default:pkg.price }})" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1">
-                                <i class="fa-solid fa-bolt text-amber-300"></i> Book Now
-                            </button>
-                            <a href="{% url 'package_detail' pk=pkg.pk %}" class="px-3 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1">
-                                Details <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            <a href="{% url 'package_detail' pk=pkg.pk %}" class="px-4 py-2.5 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1.5">
+                                View Details &amp; Reserve <i class="fa-solid fa-arrow-right text-[10px]"></i>
                             </a>
                         </div>
                     </div>

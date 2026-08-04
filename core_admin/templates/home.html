@@ -320,53 +320,7 @@
     </div>
 </section>
 
-<!-- Featured Packages (Light Slate 50 background with white glass cards) -->
-<section class="py-20 bg-slate-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
-            <div>
-                <h2 class="text-3xl font-extrabold text-slate-900">Featured Packages</h2>
-                <p class="text-slate-500 mt-2">Curated luxury and economy packages directly from our central inventory.</p>
-            </div>
-            <a href="{% url 'umrah_list' %}" class="mt-4 md:mt-0 inline-flex items-center gap-2 text-brand-orange hover:text-brand-orange-dark text-sm font-semibold group">
-                View All Packages <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-            </a>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {% for pkg in featured_packages %}
-            <div class="glass-card bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-200/60 shadow-sm transition-all hover:shadow-lg">
-                <div class="relative h-56 bg-slate-100 overflow-hidden group">
-                    <img src="{{ pkg.cover_url }}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                    <span class="absolute top-4 left-4 bg-brand-orange text-white text-xs font-bold px-2.5 py-1 rounded-md uppercase shadow">{{ pkg.category }}</span>
-                    {% if pkg.is_featured %}
-                    <span class="absolute top-4 right-4 bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase shadow flex items-center gap-1"><i class="fa-solid fa-star text-[9px]"></i> Featured</span>
-                    {% endif %}
-                </div>
-                <div class="p-6 flex-grow flex flex-col bg-white">
-                    <div class="flex items-center justify-between text-xs text-slate-500 mb-2 font-semibold">
-                        <span><i class="fa-regular fa-clock mr-1"></i> {{ pkg.duration_days }} Days</span>
-                        <span class="truncate max-w-[140px]"><i class="fa-solid fa-hotel mr-1"></i> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }}</span>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2 line-clamp-1">{{ pkg.title }}</h3>
-                    <p class="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed">{{ pkg.description }}</p>
-                    <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <div>
-                            <span class="text-xs text-slate-400 block">Starting from</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR {{ pkg.price }}</span>
-                        </div>
-                        <a href="{% url 'package_detail' pk=pkg.pk %}" class="px-4 py-2 bg-slate-50 hover:bg-brand-orange hover:text-white text-slate-700 rounded-lg text-xs font-bold transition-all duration-200">Details</a>
-                    </div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-span-3 text-center py-12 text-slate-500 font-semibold">
-                <p>No packages currently available.</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-</section>
 
 <!-- Travel Verticals / Services Overview Section -->
 <section class="py-20 bg-white border-t border-slate-200">

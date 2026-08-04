@@ -23,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import get_object_or_404, render
 
-from .models import Sector, Airline, AirlineFlightInventory, BaggageFareTier, GroupFarePolicy, AgentPackage, AgentTicketOrder, OrderPassenger, Hotel, SeatAdjustmentLog, BankAccount
+from .models import Sector, Airline, AirlineFlightInventory, BaggageFareTier, GroupFarePolicy, AgentPackage, AgentTicketOrder, OrderPassenger, Hotel, SeatAdjustmentLog, BankAccount, AgentHajjPackage, AgentHajjAccommodation
 
 
 # ──────────────────────────────────────────────
@@ -38,12 +38,26 @@ def is_agent(user):
     return user.is_authenticated and (user.role == 'agent' or user.is_superuser)
 
 
+def is_agent_or_admin(user):
+    return user.is_authenticated and (user.is_superuser or user.role in ('agent', 'admin', 'super_admin', 'staff'))
+
+
 def admin_required_api(view_func):
     """API decorator that returns JSON 403 instead of HTML redirect on auth failure."""
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         if not is_admin(request.user):
             return JsonResponse({'success': False, 'message': 'Admin authentication required.'}, status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
+
+
+def agent_required_api(view_func):
+    """API decorator for agent endpoints that returns JSON 403 instead of HTML redirect on auth failure."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not is_agent_or_admin(request.user):
+            return JsonResponse({'success': False, 'message': 'Agent authentication required.', 'packages': [], 'orders': [], 'inventory': []}, status=403)
         return view_func(request, *args, **kwargs)
     return _wrapped
 
@@ -91,12 +105,17 @@ def admin_sectors_api(request):
         if not name or not origin_city or not destination_city:
             return JsonResponse({'success': False, 'message': 'Sector name, origin, and destination are required.'}, status=400)
 
+        is_active_raw = request.POST.get('is_active')
+        is_active_val = is_active_raw in ('on', 'true', '1', 'True', True) if is_active_raw is not None else True
+        is_round_trip_raw = request.POST.get('is_round_trip')
+        is_round_trip_val = is_round_trip_raw in ('on', 'true', '1', 'True', True) if is_round_trip_raw is not None else False
+
         sector = Sector(
             name=name,
             origin_city=origin_city,
             destination_city=destination_city,
-            is_round_trip=request.POST.get('is_round_trip', 'false') == 'true',
-            is_active=request.POST.get('is_active', 'true') == 'true',
+            is_round_trip=is_round_trip_val,
+            is_active=is_active_val,
         )
         sector.save()
         return JsonResponse({'success': True, 'id': sector.id, 'message': 'Sector created successfully.'})
@@ -155,21 +174,27 @@ def admin_sector_detail_api(request, pk):
 
 @csrf_exempt
 @admin_required_api
+@csrf_exempt
+@admin_required_api
 def admin_adjust_seats_api(request, pk):
     """
     POST → Manually update seat counts (total_seats or booked_seats)
-           for FlightInventory or AgentPackage without impacting financial ledgers or orders.
+           for FlightInventory, AgentPackage, or AgentHajjPackage without impacting financial ledgers or orders.
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
 
-    item_type = request.POST.get('item_type', 'inventory').strip()  # 'inventory' or 'package'
+    item_type = request.POST.get('item_type', 'inventory').strip()  # 'inventory', 'package', 'hajj_package'
     reason = request.POST.get('reason', 'Offline / Manual Admin Seat Adjustment').strip()
 
-    if item_type == 'package':
+    if item_type in ('package', 'umrah_package'):
         item = get_object_or_404(AgentPackage, pk=pk)
         fi_obj = None
         pkg_obj = item
+    elif item_type in ('hajj_package', 'hajj'):
+        item = get_object_or_404(AgentHajjPackage, pk=pk)
+        fi_obj = None
+        pkg_obj = None
     else:
         item = get_object_or_404(AirlineFlightInventory, pk=pk)
         fi_obj = item
@@ -180,23 +205,30 @@ def admin_adjust_seats_api(request, pk):
         old_val = item.total_seats
         item.total_seats = max(0, new_val)
         target_field = 'total_seats'
+        if hasattr(item, 'available_seats') and not isinstance(getattr(type(item), 'available_seats', None), property):
+            item.available_seats = max(0, new_val)
     elif 'booked_seats' in request.POST and request.POST.get('booked_seats') != '':
         new_val = int(request.POST.get('booked_seats') or 0)
-        old_val = item.booked_seats
-        item.booked_seats = max(0, new_val)
-        target_field = 'booked_seats'
+        old_val = getattr(item, 'booked_seats', 0)
+        if hasattr(item, 'booked_seats'):
+            item.booked_seats = max(0, new_val)
+            target_field = 'booked_seats'
+        else:
+            item.available_seats = max(0, item.total_seats - new_val)
+            target_field = 'available_seats'
     elif 'available_seats_delta' in request.POST and request.POST.get('available_seats_delta') != '':
         delta = int(request.POST.get('available_seats_delta') or 0)
         old_val = item.total_seats
         new_val = max(0, item.total_seats + delta)
         item.total_seats = new_val
+        if hasattr(item, 'available_seats') and not isinstance(getattr(type(item), 'available_seats', None), property):
+            item.available_seats = max(0, item.available_seats + delta)
         target_field = 'total_seats'
     else:
         return JsonResponse({'success': False, 'message': 'No valid seat count or delta provided.'}, status=400)
 
     item.save()
 
-    # Log audit entry (NEVER referenced or joined into any financial analytics queries)
     SeatAdjustmentLog.objects.create(
         flight_inventory=fi_obj,
         agent_package=pkg_obj,
@@ -207,12 +239,15 @@ def admin_adjust_seats_api(request, pk):
         reason=reason
     )
 
+    booked_val = getattr(item, 'booked_seats', max(0, item.total_seats - getattr(item, 'available_seats', item.total_seats)))
+    avail_val = item.available_seats
+
     return JsonResponse({
         'success': True,
         'message': f'Seats updated successfully ({old_val} → {new_val}).',
         'total_seats': item.total_seats,
-        'booked_seats': item.booked_seats,
-        'available_seats': item.available_seats
+        'booked_seats': booked_val,
+        'available_seats': avail_val
     })
 
 
@@ -247,10 +282,13 @@ def admin_airlines_api(request):
         if not name:
             return JsonResponse({'success': False, 'message': 'Airline name is required.'}, status=400)
 
+        is_active_raw = request.POST.get('is_active')
+        is_active_val = is_active_raw in ('on', 'true', '1', 'True', True) if is_active_raw is not None else True
+
         airline = Airline(
             name=name,
             iata_code=iata_code,
-            is_active=request.POST.get('is_active', 'true') in ('true', 'on', '1', True),
+            is_active=is_active_val,
         )
         if 'logo' in request.FILES:
             airline.logo = request.FILES['logo']
@@ -678,12 +716,16 @@ def admin_agent_packages_api(request):
                 'available_seats':          p.available_seats,
                 'makkah_hotel_name':        p.makkah_hotel_name,
                 'makkah_hotel_distance':    p.makkah_hotel_distance,
+                'makkah_nights':            p.makkah_nights,
                 'madinah_hotel_name':       p.madinah_hotel_name,
                 'madinah_hotel_distance':   p.madinah_hotel_distance,
+                'madinah_nights':           p.madinah_nights,
                 'airline_id':               p.airline_id,
                 'airline_name':             p.airline.name if p.airline else 'Not Specified',
                 'airline_logo_url':         p.airline.logo.url if (p.airline and p.airline.logo) else None,
                 'images':                   p.images or [],
+                'cover_photo':              p.cover_photo.url if p.cover_photo else '',
+                'cover_photo_url':          p.cover_photo_url,
                 'is_active':                p.is_active,
                 'created_at':               p.created_at.strftime('%Y-%m-%d %H:%M'),
             })
@@ -786,10 +828,13 @@ def admin_agent_packages_api(request):
             booked_seats=int(request.POST.get('booked_seats', 0) or 0),
             makkah_hotel_name=request.POST.get('makkah_hotel_name', '').strip(),
             makkah_hotel_distance=request.POST.get('makkah_hotel_distance', '').strip(),
+            makkah_nights=int(request.POST.get('makkah_nights', 7) or 7),
             madinah_hotel_name=request.POST.get('madinah_hotel_name', '').strip(),
             madinah_hotel_distance=request.POST.get('madinah_hotel_distance', '').strip(),
+            madinah_nights=int(request.POST.get('madinah_nights', 7) or 7),
             airline=airline,
             images=images,
+            cover_photo=request.FILES.get('cover_photo') or request.FILES.get('cover_image'),
             is_active=is_active,
         )
         pkg.save()
@@ -895,8 +940,13 @@ def admin_agent_package_detail_api(request, pk):
 
         pkg.makkah_hotel_name = request.POST.get('makkah_hotel_name', pkg.makkah_hotel_name).strip()
         pkg.makkah_hotel_distance = request.POST.get('makkah_hotel_distance', pkg.makkah_hotel_distance).strip()
+        if 'makkah_nights' in request.POST and request.POST.get('makkah_nights').strip():
+            pkg.makkah_nights = int(request.POST.get('makkah_nights'))
+
         pkg.madinah_hotel_name = request.POST.get('madinah_hotel_name', pkg.madinah_hotel_name).strip()
         pkg.madinah_hotel_distance = request.POST.get('madinah_hotel_distance', pkg.madinah_hotel_distance).strip()
+        if 'madinah_nights' in request.POST and request.POST.get('madinah_nights').strip():
+            pkg.madinah_nights = int(request.POST.get('madinah_nights'))
 
         airline_id = request.POST.get('airline_id', '').strip()
         if airline_id:
@@ -939,6 +989,12 @@ def admin_agent_package_detail_api(request, pk):
                 existing_images.append(f"{settings.MEDIA_URL}agent_packages/{safe_name}")
 
         pkg.images = existing_images
+
+        if 'cover_photo' in request.FILES:
+            pkg.cover_photo = request.FILES['cover_photo']
+        elif 'cover_image' in request.FILES:
+            pkg.cover_photo = request.FILES['cover_image']
+
         if 'is_active' in request.POST:
             is_active_val = request.POST.get('is_active')
             pkg.is_active = is_active_val in ('on', 'true', '1', 'True', True)
@@ -1517,11 +1573,11 @@ def admin_adjust_group_seats_api(request, pk):
     return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
 
 
-@user_passes_test(is_agent)
+@agent_required_api
 def agent_packages_api(request):
     """
     GET → List active agent packages (supports ?type=umrah or ?type=hajj)
-    Exposes available_seats, NEVER raw booked_seats
+    Exposes available_seats, total_seats, booked_seats
     """
     pkg_type = request.GET.get('type', '').strip().lower()
     packages = AgentPackage.objects.filter(is_active=True).select_related('airline', 'sector').prefetch_related('hotels').all()
@@ -1561,6 +1617,8 @@ def agent_packages_api(request):
             'return_date':              p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
             'hotel_ids':                list(p.hotels.values_list('id', flat=True)),
             'hotels':                   [{'id': h.id, 'name': h.name, 'city': h.city, 'city_display': h.get_city_display(), 'distance_from_haram': h.distance_from_haram, 'price_sharing': float(h.price_sharing) if h.price_sharing is not None else None, 'price_quad': float(h.price_quad) if h.price_quad is not None else None, 'price_triple': float(h.price_triple) if h.price_triple is not None else None, 'price_double': float(h.price_double) if h.price_double is not None else None} for h in p.hotels.all()],
+            'total_seats':              p.total_seats,
+            'booked_seats':             p.booked_seats,
             'available_seats':          p.available_seats,
             'makkah_hotel_name':        p.makkah_hotel_name,
             'makkah_hotel_distance':    p.makkah_hotel_distance,
@@ -1569,6 +1627,8 @@ def agent_packages_api(request):
             'airline_name':             p.airline.name if p.airline else 'Not Specified',
             'airline_logo_url':         p.airline.logo.url if (p.airline and p.airline.logo) else None,
             'images':                   p.images or [],
+            'cover_photo':              p.cover_photo.url if p.cover_photo else '',
+            'cover_photo_url':          p.cover_photo_url,
         })
     return JsonResponse({'success': True, 'packages': data})
 
@@ -1589,6 +1649,130 @@ def agent_sectors_api(request):
             'is_round_trip': s.is_round_trip,
         })
     return JsonResponse({'success': True, 'sectors': data})
+
+
+@agent_required_api
+def agent_airlines_api(request):
+    """
+    GET → List active airlines for agent portal ticket search toolbar
+    """
+    airlines = Airline.objects.filter(is_active=True).order_by('name')
+    data = [{
+        'id': a.id,
+        'name': a.name,
+        'code': a.iata_code or '',
+        'logo_url': a.logo.url if a.logo else None,
+    } for a in airlines]
+    return JsonResponse({'success': True, 'airlines': data})
+
+
+@agent_required_api
+def agent_flight_inventory_api(request):
+    """
+    GET → List active flight inventories for agent portal (flight tickets)
+    Calculates available_seats = total_seats - booked_seats
+    """
+    airline_id = request.GET.get('airline_id', '').strip()
+    inventories = AirlineFlightInventory.objects.filter(is_active=True).select_related('airline', 'sector').prefetch_related('baggage_tiers').all()
+    if airline_id:
+        inventories = inventories.filter(airline_id=airline_id)
+
+    data = []
+    for fi in inventories:
+        avail = max(0, fi.total_seats - fi.booked_seats)
+        baggage_tiers = [{'id': b.id, 'weight_kg': b.weight_kg, 'fare': str(b.fare)} for b in fi.baggage_tiers.all()]
+        first_fare = baggage_tiers[0]['fare'] if baggage_tiers else '0.00'
+        base_fare_str = str(getattr(fi, 'base_fare', first_fare))
+        data.append({
+            'id':                     fi.id,
+            'airline_id':             fi.airline_id,
+            'airline_name':           fi.airline.name if fi.airline else '',
+            'airline_logo_url':       fi.airline.logo.url if (fi.airline and fi.airline.logo) else None,
+            'departure_city':         fi.departure_city,
+            'destination_city':       fi.destination_city,
+            'departure_time':         fi.departure_time,
+            'arrival_time':           fi.arrival_time,
+            'return_departure_time': fi.return_departure_time,
+            'return_arrival_time':   fi.return_arrival_time,
+            'trip_type':              fi.trip_type,
+            'route_type':             fi.route_type,
+            'via_city':               fi.via_city or '',
+            'has_meal':               fi.has_meal,
+            'base_fare':              base_fare_str,
+            'total_seats':            fi.total_seats,
+            'booked_seats':           fi.booked_seats,
+            'available_seats':        avail,
+            'baggage_tiers':          baggage_tiers,
+        })
+    return JsonResponse({'success': True, 'inventory': data})
+
+
+@agent_required_api
+def agent_group_fare_policies_api(request):
+    """
+    GET → List active B2B group ticket policies for agent portal
+    Supports both standalone group tickets and inventory-linked group policies.
+    """
+    policies = GroupFarePolicy.objects.filter(is_active=True).select_related('airline', 'flight_inventory', 'flight_inventory__airline').all()
+    data = []
+    for p in policies:
+        fi = p.flight_inventory
+        air_name = p.airline_name_custom or (p.airline.name if p.airline else (fi.airline.name if (fi and fi.airline) else 'Saudi Airlines'))
+        air_logo = (p.airline.logo.url if (p.airline and p.airline.logo) else (fi.airline.logo.url if (fi and fi.airline and fi.airline.logo) else None))
+        
+        dep = p.departure_city or (fi.departure_city if fi else 'Karachi')
+        dest = p.destination_city or (fi.destination_city if fi else 'Jeddah')
+        d_time = p.departure_time or (fi.departure_time if fi else '10:00 AM')
+        a_time = p.arrival_time or (fi.arrival_time if fi else '02:00 PM')
+        ret_d_time = p.return_departure_time or (fi.return_departure_time if fi else '')
+        ret_a_time = p.return_arrival_time or (fi.return_arrival_time if fi else '')
+        
+        t_type = p.trip_type or (fi.trip_type if fi else 'oneway')
+        r_type = p.route_type or (fi.route_type if fi else 'direct')
+        v_city = p.via_city or (fi.via_city if fi else '')
+        meal = p.has_meal if fi is None else fi.has_meal
+
+        t_seats = p.total_seats if fi is None else fi.total_seats
+        a_seats = p.available_seats if fi is None else max(0, fi.total_seats - fi.booked_seats)
+
+        b_fare = float(p.base_fare or (fi.base_fare if fi else 0))
+        if p.group_fare_override is not None and float(p.group_fare_override) > 0:
+            g_fare = float(p.group_fare_override)
+        elif p.discount_type == 'percentage':
+            g_fare = max(0.0, b_fare - (b_fare * float(p.discount_value) / 100.0))
+        else:
+            g_fare = max(0.0, b_fare - float(p.discount_value))
+
+        data.append({
+            'id':                       p.id,
+            'flight_inventory_id':      fi.id if fi else None,
+            'airline_id':               p.airline_id if p.airline else (fi.airline_id if fi else None),
+            'airline_name':             air_name,
+            'airline_logo_url':         air_logo,
+            'departure_city':           dep,
+            'destination_city':         dest,
+            'departure_time':           d_time,
+            'arrival_time':             a_time,
+            'return_departure_time':   ret_d_time,
+            'return_arrival_time':     ret_a_time,
+            'trip_type':                t_type,
+            'route_type':               r_type,
+            'via_city':                 v_city,
+            'has_meal':                 meal,
+            'total_seats':              t_seats,
+            'available_seats':          a_seats,
+            'min_group_size':           p.min_group_size,
+            'discount_type':            p.discount_type,
+            'discount_value':           float(p.discount_value),
+            'baggage_weight_kg':        p.baggage_weight_kg,
+            'return_baggage_weight_kg': p.return_baggage_weight_kg,
+            'base_fare':                round(b_fare, 2),
+            'group_fare_override':      float(p.group_fare_override) if p.group_fare_override is not None else None,
+            'group_fare':               round(g_fare, 2),
+            'is_active':                p.is_active,
+            'route_display':            f"{air_name} — {dep} ➔ {dest}",
+        })
+    return JsonResponse({'success': True, 'policies': data})
 
 
 def get_agent_wallet_balance(agent):
@@ -1674,21 +1858,26 @@ def calculate_order_total_fare(order_type, flight_inventory, agent_package,
         # Selected room occupancy pricing (sharing, quad, triple, double)
         base_room_price = None
         st = str(selected_sharing_type or '').strip().lower()
-        if st == 'quad' and agent_package.price_quad is not None:
-            base_room_price = agent_package.price_quad
-        elif st == 'triple' and agent_package.price_triple is not None:
-            base_room_price = agent_package.price_triple
-        elif st == 'double' and agent_package.price_double is not None:
-            base_room_price = agent_package.price_double
-        elif st == 'sharing' and agent_package.price_sharing is not None:
-            base_room_price = agent_package.price_sharing
+        if agent_package:
+            if st == 'quad' and getattr(agent_package, 'price_quad', None) is not None:
+                base_room_price = agent_package.price_quad
+            elif st == 'triple' and getattr(agent_package, 'price_triple', None) is not None:
+                base_room_price = agent_package.price_triple
+            elif st == 'double' and getattr(agent_package, 'price_double', None) is not None:
+                base_room_price = agent_package.price_double
+            elif st == 'sharing' and getattr(agent_package, 'price_sharing', None) is not None:
+                base_room_price = agent_package.price_sharing
 
-        if base_room_price is None:
-            base_room_price = agent_package.agent_price
+            if base_room_price is None:
+                base_room_price = getattr(agent_package, 'agent_price', 0) or getattr(agent_package, 'price_sharing', 0) or 0
 
-        adult_price = Decimal(str(agent_package.adult_price)) if agent_package.adult_price is not None else Decimal(str(base_room_price))
-        child_price = Decimal(str(agent_package.child_price)) if agent_package.child_price is not None else Decimal(str(base_room_price))
-        infant_price = Decimal(str(agent_package.infant_price)) if agent_package.infant_price is not None else Decimal('0.00')
+            adult_price = Decimal(str(getattr(agent_package, 'adult_price', None) or base_room_price))
+            child_price = Decimal(str(getattr(agent_package, 'child_price', None) or base_room_price))
+            infant_price = Decimal(str(getattr(agent_package, 'infant_price', None) or '0.00'))
+        else:
+            adult_price = Decimal('0.00')
+            child_price = Decimal('0.00')
+            infant_price = Decimal('0.00')
 
         return (Decimal(str(adult_count)) * adult_price) + (Decimal(str(child_count)) * child_price) + (Decimal(str(infant_count)) * infant_price)
 
@@ -1807,6 +1996,7 @@ def agent_create_ticket_order_api(request):
         with transaction.atomic():
             inventory = None
             pkg = None
+            hajj_pkg = None
             selected_hotel = None
 
             if selected_hotel_id:
@@ -1865,17 +2055,31 @@ def agent_create_ticket_order_api(request):
                     inventory.save()
 
             elif booking_type in ['umrah', 'hajj']:
-                # LOCK the package row
-                pkg = AgentPackage.objects.select_for_update().get(id=item_id)
-                available = pkg.total_seats - pkg.booked_seats
-                if total_seats_requested > available:
-                    return JsonResponse({
-                        'success': False,
-                        'error': f'Only {available} seats available for this package.'
-                    }, status=400)
+                hajj_pkg_obj = AgentHajjPackage.objects.select_for_update().filter(id=item_id).first()
+                if hajj_pkg_obj and booking_type == 'hajj':
+                    available = hajj_pkg_obj.available_seats
+                    if total_seats_requested > available:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Only {available} seats available for this Hajj package.'
+                        }, status=400)
+                    hajj_pkg_obj.available_seats = max(0, hajj_pkg_obj.available_seats - total_seats_requested)
+                    hajj_pkg_obj.save()
+                    hajj_pkg = hajj_pkg_obj
+                else:
+                    # LOCK the package row
+                    pkg = AgentPackage.objects.select_for_update().filter(id=item_id).first()
+                    if not pkg:
+                        return JsonResponse({'success': False, 'error': 'Package details not found.'}, status=404)
+                    available = pkg.total_seats - pkg.booked_seats
+                    if total_seats_requested > available:
+                        return JsonResponse({
+                            'success': False,
+                            'error': f'Only {available} seats available for this package.'
+                        }, status=400)
 
-                pkg.booked_seats += total_seats_requested
-                pkg.save()
+                    pkg.booked_seats += total_seats_requested
+                    pkg.save()
 
             # ── Fare calculation: standalone policy uses its own group_fare ──
             if standalone_policy:
@@ -1891,7 +2095,7 @@ def agent_create_ticket_order_api(request):
                 calculated_total_fare = calculate_order_total_fare(
                     order_type=booking_type,
                     flight_inventory=inventory,
-                    agent_package=pkg,
+                    agent_package=pkg or hajj_pkg,
                     baggage_weight_kg=baggage_weight_kg,
                     passenger_count=total_seats_requested,
                     booking_type=booking_type,
@@ -1918,6 +2122,7 @@ def agent_create_ticket_order_api(request):
                 order_type=booking_type,
                 flight_inventory=inventory,
                 agent_package=pkg,
+                agent_hajj_package=hajj_pkg,
                 group_policy=standalone_policy,
                 selected_hotel=selected_hotel,
                 selected_sharing_type=selected_sharing_type,
@@ -2087,6 +2292,12 @@ def restore_order_seats_and_update_status(order, new_status='cancelled'):
             if pkg:
                 pkg.booked_seats = max(0, pkg.booked_seats - seat_count)
                 pkg.save()
+
+        if order.agent_hajj_package:
+            hpkg = AgentHajjPackage.objects.select_for_update().filter(id=order.agent_hajj_package.id).first()
+            if hpkg:
+                hpkg.available_seats += seat_count
+                hpkg.save()
 
         if order.group_policy:
             pol = GroupFarePolicy.objects.select_for_update().filter(id=order.group_policy.id).first()
@@ -2467,7 +2678,7 @@ def agent_delete_ticket_order_api(request, pk):
 
 
 @csrf_exempt
-@user_passes_test(is_agent)
+@user_passes_test(is_agent_or_admin)
 def agent_my_orders_api(request):
     """
     GET → List all AgentTicketOrder records belonging to the logged-in agent.
@@ -2513,6 +2724,7 @@ def agent_my_orders_api(request):
             'route_title': route_title,
             'baggage_weight_kg': order.baggage_weight_kg,
             'traveler_contact_email': order.traveler_contact_email,
+            'agent_contact_email': order.agent_contact_email,
             'agent_phone_number': order.agent_phone_number or getattr(order.agent, 'phone', '') or '',
             'total_fare': str(order.total_fare),
             'status': order.status,
@@ -2856,6 +3068,356 @@ def agent_bank_accounts_api(request):
         return JsonResponse({'success': True, 'bank_accounts': data})
 
     return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# STANDALONE AGENT HAJJ PACKAGES (B2B) — ADMIN & AGENT APIS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _serialize_agent_hajj_package(p):
+    accommodations_data = []
+    for acc in p.accommodations.select_related('hotel').all():
+        h_name = acc.hotel.name if acc.hotel else (acc.manual_hotel_name or '')
+        h_dist = acc.hotel.distance_from_haram if acc.hotel else (acc.manual_hotel_distance or '')
+        accommodations_data.append({
+            'id': acc.id,
+            'city': acc.city,
+            'city_display': acc.get_city_display(),
+            'hotel_id': acc.hotel_id,
+            'manual_hotel_name': acc.manual_hotel_name or '',
+            'manual_hotel_distance': acc.manual_hotel_distance or '',
+            'hotel_name': h_name,
+            'hotel_distance': h_dist,
+            'nights': acc.nights,
+            'order': acc.order,
+        })
+
+    makkah_hotel = next((acc for acc in accommodations_data if acc['city'] == 'makkah'), None)
+    madinah_hotel = next((acc for acc in accommodations_data if acc['city'] == 'madinah'), None)
+
+    return {
+        'id': p.id,
+        'package_type': 'hajj',
+        'package_type_display': 'Hajj Package',
+        'is_hajj_model': True,
+        'title': p.title,
+        'description': p.description,
+        'company_logo_url': p.logo_url,
+        'company_logo': p.logo_url,
+        'duration_days': p.duration_days,
+
+        'departure_date': p.departure_date.strftime('%Y-%m-%d') if p.departure_date else '',
+        'return_date': p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
+
+        'includes_meal': p.includes_meal,
+        'meal_display': 'Yes' if p.includes_meal else 'No',
+        'meal_detail': p.meal_detail or 'Full Board Buffet',
+
+        'airline_name': p.airline_name or 'Saudi Airlines',
+        'airline_logo_url': p.airline_logo_url,
+        'flight_name': p.flight_name or p.airline_name or 'Saudi Airlines',
+        'flight_route': p.flight_route or 'KHI - JED - MED - KHI',
+
+        'price_quad': str(p.price_quad),
+        'price_triple': str(p.price_triple),
+        'price_double': str(p.price_double),
+        'price_sharing': str(p.price_sharing) if p.price_sharing is not None else '',
+        'agent_price': str(p.starting_price),
+        'starting_price': str(p.starting_price),
+
+        'hajj_operator_name': p.hajj_operator_name,
+        'license_number': p.license_number,
+        'saudi_registration_number': p.saudi_registration_number,
+
+        'total_seats': p.total_seats,
+        'available_seats': p.available_seats,
+
+        'accommodations': accommodations_data,
+        'makkah_hotel_name': p.makkah_hotel_name or (makkah_hotel['hotel_name'] if makkah_hotel else 'N/A'),
+        'makkah_hotel_distance': p.makkah_hotel_distance or (makkah_hotel['hotel_distance'] if makkah_hotel else ''),
+        'madinah_hotel_name': p.madinah_hotel_name or (madinah_hotel['hotel_name'] if madinah_hotel else 'N/A'),
+        'madinah_hotel_distance': p.madinah_hotel_distance or (madinah_hotel['hotel_distance'] if madinah_hotel else ''),
+
+        'images': p.images or [],
+        'is_active': p.is_active,
+        'created_at': p.created_at.strftime('%Y-%m-%d %H:%M'),
+    }
+
+
+@csrf_exempt
+@admin_required_api
+def admin_agent_hajj_packages_api(request):
+    """
+    GET  → list all agent hajj packages
+    POST → create a new agent hajj package with nested accommodations
+    """
+    if request.method == 'GET':
+        packages = AgentHajjPackage.objects.prefetch_related('accommodations__hotel').all()
+        data = [_serialize_agent_hajj_package(p) for p in packages]
+        return JsonResponse({'success': True, 'packages': data})
+
+    if request.method == 'POST':
+        try:
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip() or title
+            duration_days = int(request.POST.get('duration_days', 15))
+
+            departure_date_raw = request.POST.get('departure_date', '').strip()
+            return_date_raw = request.POST.get('return_date', '').strip()
+            departure_date = departure_date_raw if departure_date_raw else None
+            return_date = return_date_raw if return_date_raw else None
+
+            includes_meal = request.POST.get('includes_meal', 'true').lower() in ('true', '1', 'on')
+            meal_detail = request.POST.get('meal_detail', 'Full Board Buffet').strip()
+
+            airline_name = request.POST.get('airline_name', 'Saudi Airlines').strip()
+            flight_name = request.POST.get('flight_name', '').strip() or airline_name
+            flight_route = request.POST.get('flight_route', 'KHI - JED - MED - KHI').strip()
+
+            makkah_hotel_name = request.POST.get('makkah_hotel_name', '').strip()
+            makkah_hotel_distance = request.POST.get('makkah_hotel_distance', '').strip()
+            madinah_hotel_name = request.POST.get('madinah_hotel_name', '').strip()
+            madinah_hotel_distance = request.POST.get('madinah_hotel_distance', '').strip()
+
+            price_quad = Decimal(request.POST.get('price_quad', '0.00'))
+            price_triple = Decimal(request.POST.get('price_triple', '0.00'))
+            price_double = Decimal(request.POST.get('price_double', '0.00'))
+            price_sharing_raw = request.POST.get('price_sharing', '').strip()
+            price_sharing = Decimal(price_sharing_raw) if price_sharing_raw else None
+
+            hajj_operator_name = request.POST.get('hajj_operator_name', '').strip()
+            license_number = request.POST.get('license_number', '').strip()
+            saudi_registration_number = request.POST.get('saudi_registration_number', '').strip()
+
+            total_seats = int(request.POST.get('total_seats', 30))
+            available_seats = int(request.POST.get('available_seats', total_seats))
+
+            is_active = request.POST.get('is_active', 'true').lower() in ('true', '1', 'on')
+
+            if not title:
+                return JsonResponse({'success': False, 'message': 'Package title is required.'}, status=400)
+
+            with transaction.atomic():
+                pkg = AgentHajjPackage.objects.create(
+                    title=title,
+                    description=description,
+                    duration_days=duration_days,
+                    departure_date=departure_date,
+                    return_date=return_date,
+                    includes_meal=includes_meal,
+                    meal_detail=meal_detail,
+                    airline_name=airline_name,
+                    flight_name=flight_name,
+                    flight_route=flight_route,
+                    makkah_hotel_name=makkah_hotel_name,
+                    makkah_hotel_distance=makkah_hotel_distance,
+                    madinah_hotel_name=madinah_hotel_name,
+                    madinah_hotel_distance=madinah_hotel_distance,
+                    price_quad=price_quad,
+                    price_triple=price_triple,
+                    price_double=price_double,
+                    price_sharing=price_sharing,
+                    hajj_operator_name=hajj_operator_name,
+                    license_number=license_number,
+                    saudi_registration_number=saudi_registration_number,
+                    total_seats=total_seats,
+                    available_seats=available_seats,
+                    is_active=is_active
+                )
+
+                if 'company_logo' in request.FILES:
+                    pkg.company_logo = request.FILES['company_logo']
+                    pkg.save()
+
+                if 'airline_logo' in request.FILES:
+                    pkg.airline_logo = request.FILES['airline_logo']
+                    pkg.save()
+
+                # Process gallery image files
+                if request.FILES.getlist('images'):
+                    images_list = []
+                    for idx, img_file in enumerate(request.FILES.getlist('images')):
+                        ext = os.path.splitext(img_file.name)[1]
+                        filename = f"hajj_pkg_{pkg.id}_img_{idx+1}{ext}"
+                        save_path = os.path.join(settings.MEDIA_ROOT, 'agent_hajj', 'gallery', filename)
+                        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                        with open(save_path, 'wb+') as destination:
+                            for chunk in img_file.chunks():
+                                destination.write(chunk)
+                        images_list.append(f"{settings.MEDIA_URL}agent_hajj/gallery/{filename}")
+                    pkg.images = images_list
+                    pkg.save()
+
+                # Process nested accommodation stays
+                accommodations_json = request.POST.get('accommodations', '[]')
+                try:
+                    stays = json.loads(accommodations_json)
+                except Exception:
+                    stays = []
+
+                for order, stay in enumerate(stays):
+                    city = stay.get('city', 'makkah')
+                    hotel_id = stay.get('hotel_id')
+                    manual_hotel_name = stay.get('manual_hotel_name', '').strip()
+                    manual_hotel_distance = stay.get('manual_hotel_distance', '').strip()
+                    nights = int(stay.get('nights', 1))
+
+                    hotel = Hotel.objects.filter(pk=hotel_id).first() if hotel_id else None
+                    if hotel or manual_hotel_name:
+                        AgentHajjAccommodation.objects.create(
+                            agent_hajj_package=pkg,
+                            city=city,
+                            hotel=hotel,
+                            manual_hotel_name=manual_hotel_name,
+                            manual_hotel_distance=manual_hotel_distance,
+                            nights=nights,
+                            order=order
+                        )
+
+            return JsonResponse({'success': True, 'message': 'Agent Hajj Package created successfully!', 'package': _serialize_agent_hajj_package(pkg)})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@csrf_exempt
+@admin_required_api
+def admin_agent_hajj_package_detail_api(request, pk):
+    """
+    GET    → Retrieve single AgentHajjPackage details
+    POST   → Update AgentHajjPackage and replace all accommodation stays
+    DELETE → Delete AgentHajjPackage
+    """
+    pkg = get_object_or_404(AgentHajjPackage, pk=pk)
+
+    if request.method == 'GET':
+        return JsonResponse({'success': True, 'package': _serialize_agent_hajj_package(pkg)})
+
+    if request.method == 'DELETE':
+        pkg.delete()
+        return JsonResponse({'success': True, 'message': 'Agent Hajj Package deleted successfully.'})
+
+    if request.method == 'POST':
+        try:
+            pkg.title = request.POST.get('title', pkg.title).strip()
+            pkg.description = request.POST.get('description', pkg.description).strip()
+            if 'duration_days' in request.POST and request.POST.get('duration_days').strip():
+                pkg.duration_days = int(request.POST.get('duration_days'))
+
+            if 'departure_date' in request.POST:
+                raw_dep = request.POST.get('departure_date', '').strip()
+                pkg.departure_date = raw_dep if raw_dep else None
+            if 'return_date' in request.POST:
+                raw_ret = request.POST.get('return_date', '').strip()
+                pkg.return_date = raw_ret if raw_ret else None
+
+            if 'includes_meal' in request.POST:
+                pkg.includes_meal = request.POST.get('includes_meal', 'true').lower() in ('true', '1', 'on')
+            if 'meal_detail' in request.POST:
+                pkg.meal_detail = request.POST.get('meal_detail', pkg.meal_detail).strip()
+
+            if 'airline_name' in request.POST:
+                pkg.airline_name = request.POST.get('airline_name', pkg.airline_name).strip()
+            if 'flight_name' in request.POST:
+                pkg.flight_name = request.POST.get('flight_name', pkg.flight_name).strip()
+            if 'flight_route' in request.POST:
+                pkg.flight_route = request.POST.get('flight_route', pkg.flight_route).strip()
+
+            if 'makkah_hotel_name' in request.POST:
+                pkg.makkah_hotel_name = request.POST.get('makkah_hotel_name', '').strip()
+            if 'makkah_hotel_distance' in request.POST:
+                pkg.makkah_hotel_distance = request.POST.get('makkah_hotel_distance', '').strip()
+            if 'madinah_hotel_name' in request.POST:
+                pkg.madinah_hotel_name = request.POST.get('madinah_hotel_name', '').strip()
+            if 'madinah_hotel_distance' in request.POST:
+                pkg.madinah_hotel_distance = request.POST.get('madinah_hotel_distance', '').strip()
+
+            if 'price_quad' in request.POST and request.POST.get('price_quad').strip():
+                pkg.price_quad = Decimal(request.POST.get('price_quad'))
+            if 'price_triple' in request.POST and request.POST.get('price_triple').strip():
+                pkg.price_triple = Decimal(request.POST.get('price_triple'))
+            if 'price_double' in request.POST and request.POST.get('price_double').strip():
+                pkg.price_double = Decimal(request.POST.get('price_double'))
+            if 'price_sharing' in request.POST:
+                raw_sharing = request.POST.get('price_sharing', '').strip()
+                pkg.price_sharing = Decimal(raw_sharing) if raw_sharing else None
+
+            pkg.hajj_operator_name = request.POST.get('hajj_operator_name', pkg.hajj_operator_name).strip()
+            pkg.license_number = request.POST.get('license_number', pkg.license_number).strip()
+            pkg.saudi_registration_number = request.POST.get('saudi_registration_number', pkg.saudi_registration_number).strip()
+
+            if 'total_seats' in request.POST and request.POST.get('total_seats').strip():
+                pkg.total_seats = int(request.POST.get('total_seats'))
+            if 'available_seats' in request.POST and request.POST.get('available_seats').strip():
+                pkg.available_seats = int(request.POST.get('available_seats'))
+
+            if 'is_active' in request.POST:
+                pkg.is_active = request.POST.get('is_active', 'true').lower() in ('true', '1', 'on')
+
+            with transaction.atomic():
+                if 'company_logo' in request.FILES:
+                    pkg.company_logo = request.FILES['company_logo']
+                if 'airline_logo' in request.FILES:
+                    pkg.airline_logo = request.FILES['airline_logo']
+
+                if request.FILES.getlist('images'):
+                    images_list = []
+                    for idx, img_file in enumerate(request.FILES.getlist('images')):
+                        ext = os.path.splitext(img_file.name)[1]
+                        filename = f"hajj_pkg_{pkg.id}_img_{idx+1}{ext}"
+                        save_path = os.path.join(settings.MEDIA_ROOT, 'agent_hajj', 'gallery', filename)
+                        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                        with open(save_path, 'wb+') as destination:
+                            for chunk in img_file.chunks():
+                                destination.write(chunk)
+                        images_list.append(f"{settings.MEDIA_URL}agent_hajj/gallery/{filename}")
+                    pkg.images = images_list
+
+                pkg.save()
+
+                if 'accommodations' in request.POST:
+                    accommodations_json = request.POST.get('accommodations', '[]')
+                    try:
+                        stays = json.loads(accommodations_json)
+                    except Exception:
+                        stays = []
+
+                    pkg.accommodations.all().delete()
+
+                    for order, stay in enumerate(stays):
+                        city = stay.get('city', 'makkah')
+                        hotel_id = stay.get('hotel_id')
+                        manual_hotel_name = stay.get('manual_hotel_name', '').strip()
+                        manual_hotel_distance = stay.get('manual_hotel_distance', '').strip()
+                        nights = int(stay.get('nights', 1))
+
+                        hotel = Hotel.objects.filter(pk=hotel_id).first() if hotel_id else None
+                        if hotel or manual_hotel_name:
+                            AgentHajjAccommodation.objects.create(
+                                agent_hajj_package=pkg,
+                                city=city,
+                                hotel=hotel,
+                                manual_hotel_name=manual_hotel_name,
+                                manual_hotel_distance=manual_hotel_distance,
+                                nights=nights,
+                                order=order
+                            )
+
+            return JsonResponse({'success': True, 'message': 'Agent Hajj Package updated successfully!', 'package': _serialize_agent_hajj_package(pkg)})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
+@agent_required_api
+def agent_hajj_packages_api(request):
+    """
+    GET → List active AgentHajjPackage records for Agent Portal
+    """
+    packages = AgentHajjPackage.objects.filter(is_active=True).prefetch_related('accommodations__hotel').all()
+    data = [_serialize_agent_hajj_package(p) for p in packages]
+    return JsonResponse({'success': True, 'packages': data})
+
 
 
 
