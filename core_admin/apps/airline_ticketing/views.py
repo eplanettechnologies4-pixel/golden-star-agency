@@ -56,6 +56,28 @@ def _safe_format_date(val, fmt='%Y-%m-%d'):
     return str(val)
 
 
+def _safe_airline_logo_url(obj_or_airline):
+    if not obj_or_airline:
+        return None
+    airline = obj_or_airline if isinstance(obj_or_airline, Airline) else getattr(obj_or_airline, 'airline', None)
+    if not airline or not getattr(airline, 'logo', None):
+        return None
+    try:
+        logo_file = airline.logo
+        url = None
+        if hasattr(logo_file, 'url') and logo_file.url:
+            url = str(logo_file.url)
+        elif isinstance(logo_file, str) and logo_file.strip():
+            url = logo_file.strip()
+        else:
+            return None
+        if url and not url.startswith('/') and not url.startswith('http://') and not url.startswith('https://'):
+            url = '/' + url
+        return url
+    except Exception:
+        return None
+
+
 # ──────────────────────────────────────────────
 # Permission helper  (matches apps/accounts/views.py:477 exactly)
 # ──────────────────────────────────────────────
@@ -204,17 +226,16 @@ def admin_sector_detail_api(request, pk):
 
 @csrf_exempt
 @admin_required_api
-@csrf_exempt
-@admin_required_api
 def admin_adjust_seats_api(request, pk):
     """
-    POST → Manually update seat counts (total_seats or booked_seats)
+    POST → Manually update seat counts (total_seats, booked_seats, or delta)
            for FlightInventory, AgentPackage, or AgentHajjPackage without impacting financial ledgers or orders.
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
 
     item_type = request.POST.get('item_type', 'inventory').strip()  # 'inventory', 'package', 'hajj_package'
+    target_field_req = request.POST.get('target_field', '').strip()
     reason = request.POST.get('reason', 'Offline / Manual Admin Seat Adjustment').strip()
 
     if item_type in ('package', 'umrah_package'):
@@ -230,32 +251,39 @@ def admin_adjust_seats_api(request, pk):
         fi_obj = item
         pkg_obj = None
 
-    if 'total_seats' in request.POST and request.POST.get('total_seats') != '':
-        new_val = int(request.POST.get('total_seats') or 0)
+    if target_field_req == 'booked_seats' and request.POST.get('booked_seats') is not None and request.POST.get('booked_seats') != '':
+        new_val = int(request.POST.get('booked_seats') or 0)
+        old_val = getattr(item, 'booked_seats', 0)
+        if hasattr(item, 'booked_seats'):
+            item.booked_seats = max(0, min(item.total_seats, new_val))
+            target_field = 'booked_seats'
+        else:
+            item.available_seats = max(0, item.total_seats - new_val)
+            target_field = 'available_seats'
+
+    elif target_field_req == 'available_seats_delta' and request.POST.get('available_seats_delta') is not None and request.POST.get('available_seats_delta') != '':
+        delta = int(request.POST.get('available_seats_delta') or 0)
+        if hasattr(item, 'booked_seats'):
+            old_val = item.booked_seats
+            # Decrementing available seats by delta means increasing booked_seats by -delta
+            new_val = max(0, min(item.total_seats, item.booked_seats - delta))
+            item.booked_seats = new_val
+            target_field = 'booked_seats'
+        else:
+            old_val = item.total_seats
+            new_val = max(0, item.total_seats + delta)
+            item.total_seats = new_val
+            if hasattr(item, 'available_seats') and not isinstance(getattr(type(item), 'available_seats', None), property):
+                item.available_seats = max(0, item.available_seats + delta)
+            target_field = 'total_seats'
+
+    else:
+        new_val = int(request.POST.get('total_seats') or getattr(item, 'total_seats', 0))
         old_val = item.total_seats
         item.total_seats = max(0, new_val)
         target_field = 'total_seats'
         if hasattr(item, 'available_seats') and not isinstance(getattr(type(item), 'available_seats', None), property):
             item.available_seats = max(0, new_val)
-    elif 'booked_seats' in request.POST and request.POST.get('booked_seats') != '':
-        new_val = int(request.POST.get('booked_seats') or 0)
-        old_val = getattr(item, 'booked_seats', 0)
-        if hasattr(item, 'booked_seats'):
-            item.booked_seats = max(0, new_val)
-            target_field = 'booked_seats'
-        else:
-            item.available_seats = max(0, item.total_seats - new_val)
-            target_field = 'available_seats'
-    elif 'available_seats_delta' in request.POST and request.POST.get('available_seats_delta') != '':
-        delta = int(request.POST.get('available_seats_delta') or 0)
-        old_val = item.total_seats
-        new_val = max(0, item.total_seats + delta)
-        item.total_seats = new_val
-        if hasattr(item, 'available_seats') and not isinstance(getattr(type(item), 'available_seats', None), property):
-            item.available_seats = max(0, item.available_seats + delta)
-        target_field = 'total_seats'
-    else:
-        return JsonResponse({'success': False, 'message': 'No valid seat count or delta provided.'}, status=400)
 
     item.save()
 
@@ -269,8 +297,8 @@ def admin_adjust_seats_api(request, pk):
         reason=reason
     )
 
-    booked_val = getattr(item, 'booked_seats', max(0, item.total_seats - getattr(item, 'available_seats', item.total_seats)))
-    avail_val = item.available_seats
+    booked_val = getattr(item, 'booked_seats', 0)
+    avail_val = max(0, item.total_seats - booked_val) if hasattr(item, 'booked_seats') else getattr(item, 'available_seats', item.total_seats)
 
     return JsonResponse({
         'success': True,
@@ -300,7 +328,7 @@ def admin_airlines_api(request):
                 'id':        a.id,
                 'name':      a.name,
                 'iata_code': a.iata_code or '',
-                'logo_url':  a.logo.url if a.logo else None,
+                'logo_url':  _safe_airline_logo_url(a),
                 'is_active': a.is_active,
                 'created_at': a.created_at.strftime('%Y-%m-%d %H:%M'),
             })
@@ -323,7 +351,7 @@ def admin_airlines_api(request):
         if 'logo' in request.FILES:
             airline.logo = request.FILES['logo']
         airline.save()
-        return JsonResponse({'success': True, 'id': airline.id, 'logo_url': airline.logo.url if airline.logo else None, 'message': 'Airline created.'})
+        return JsonResponse({'success': True, 'id': airline.id, 'logo_url': _safe_airline_logo_url(airline), 'message': 'Airline created.'})
 
     return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
 
@@ -386,7 +414,7 @@ def admin_flight_inventory_api(request):
                 'sector_name':          fi.sector.name if fi.sector else None,
                 'airline_id':           fi.airline_id,
                 'airline_name':         fi.airline.name,
-                'airline_logo_url':     fi.airline.logo.url if fi.airline.logo else None,
+                'airline_logo_url':     _safe_airline_logo_url(fi),
                 'departure_city':       fi.departure_city,
                 'destination_city':     fi.destination_city,
                 'departure_time':       fi.departure_time,
@@ -530,9 +558,9 @@ def admin_flight_inventory_detail_api(request, pk):
 def _save_baggage_tiers(flight_inventory, post_data):
     """
     Parse baggage tier pairs from POST data.
-    Keys expected: baggage_weight_0, baggage_fare_0, baggage_weight_1, baggage_fare_1 …
-    Or fare_20kg, fare_30kg, fare_40kg, fare_handcarry.
-    If no tiers provided, creates default 20KG, 30KG, 40KG fare tiers automatically.
+    Keys expected: baggage_fare_7, baggage_fare_20, baggage_fare_30, baggage_fare_40
+    Or baggage_weight_0, baggage_fare_0 ...
+    If no tiers provided, creates default 7KG, 20KG, 30KG, 40KG fare tiers automatically.
     """
     created_count = 0
     i = 0
@@ -555,12 +583,12 @@ def _save_baggage_tiers(flight_inventory, post_data):
                 pass
         i += 1
 
-    # Check for direct inputs e.g. fare_20kg, fare_30kg, fare_40kg, fare_handcarry or price
+    # Check for direct inputs e.g. baggage_fare_7, baggage_fare_20, baggage_fare_30, baggage_fare_40
     direct_tiers = [
-        ('20', post_data.get('fare_20kg') or post_data.get('price_20kg') or post_data.get('price') or post_data.get('base_fare')),
-        ('30', post_data.get('fare_30kg') or post_data.get('price_30kg')),
-        ('40', post_data.get('fare_40kg') or post_data.get('price_40kg')),
-        ('7', post_data.get('fare_handcarry') or post_data.get('price_handcarry')),
+        ('7',  post_data.get('baggage_fare_7')  or post_data.get('fare_7kg')  or post_data.get('fare_handcarry') or post_data.get('price_handcarry')),
+        ('20', post_data.get('baggage_fare_20') or post_data.get('fare_20kg') or post_data.get('price_20kg') or post_data.get('price') or post_data.get('base_fare')),
+        ('30', post_data.get('baggage_fare_30') or post_data.get('fare_30kg') or post_data.get('price_30kg')),
+        ('40', post_data.get('baggage_fare_40') or post_data.get('fare_40kg') or post_data.get('price_40kg')),
     ]
     for w, f in direct_tiers:
         if f and str(f).strip():
@@ -574,9 +602,10 @@ def _save_baggage_tiers(flight_inventory, post_data):
             except (ValueError, TypeError):
                 pass
 
-    # Fallback: if no baggage tiers created at all, create standard default tiers (20KG, 30KG, 40KG)!
+    # Fallback: if no baggage tiers created at all, create standard default tiers (7KG, 20KG, 30KG, 40KG)!
     if created_count == 0:
         base_price = float(post_data.get('price') or post_data.get('fare') or post_data.get('base_fare') or 50000.00)
+        BaggageFareTier.objects.create(flight_inventory=flight_inventory, weight_kg=7, fare=max(0, base_price - 10000))
         BaggageFareTier.objects.create(flight_inventory=flight_inventory, weight_kg=20, fare=base_price)
         BaggageFareTier.objects.create(flight_inventory=flight_inventory, weight_kg=30, fare=base_price + 5000)
         BaggageFareTier.objects.create(flight_inventory=flight_inventory, weight_kg=40, fare=base_price + 10000)
@@ -1691,7 +1720,7 @@ def agent_airlines_api(request):
         'id': a.id,
         'name': a.name,
         'code': a.iata_code or '',
-        'logo_url': a.logo.url if a.logo else None,
+        'logo_url': _safe_airline_logo_url(a),
     } for a in airlines]
     return JsonResponse({'success': True, 'airlines': data})
 
@@ -1717,7 +1746,7 @@ def agent_flight_inventory_api(request):
             'id':                     fi.id,
             'airline_id':             fi.airline_id,
             'airline_name':           fi.airline.name if fi.airline else '',
-            'airline_logo_url':       fi.airline.logo.url if (fi.airline and fi.airline.logo) else None,
+            'airline_logo_url':       _safe_airline_logo_url(fi),
             'departure_city':         fi.departure_city,
             'destination_city':       fi.destination_city,
             'departure_time':         fi.departure_time,

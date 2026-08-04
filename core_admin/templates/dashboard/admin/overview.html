@@ -3133,20 +3133,26 @@
 
         // ══════════════ MANUAL SEAT ADJUSTMENT JS ══════════════
         function openSeatAdjustmentModal(itemType, id, totalSeats, bookedSeats) {
-            document.getElementById("adjust-seat-item-type").value = itemType;
-            document.getElementById("adjust-seat-item-id").value = id;
-            document.getElementById("input-adjust-total-seats").value = totalSeats;
-            document.getElementById("input-adjust-booked-seats").value = bookedSeats;
-            document.getElementById("input-adjust-seat-delta").value = "";
-            document.getElementById("adjust-seat-target-field").value = "total_seats";
-            toggleSeatAdjustmentFields("total_seats");
+            const typeInput = document.getElementById("adjust-seat-item-type");
+            const idInput = document.getElementById("adjust-seat-item-id");
+            const totalInput = document.getElementById("input-adjust-total-seats");
+            const bookedInput = document.getElementById("input-adjust-booked-seats");
+            const deltaInput = document.getElementById("input-adjust-seat-delta");
+            const targetSelect = document.getElementById("adjust-seat-target-field");
 
-            const modal = document.getElementById("modal-admin-adjust-seats");
-            if (modal) modal.classList.remove("hidden");
+            if (typeInput) typeInput.value = itemType;
+            if (idInput) idInput.value = id;
+            if (totalInput) totalInput.value = (totalSeats !== undefined && totalSeats !== null) ? totalSeats : 30;
+            if (bookedInput) bookedInput.value = (bookedSeats !== undefined && bookedSeats !== null) ? bookedSeats : 0;
+            if (deltaInput) deltaInput.value = "";
+            if (targetSelect) targetSelect.value = "total_seats";
+
+            toggleSeatAdjustmentFields("total_seats");
+            openModal("modal-admin-adjust-seats");
         }
 
         function closeAdminAdjustSeatsModal() {
-            document.getElementById("modal-admin-adjust-seats")?.classList.add("hidden");
+            closeModal("modal-admin-adjust-seats");
         }
 
         function toggleSeatAdjustmentFields(val) {
@@ -3157,25 +3163,45 @@
 
         async function submitAdminAdjustSeats(event) {
             event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            const itemId = formData.get("item_id");
+            const itemType = document.getElementById("adjust-seat-item-type")?.value || "inventory";
+            const itemId = document.getElementById("adjust-seat-item-id")?.value;
+            if (!itemId) return;
+
+            const targetField = document.getElementById("adjust-seat-target-field")?.value || "total_seats";
+            const reason = document.getElementById("input-adjust-reason")?.value || "Offline Admin Adjustment";
+
+            const formData = new FormData();
+            formData.append("item_type", itemType);
+            formData.append("target_field", targetField);
+            formData.append("reason", reason);
+
+            if (targetField === "total_seats") {
+                formData.append("total_seats", document.getElementById("input-adjust-total-seats")?.value || "0");
+            } else if (targetField === "booked_seats") {
+                formData.append("booked_seats", document.getElementById("input-adjust-booked-seats")?.value || "0");
+            } else if (targetField === "available_seats_delta") {
+                formData.append("available_seats_delta", document.getElementById("input-adjust-seat-delta")?.value || "0");
+            }
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
             try {
                 const res = await fetch(`/dashboard/admin/api/adjust-seats/${itemId}/`, {
                     method: "POST",
+                    headers: { "X-CSRFToken": csrfToken },
                     body: formData
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert(data.message || "Seats adjusted successfully.");
+                    showAdminToast(data.message || "Seats updated successfully!", "success");
                     closeAdminAdjustSeatsModal();
                     fetchAdminAirlinesAndInventory();
                     if (typeof fetchAdminAgentPackages === 'function') fetchAdminAgentPackages();
                 } else {
-                    alert(data.message || "Failed to adjust seats.");
+                    alert(data.message || data.error || "Failed to adjust seats.");
                 }
             } catch (err) {
-                console.error("Error adjusting seats:", err);
+                alert("Server error adjusting seats.");
             }
         }
 
@@ -5136,64 +5162,7 @@
             setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 2800);
         }
 
-        function openSeatAdjustmentModal(itemType, itemId, currentTotal, currentBooked) {
-            document.getElementById('adjust-seat-item-type').value = itemType;
-            document.getElementById('adjust-seat-item-id').value = itemId;
 
-            const totalInput = document.getElementById('input-adjust-total-seats');
-            const bookedInput = document.getElementById('input-adjust-booked-seats');
-            const deltaInput = document.getElementById('input-adjust-seat-delta');
-
-            if (totalInput) totalInput.value = currentTotal || 0;
-            if (bookedInput) bookedInput.value = currentBooked || 0;
-            if (deltaInput) deltaInput.value = '';
-
-            toggleSeatAdjustmentFields(document.getElementById('adjust-seat-target-field')?.value || 'total_seats');
-            openModal('modal-admin-adjust-seats');
-        }
-
-        function closeAdminAdjustSeatsModal() {
-            closeModal('modal-admin-adjust-seats');
-        }
-
-        function toggleSeatAdjustmentFields(val) {
-            document.getElementById('container-field-total-seats')?.classList.toggle('hidden', val !== 'total_seats');
-            document.getElementById('container-field-booked-seats')?.classList.toggle('hidden', val !== 'booked_seats');
-            document.getElementById('container-field-seat-delta')?.classList.toggle('hidden', val !== 'available_seats_delta');
-        }
-
-        async function submitAdminAdjustSeats(e) {
-            e.preventDefault();
-            const itemType = document.getElementById('adjust-seat-item-type').value;
-            const itemId = document.getElementById('adjust-seat-item-id').value;
-            if (!itemId) return;
-
-            const form = e.target;
-            const formData = new FormData(form);
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-
-            try {
-                const res = await fetch(`/dashboard/admin/api/adjust-seats/${itemId}/`, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': csrfToken },
-                    body: formData
-                });
-                const data = await res.json();
-                if (data.success) {
-                    alert(data.message || "Seats updated successfully!");
-                    closeAdminAdjustSeatsModal();
-                    if (itemType === 'package') {
-                        fetchAdminAgentPackages();
-                    } else {
-                        fetchAdminAirlinesAndInventory();
-                    }
-                } else {
-                    alert(data.message || data.error || "Failed to update seats.");
-                }
-            } catch (err) {
-                alert("Server error adjusting seats.");
-            }
-        }
 
         async function openAdminAddFlightInventoryModal(fiOrId = null) {
             const form = document.getElementById('form-admin-add-flight-inventory');

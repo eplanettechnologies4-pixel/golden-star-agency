@@ -4872,8 +4872,9 @@
         // ══════════════ LANDSCAPE FLIGHT CARD & CATEGORY PAGE JS ══════════════
         function renderLandscapeFlightCard(fi) {
             const logoHtml = fi.airline_logo_url
-                ? `<img src="${fi.airline_logo_url}" alt="${escapeHTML(fi.airline_name)}" class="h-10 w-auto object-contain mb-2">`
-                : `<div class="w-10 h-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-lg mb-2 shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`;
+                ? `<img src="${escapeHTML(fi.airline_logo_url)}" alt="${escapeHTML(fi.airline_name)}" class="h-10 max-w-[120px] object-contain" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                   <div class="hidden w-10 h-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] items-center justify-center font-bold text-lg shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`
+                : `<div class="w-10 h-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-lg shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`;
 
             const sectorBadge = fi.sector_name
                 ? `<span class="text-[10px] font-extrabold uppercase bg-[#FDF2EA] text-[#E06A26] px-2 py-0.5 rounded-md border border-[#FCE2D2]"><i class="fa-solid fa-route mr-1"></i>${escapeHTML(fi.sector_name)}</span>`
@@ -4913,7 +4914,7 @@
                     <div class="space-y-1 w-full">
                         <label class="block text-[10px] font-extrabold text-[#567946] uppercase flex items-center gap-1"><i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> Select Baggage Allowance</label>
                         <select id="select-tier-card-${fi.id}" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9] text-[#2D4424] font-bold">
-                            ${fi.baggage_tiers.map(t => `<option value="${t.id}">🧳 ${t.weight_kg} KG Allowance — PKR ${Number(t.fare).toLocaleString()}</option>`).join('')}
+                            ${fi.baggage_tiers.map(t => `<option value="${t.id}">🧳 ${t.weight_kg === 7 ? '7 KG Hand Carry' : t.weight_kg + ' KG Allowance'} — PKR ${Number(t.fare).toLocaleString()}</option>`).join('')}
                         </select>
                     </div>
                 `;
@@ -4922,6 +4923,7 @@
                     <div class="space-y-1 w-full">
                         <label class="block text-[10px] font-extrabold text-[#567946] uppercase flex items-center gap-1"><i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> Select Baggage Allowance</label>
                         <select id="select-tier-card-${fi.id}" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9] text-[#2D4424] font-bold">
+                            <option value="default_7">🧳 Standard 7 KG Hand Carry</option>
                             <option value="default_20">🧳 Standard 20 KG Allowance</option>
                             <option value="default_30">🧳 Standard 30 KG Allowance</option>
                             <option value="default_40">🧳 Standard 40 KG Allowance</option>
@@ -4940,6 +4942,32 @@
                     <span class="text-lg font-black text-[#E06A26] font-mono">PKR ${minFare.toLocaleString()}</span>
                    </div>`
                 : '';
+
+            const availSeats = (fi.available_seats !== undefined && fi.available_seats !== null) 
+                ? parseInt(fi.available_seats, 10) 
+                : Math.max(0, (parseInt(fi.total_seats, 10) || 50) - (parseInt(fi.booked_seats, 10) || 0));
+            const totalSeats = parseInt(fi.total_seats, 10) || 50;
+            const isSoldOut = availSeats <= 0;
+
+            const seatBadgeClass = availSeats > 5 
+                ? 'bg-[#F0F6EC] text-[#38522D] border-[#C6DCB4]' 
+                : (availSeats > 0 ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200');
+
+            const seatIcon = availSeats > 5 ? 'fa-chair text-emerald-600' : (availSeats > 0 ? 'fa-triangle-exclamation text-amber-600' : 'fa-ban text-rose-600');
+            const seatText = isSoldOut ? 'Sold Out (0 Seats)' : (availSeats <= 5 ? `Only ${availSeats} Seats Left!` : `${availSeats} / ${totalSeats} Seats Available`);
+
+            const seatBadgeHtml = `<span class="px-3 py-1.5 rounded-xl text-[11px] font-black border flex items-center gap-1.5 shadow-xs ${seatBadgeClass}">
+                <i class="fa-solid ${seatIcon}"></i> ${seatText}
+            </span>`;
+
+            const bookBtnHtml = isSoldOut
+                ? `<button disabled class="w-full py-3.5 bg-slate-300 text-slate-500 text-xs font-black rounded-2xl cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider">
+                    <i class="fa-solid fa-ban"></i> Flight Sold Out
+                   </button>`
+                : `<button onclick="submitCardTicketBooking(${fi.id})" class="w-full py-3.5 bg-gradient-to-r from-[#E06A26] via-[#D45917] to-[#B3450B] hover:from-[#B3450B] hover:to-[#E06A26] text-white text-xs font-black rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-wider group-hover:scale-[1.02]">
+                    <i class="fa-solid fa-ticket text-sm"></i>
+                    <span>Book Flight Ticket</span>
+                   </button>`;
 
             return `
                 <div class="bg-gradient-to-r from-white via-[#FAF7F2] to-white border-2 border-[#E7DCB9] rounded-3xl p-6 shadow-md hover:shadow-2xl hover:border-[#E06A26] hover:-translate-y-1 transition-all duration-300 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center relative overflow-hidden group">
@@ -4996,19 +5024,14 @@
 
                     <!-- Right: Seats, Pricing & Book Button (col-span-3) -->
                     <div class="lg:col-span-3 border-t lg:border-t-0 lg:border-l border-[#E7DCB9]/80 pt-4 lg:pt-0 lg:pl-6 flex flex-col justify-between items-end space-y-3.5">
-                        <div class="flex items-center justify-between w-full">
-                            <span class="px-3 py-1.5 rounded-xl text-[11px] font-black bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4] flex items-center gap-1.5 shadow-xs">
-                                <i class="fa-solid fa-chair text-emerald-600"></i> ${fi.available_seats} Seats Available
-                            </span>
+                        <div class="flex items-center justify-between w-full gap-2">
+                            ${seatBadgeHtml}
                             ${minFareHtml}
                         </div>
 
                         ${tiersSelectHtml}
 
-                        <button onclick="submitCardTicketBooking(${fi.id})" class="w-full py-3.5 bg-gradient-to-r from-[#E06A26] via-[#D45917] to-[#B3450B] hover:from-[#B3450B] hover:to-[#E06A26] text-white text-xs font-black rounded-2xl shadow-lg shadow-orange-500/25 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 uppercase tracking-wider group-hover:scale-[1.02]">
-                            <i class="fa-solid fa-ticket text-sm"></i>
-                            <span>Book Flight Ticket</span>
-                        </button>
+                        ${bookBtnHtml}
                     </div>
                 </div>
             `;
@@ -5410,7 +5433,8 @@
 
         function renderLandscapeGroupTicketCard(p) {
             const logoHtml = p.airline_logo_url
-                ? `<img src="${p.airline_logo_url}" alt="${escapeHTML(p.airline_name)}" class="h-10 w-auto object-contain">`
+                ? `<img src="${escapeHTML(p.airline_logo_url)}" alt="${escapeHTML(p.airline_name)}" class="h-10 max-w-[120px] object-contain" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                   <div class="hidden w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A] text-white items-center justify-center font-bold text-xl shadow-md border border-white/20 shrink-0"><i class="fa-solid fa-plane-up text-[#E06A26]"></i></div>`
                 : `<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A] text-white flex items-center justify-center font-bold text-xl shadow-md border border-white/20 shrink-0"><i class="fa-solid fa-plane-up text-[#E06A26]"></i></div>`;
 
             const discStr = p.discount_type === 'percentage'
@@ -5588,36 +5612,57 @@
                         grid.innerHTML = `<div class="col-span-full py-4 text-center text-[#567946] text-xs font-semibold">No active airlines found.</div>`;
                     } else {
                         // Render "All Airlines" button first
+                        const isAllSelected = !window._selectedAirlineFilter;
                         const allBtn = document.createElement("button");
-                        allBtn.className = !window._selectedAirlineFilter
-                            ? "p-3 rounded-xl border border-[#E06A26] bg-[#FDF2EA] text-[#E06A26] font-bold flex flex-col items-center text-center transition-all shadow-sm"
-                            : "p-3 rounded-xl border border-[#E7DCB9] bg-white text-[#2D4424] hover:border-[#E06A26] flex flex-col items-center text-center transition-all shadow-sm";
                         allBtn.onclick = () => filterAirlineInventory(null);
+                        allBtn.className = `relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-300 shadow-md group cursor-pointer border-2 ${
+                            isAllSelected 
+                                ? "border-[#E06A26] ring-4 ring-[#E06A26]/30 scale-[1.02]" 
+                                : "border-[#E7DCB9] hover:border-[#E06A26] hover:scale-[1.02]"
+                        }`;
                         allBtn.innerHTML = `
-                            <div class="w-7 h-7 rounded-lg bg-[#E06A26] text-white flex items-center justify-center font-black text-xs mb-1"><i class="fa-solid fa-plane"></i></div>
-                            <span class="text-[11px] font-bold truncate max-w-full">All Airlines</span>
+                            <div class="absolute inset-0 bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A]"></div>
+                            <div class="absolute inset-0 bg-black/40"></div>
+                            <div class="relative z-10 flex flex-col items-center justify-center space-y-1 py-1">
+                                <div class="w-8 h-8 rounded-full bg-[#E06A26] text-white flex items-center justify-center font-black text-xs shadow-md group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-plane"></i>
+                                </div>
+                                <span class="text-xs font-black text-white tracking-wide drop-shadow-md">All Airlines</span>
+                                <span class="text-[9px] font-bold text-emerald-300 uppercase tracking-wider">Show All</span>
+                            </div>
                         `;
                         grid.appendChild(allBtn);
 
                         airlinesData.airlines.forEach(a => {
                             const isSelected = window._selectedAirlineFilter === a.id;
-                            const btnClass = isSelected
-                                ? "p-3 rounded-xl border border-[#E06A26] bg-[#FDF2EA] text-[#E06A26] font-bold flex flex-col items-center text-center transition-all shadow-sm"
-                                : "p-3 rounded-xl border border-[#E7DCB9] bg-white text-[#2D4424] hover:border-[#E06A26] flex flex-col items-center text-center transition-all shadow-sm";
-
-                            const logoHtml = a.logo_url
-                                ? `<img src="${a.logo_url}" alt="${escapeHTML(a.name)}" class="h-6 w-auto object-contain mb-1">`
-                                : `<div class="w-7 h-7 rounded-lg bg-[#2D4424] text-white flex items-center justify-center font-black text-xs mb-1">${(a.code || a.name.slice(0,2)).slice(0,2).toUpperCase()}</div>`;
-
-                            const iataBadge = a.code ? `<span class="text-[9px] font-mono font-black text-[#E06A26] bg-[#FDF2EA] px-1.5 py-0.5 rounded border border-[#FCE2D2] mt-0.5">${escapeHTML(a.code)}</span>` : '';
-
                             const btn = document.createElement("button");
-                            btn.className = btnClass;
                             btn.onclick = () => filterAirlineInventory(a.id);
+                            btn.className = `relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-300 shadow-md group cursor-pointer border-2 ${
+                                isSelected 
+                                    ? "border-[#E06A26] ring-4 ring-[#E06A26]/40 scale-[1.02]" 
+                                    : "border-[#E7DCB9] hover:border-[#E06A26] hover:scale-[1.02]"
+                            }`;
+
+                            const bgStyle = a.logo_url 
+                                ? `background-image: url('${escapeHTML(a.logo_url)}'); background-size: cover; background-position: center;`
+                                : `background: linear-gradient(135deg, #2D4424 0%, #1F2E1A 100%);`;
+
+                            const iconHtml = !a.logo_url
+                                ? `<div class="w-8 h-8 rounded-full bg-[#E06A26] text-white flex items-center justify-center font-black text-xs mb-0.5 shadow-md">${(a.code || a.name.slice(0,2)).slice(0,2).toUpperCase()}</div>`
+                                : ``;
+
+                            const iataBadge = a.code 
+                                ? `<span class="text-[9px] font-mono font-black text-white bg-[#E06A26] px-2 py-0.5 rounded-full border border-white/30 shadow-2xs">${escapeHTML(a.code)}</span>` 
+                                : '';
+
                             btn.innerHTML = `
-                                ${logoHtml}
-                                <span class="text-[11px] font-bold truncate max-w-full">${escapeHTML(a.name)}</span>
-                                ${iataBadge}
+                                <div class="absolute inset-0 transition-transform duration-500 group-hover:scale-110" style="${bgStyle}"></div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
+                                <div class="relative z-10 flex flex-col items-center justify-center space-y-1.5 py-2">
+                                    ${iconHtml}
+                                    <span class="text-xs font-black text-white leading-tight drop-shadow-md text-center max-w-full truncate px-1">${escapeHTML(a.name)}</span>
+                                    ${iataBadge}
+                                </div>
                             `;
                             grid.appendChild(btn);
                         });
