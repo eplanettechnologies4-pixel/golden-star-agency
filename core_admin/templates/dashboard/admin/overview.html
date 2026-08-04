@@ -3211,6 +3211,7 @@
 
                 const tbodyA = document.getElementById("tbody-admin-airlines");
                 if (tbodyA && dataA.airlines) {
+                    window._adminAirlinesList = dataA.airlines;
                     document.getElementById("badge-airlines-count").textContent = `${dataA.airlines.length} Airlines`;
                     if (dataA.airlines.length === 0) {
                         tbodyA.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#567946]">No airlines configured yet. Click 'Add New Airline' above.</td></tr>`;
@@ -3232,10 +3233,10 @@
                                     </span>
                                 </td>
                                 <td class="p-3 text-right space-x-1">
-                                    <button type="button" onclick="openAdminEditAirlineModal(${a.id}, ${JSON.stringify(a.name)}, ${JSON.stringify(a.iata_code || '')}, ${a.is_active}, ${JSON.stringify(a.logo_url || '')})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all" title="Edit Airline">
+                                    <button type="button" onclick="openAdminEditAirlineModalById(${a.id})" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all" title="Edit Airline">
                                         <i class="fa-solid fa-pen-to-square mr-1"></i>Edit
                                     </button>
-                                    <button type="button" onclick="adminDeleteAirline(${a.id}, ${JSON.stringify(a.name)})" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all" title="Delete Airline">
+                                    <button type="button" onclick="adminDeleteAirlineById(${a.id})" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-all" title="Delete Airline">
                                         <i class="fa-solid fa-trash mr-1"></i>Delete
                                     </button>
                                 </td>
@@ -5109,6 +5110,18 @@
             }
         }
 
+        function openAdminEditAirlineModalById(id) {
+            const a = (window._adminAirlinesList || []).find(item => String(item.id) === String(id));
+            if (!a) return;
+            openAdminEditAirlineModal(a.id, a.name, a.iata_code, a.is_active, a.logo_url);
+        }
+
+        function adminDeleteAirlineById(id) {
+            const a = (window._adminAirlinesList || []).find(item => String(item.id) === String(id));
+            const name = a ? a.name : 'Airline';
+            adminDeleteAirline(id, name);
+        }
+
         // Lightweight toast helper (reuses existing toast if present, else falls back to a quick banner)
         function showAdminToast(message, type) {
             const colors = {
@@ -5607,6 +5620,17 @@
 
                 document.getElementById('input-pkg-desc').value = pkg.description || '';
                 document.getElementById('input-pkg-active').checked = pkg.is_active;
+
+                const coverPreviewContainer = document.getElementById('preview-pkg-cover-container');
+                const coverImg = document.getElementById('preview-pkg-cover');
+                const coverInput = document.getElementById('input-pkg-cover-photo');
+                if (coverInput) coverInput.value = '';
+                if (pkg.cover_photo_url || pkg.cover_photo) {
+                    if (coverImg) coverImg.src = pkg.cover_photo_url || pkg.cover_photo;
+                    if (coverPreviewContainer) coverPreviewContainer.classList.remove('hidden');
+                } else {
+                    if (coverPreviewContainer) coverPreviewContainer.classList.add('hidden');
+                }
             } else {
                 document.getElementById('modal-package-title').innerHTML = '<i class="fa-solid fa-box-archive text-[#E06A26]"></i> Add Agent Wholesale Package';
                 form.reset();
@@ -5614,6 +5638,8 @@
                 if (document.getElementById('input-pkg-type')) document.getElementById('input-pkg-type').value = defaultType;
                 if (document.getElementById('input-pkg-makkah-nights')) document.getElementById('input-pkg-makkah-nights').value = 7;
                 if (document.getElementById('input-pkg-madinah-nights')) document.getElementById('input-pkg-madinah-nights').value = 7;
+                const coverPreviewContainer = document.getElementById('preview-pkg-cover-container');
+                if (coverPreviewContainer) coverPreviewContainer.classList.add('hidden');
                 toggleViaFlightRoutes('direct');
             }
 
@@ -9237,6 +9263,18 @@
                 <div>
                     <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Package Title</label>
                     <input type="text" name="title" id="input-pkg-title" placeholder="e.g. Executive 15-Day Star Umrah Wholesale" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
+                </div>
+
+                <!-- Package Cover Photo Upload -->
+                <div>
+                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1"><i class="fa-solid fa-image text-[#E06A26] mr-1"></i>Package Cover Photo / Image</label>
+                    <div class="flex items-center gap-3 bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC]">
+                        <input type="file" name="cover_photo" id="input-pkg-cover-photo" accept="image/*" class="w-full text-xs text-[#567946] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#E06A26] file:text-white hover:file:bg-[#C45517]">
+                        <div id="preview-pkg-cover-container" class="hidden shrink-0 items-center gap-1.5">
+                            <img id="preview-pkg-cover" src="" alt="Cover Preview" class="h-10 w-14 object-cover rounded-lg border border-[#D9CBAC] shadow-sm">
+                            <span class="text-[10px] font-bold text-[#567946]">Current Cover</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Per-Passenger Type Pricing Grid -->

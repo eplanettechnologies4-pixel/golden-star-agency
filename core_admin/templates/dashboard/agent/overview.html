@@ -5760,18 +5760,20 @@
                     </div>
                 `).join('');
             } else {
-                const makkahNights = p.makkah_nights ? ` (${p.makkah_nights} Nights)` : '';
-                const madinahNights = p.madinah_nights ? ` (${p.madinah_nights} Nights)` : '';
+                const makkahNightsNum = p.makkah_nights || Math.floor((parseInt(p.duration_days, 10) || 14) / 2) || 7;
+                const madinahNightsNum = p.madinah_nights || ((parseInt(p.duration_days, 10) || 14) - makkahNightsNum) || 7;
+                const makkahDist = p.makkah_hotel_distance ? `${escapeHTML(p.makkah_hotel_distance)} • ` : '';
+                const madinahDist = p.madinah_hotel_distance ? `${escapeHTML(p.madinah_hotel_distance)} • ` : '';
                 staysHtml = `
                     <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
                         <span class="font-extrabold text-[#2D4424] flex items-center gap-1">🕋 Makkah Hotel:</span>
                         <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(p.makkah_hotel_name)}">${escapeHTML(p.makkah_hotel_name || 'N/A')}</span>
-                        <span class="px-2 py-0.5 rounded-md bg-[#F7F3E9] font-black text-[10px] text-[#567946] shrink-0">${escapeHTML(p.makkah_hotel_distance || 'Central')}${makkahNights}</span>
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#F7F3E9] font-black text-xs text-[#E06A26] border border-[#E7DCB9] shrink-0">${makkahDist}${makkahNightsNum} Nights</span>
                     </div>
                     <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
                         <span class="font-extrabold text-[#2D4424] flex items-center gap-1">🕌 Madinah Hotel:</span>
                         <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(p.madinah_hotel_name)}">${escapeHTML(p.madinah_hotel_name || 'N/A')}</span>
-                        <span class="px-2 py-0.5 rounded-md bg-[#F7F3E9] font-black text-[10px] text-[#567946] shrink-0">${escapeHTML(p.madinah_hotel_distance || 'Central')}${madinahNights}</span>
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#F7F3E9] font-black text-xs text-[#E06A26] border border-[#E7DCB9] shrink-0">${madinahDist}${madinahNightsNum} Nights</span>
                     </div>
                 `;
             }
@@ -6207,18 +6209,20 @@
                     </div>
                 `).join('');
             } else {
-                const makkahNights = p.makkah_nights ? ` (${p.makkah_nights} Nights)` : '';
-                const madinahNights = p.madinah_nights ? ` (${p.madinah_nights} Nights)` : '';
+                const makkahNightsNum = p.makkah_nights || Math.floor((parseInt(p.duration_days, 10) || 14) / 2) || 7;
+                const madinahNightsNum = p.madinah_nights || ((parseInt(p.duration_days, 10) || 14) - makkahNightsNum) || 7;
+                const makkahDist = p.makkah_hotel_distance ? `${escapeHTML(p.makkah_hotel_distance)} • ` : '';
+                const madinahDist = p.madinah_hotel_distance ? `${escapeHTML(p.madinah_hotel_distance)} • ` : '';
                 staysHtml = `
                     <div style="background: #F7F3E9; padding: 10px 14px; border-radius: 12px; border: 1px solid #D9CBAC; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <span style="font-weight: 800; color: #2D4424; font-size: 13px;">🕋 Makkah Hotel:</span>
                         <span style="font-weight: 700; color: #1F2E1A; font-size: 13px;">${escapeHTML(p.makkah_hotel_name || 'N/A')}</span>
-                        <span style="font-weight: 800; color: #E06A26; font-size: 12px; background: #FFF; padding: 3px 8px; border-radius: 6px; border: 1px solid #E7DCB9;">${escapeHTML(p.makkah_hotel_distance || 'Central')}${makkahNights}</span>
+                        <span style="font-weight: 800; color: #E06A26; font-size: 12px; background: #FFF; padding: 3px 8px; border-radius: 6px; border: 1px solid #E7DCB9;">${makkahDist}${makkahNightsNum} Nights</span>
                     </div>
                     <div style="background: #F7F3E9; padding: 10px 14px; border-radius: 12px; border: 1px solid #D9CBAC; display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 800; color: #2D4424; font-size: 13px;">🕌 Madinah Hotel:</span>
                         <span style="font-weight: 700; color: #1F2E1A; font-size: 13px;">${escapeHTML(p.madinah_hotel_name || 'N/A')}</span>
-                        <span style="font-weight: 800; color: #E06A26; font-size: 12px; background: #FFF; padding: 3px 8px; border-radius: 6px; border: 1px solid #E7DCB9;">${escapeHTML(p.madinah_hotel_distance || 'Central')}${madinahNights}</span>
+                        <span style="font-weight: 800; color: #E06A26; font-size: 12px; background: #FFF; padding: 3px 8px; border-radius: 6px; border: 1px solid #E7DCB9;">${madinahDist}${madinahNightsNum} Nights</span>
                     </div>
                 `;
             }

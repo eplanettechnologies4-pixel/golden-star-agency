@@ -1,6 +1,7 @@
 import os
 import uuid
 import json
+from datetime import datetime, date
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -9,6 +10,36 @@ from django.conf import settings
 from apps.packages.models import Package, HajjPackage, HajjAccommodation
 from apps.airline_ticketing.models import Hotel
 from apps.blog.admin_views import admin_required_api
+
+
+def _safe_parse_date(val):
+    if not val:
+        return None
+    if isinstance(val, date):
+        return val
+    if isinstance(val, str):
+        val = val.strip()
+        if not val:
+            return None
+        for fmt in ('%Y-%m-%d', '%Y/%m/%d', '%d-%m-%Y', '%d/%m/%Y', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%b %d, %Y', '%d %b %Y'):
+            try:
+                return datetime.strptime(val, fmt).date()
+            except ValueError:
+                pass
+    return None
+
+
+def _safe_format_date(val, fmt='%Y-%m-%d'):
+    if not val:
+        return ''
+    if hasattr(val, 'strftime'):
+        return val.strftime(fmt)
+    if isinstance(val, str):
+        parsed = _safe_parse_date(val)
+        if parsed and hasattr(parsed, 'strftime'):
+            return parsed.strftime(fmt)
+        return val
+    return str(val)
 
 def umrah_list_view(request):
     # Fetch only Umrah packages dynamically from database for website Umrah page
@@ -121,8 +152,8 @@ def admin_packages_list_api(request):
             'flight_routes': pkg.flight_routes or 'KHI - JED - MED - KHI',
             'flight_route_type': pkg.flight_route_type or 'direct',
             'flight_dates': pkg.flight_dates or '',
-            'departure_date': pkg.departure_date.strftime('%Y-%m-%d') if pkg.departure_date else '',
-            'return_date': pkg.return_date.strftime('%Y-%m-%d') if pkg.return_date else '',
+            'departure_date': _safe_format_date(pkg.departure_date, '%Y-%m-%d'),
+            'return_date': _safe_format_date(pkg.return_date, '%Y-%m-%d'),
             'price_sharing': float(pkg.price_sharing),
             'price_quad': float(pkg.price_quad),
             'price_triple': float(pkg.price_triple),
@@ -131,7 +162,7 @@ def admin_packages_list_api(request):
             'price_infant': float(pkg.price_infant),
             'discount_percentage': float(pkg.discount_percentage),
             'description': pkg.description or '',
-            'created_at': pkg.created_at.strftime('%Y-%m-%d'),
+            'created_at': _safe_format_date(pkg.created_at, '%Y-%m-%d'),
             'addons': pkg.addons if isinstance(pkg.addons, list) else [],
         })
     
@@ -193,8 +224,8 @@ def admin_package_detail_api(request, pk):
                 'flight_routes': pkg.flight_routes or '',
                 'flight_route_type': pkg.flight_route_type or 'direct',
                 'flight_dates': pkg.flight_dates or '',
-                'departure_date': pkg.departure_date.strftime('%Y-%m-%d') if pkg.departure_date else '',
-                'return_date': pkg.return_date.strftime('%Y-%m-%d') if pkg.return_date else '',
+                'departure_date': _safe_format_date(pkg.departure_date, '%Y-%m-%d'),
+                'return_date': _safe_format_date(pkg.return_date, '%Y-%m-%d'),
                 'meal_detail': pkg.meal_detail or 'Full Board',
                 'transport_type': pkg.transport_type or 'Sharing',
                 'luggage_weight': pkg.luggage_weight or '20 kg + 7 kg Hand Carry',
@@ -283,11 +314,11 @@ def admin_package_detail_api(request, pk):
 
         if 'departure_date' in body or 'departure_date' in request.POST:
             dep = body.get('departure_date') if 'departure_date' in body else request.POST.get('departure_date')
-            pkg.departure_date = dep.strip() if dep and isinstance(dep, str) and dep.strip() else None
+            pkg.departure_date = _safe_parse_date(dep)
             
         if 'return_date' in body or 'return_date' in request.POST:
             ret = body.get('return_date') if 'return_date' in body else request.POST.get('return_date')
-            pkg.return_date = ret.strip() if ret and isinstance(ret, str) and ret.strip() else None
+            pkg.return_date = _safe_parse_date(ret)
 
         md = body.get('meal_detail') or request.POST.get('meal_detail')
         if md: pkg.meal_detail = md
@@ -663,8 +694,8 @@ def admin_hajj_package_detail_api(request, pk):
                 'airline_name': hajj_pkg.airline_name or 'Saudi Airlines',
                 'airline_logo_url': hajj_pkg.get_airline_logo_url,
                 'flight_dates': hajj_pkg.flight_dates or '',
-                'departure_date': hajj_pkg.departure_date.strftime('%Y-%m-%d') if hajj_pkg.departure_date else '',
-                'return_date': hajj_pkg.return_date.strftime('%Y-%m-%d') if hajj_pkg.return_date else '',
+                'departure_date': _safe_format_date(hajj_pkg.departure_date, '%Y-%m-%d'),
+                'return_date': _safe_format_date(hajj_pkg.return_date, '%Y-%m-%d'),
                 'price_quad': float(hajj_pkg.price_quad),
                 'price_triple': float(hajj_pkg.price_triple),
                 'price_double': float(hajj_pkg.price_double),
@@ -680,7 +711,7 @@ def admin_hajj_package_detail_api(request, pk):
                 'cover_photo_url': hajj_pkg.cover_photo_url,
                 'is_active': hajj_pkg.is_active,
                 'accommodations': accommodations_data,
-                'created_at': hajj_pkg.created_at.strftime('%Y-%m-%d'),
+                'created_at': _safe_format_date(hajj_pkg.created_at, '%Y-%m-%d'),
             }
         })
 
@@ -705,10 +736,10 @@ def admin_hajj_package_detail_api(request, pk):
             hajj_pkg.hijri_dates = body.get('hijri_dates') if 'hijri_dates' in body else request.POST.get('hijri_dates')
         if 'departure_date' in body or 'departure_date' in request.POST:
             d_d = body.get('departure_date') if 'departure_date' in body else request.POST.get('departure_date')
-            hajj_pkg.departure_date = d_d if d_d and str(d_d).strip() != '' else None
+            hajj_pkg.departure_date = _safe_parse_date(d_d)
         if 'return_date' in body or 'return_date' in request.POST:
             r_d = body.get('return_date') if 'return_date' in body else request.POST.get('return_date')
-            hajj_pkg.return_date = r_d if r_d and str(r_d).strip() != '' else None
+            hajj_pkg.return_date = _safe_parse_date(r_d)
 
         if 'price_quad' in body or 'price_quad' in request.POST:
             hajj_pkg.price_quad = float(body.get('price_quad') or request.POST.get('price_quad') or hajj_pkg.price_quad)

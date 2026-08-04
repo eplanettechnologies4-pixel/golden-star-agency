@@ -223,7 +223,9 @@ class HajjPackage(models.Model):
         if self.flight_dates:
             return self.flight_dates
         if self.departure_date and self.return_date:
-            return f"{self.departure_date.strftime('%d %b %Y')} - {self.return_date.strftime('%d %b %Y')}"
+            dep_str = self.departure_date.strftime('%d %b %Y') if hasattr(self.departure_date, 'strftime') else str(self.departure_date)
+            ret_str = self.return_date.strftime('%d %b %Y') if hasattr(self.return_date, 'strftime') else str(self.return_date)
+            return f"{dep_str} - {ret_str}"
         return "15 May 2026 - 08 Jun 2026"
 
     @property

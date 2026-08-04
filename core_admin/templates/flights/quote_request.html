@@ -6,9 +6,9 @@
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
     <!-- Sliding Backgrounds -->
     <div class="absolute inset-0 z-0">
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static 'images/flights_banner.png' %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/saudi_visa.png' %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static 'images/malaysia_visa.png' %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static "images/flights_banner.png" %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static "images/saudi_visa.png" %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static "images/malaysia_visa.png" %}');"></div>
         <div class="absolute inset-0 bg-slate-950/80"></div>
     </div>
 
@@ -97,7 +97,7 @@
             </form>
 
             <script>
-            const IS_USER_LOGGED_IN = {{ user.is_authenticated|yesno:"true,false" }};
+            const IS_USER_LOGGED_IN = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
 
             document.addEventListener('DOMContentLoaded', () => {
                 const flightForm = document.getElementById('flight-quote-form');

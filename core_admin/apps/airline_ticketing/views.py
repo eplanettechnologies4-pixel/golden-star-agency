@@ -11,7 +11,7 @@ is_admin() redefined locally because this is a new app file
 import random
 import string
 from decimal import Decimal
-from datetime import timedelta
+from datetime import datetime, date, timedelta
 from django.utils import timezone
 from django.db import transaction
 import json
@@ -24,6 +24,36 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import get_object_or_404, render
 
 from .models import Sector, Airline, AirlineFlightInventory, BaggageFareTier, GroupFarePolicy, AgentPackage, AgentTicketOrder, OrderPassenger, Hotel, SeatAdjustmentLog, BankAccount, AgentHajjPackage, AgentHajjAccommodation
+
+
+def _safe_parse_date(val):
+    if not val:
+        return None
+    if isinstance(val, date):
+        return val
+    if isinstance(val, str):
+        val = val.strip()
+        if not val:
+            return None
+        for fmt in ('%Y-%m-%d', '%Y/%m/%d', '%d-%m-%Y', '%d/%m/%Y', '%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%b %d, %Y', '%d %b %Y'):
+            try:
+                return datetime.strptime(val, fmt).date()
+            except ValueError:
+                pass
+    return None
+
+
+def _safe_format_date(val, fmt='%Y-%m-%d'):
+    if not val:
+        return ''
+    if hasattr(val, 'strftime'):
+        return val.strftime(fmt)
+    if isinstance(val, str):
+        parsed = _safe_parse_date(val)
+        if parsed and hasattr(parsed, 'strftime'):
+            return parsed.strftime(fmt)
+        return val
+    return str(val)
 
 
 # ──────────────────────────────────────────────
@@ -3106,8 +3136,8 @@ def _serialize_agent_hajj_package(p):
         'company_logo': p.logo_url,
         'duration_days': p.duration_days,
 
-        'departure_date': p.departure_date.strftime('%Y-%m-%d') if p.departure_date else '',
-        'return_date': p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
+        'departure_date': _safe_format_date(p.departure_date, '%Y-%m-%d'),
+        'return_date': _safe_format_date(p.return_date, '%Y-%m-%d'),
 
         'includes_meal': p.includes_meal,
         'meal_display': 'Yes' if p.includes_meal else 'No',
@@ -3140,7 +3170,7 @@ def _serialize_agent_hajj_package(p):
 
         'images': p.images or [],
         'is_active': p.is_active,
-        'created_at': p.created_at.strftime('%Y-%m-%d %H:%M'),
+        'created_at': _safe_format_date(p.created_at, '%Y-%m-%d %H:%M'),
     }
 
 
@@ -3164,8 +3194,8 @@ def admin_agent_hajj_packages_api(request):
 
             departure_date_raw = request.POST.get('departure_date', '').strip()
             return_date_raw = request.POST.get('return_date', '').strip()
-            departure_date = departure_date_raw if departure_date_raw else None
-            return_date = return_date_raw if return_date_raw else None
+            departure_date = _safe_parse_date(departure_date_raw)
+            return_date = _safe_parse_date(return_date_raw)
 
             includes_meal = request.POST.get('includes_meal', 'true').lower() in ('true', '1', 'on')
             meal_detail = request.POST.get('meal_detail', 'Full Board Buffet').strip()
@@ -3305,10 +3335,10 @@ def admin_agent_hajj_package_detail_api(request, pk):
 
             if 'departure_date' in request.POST:
                 raw_dep = request.POST.get('departure_date', '').strip()
-                pkg.departure_date = raw_dep if raw_dep else None
+                pkg.departure_date = _safe_parse_date(raw_dep)
             if 'return_date' in request.POST:
                 raw_ret = request.POST.get('return_date', '').strip()
-                pkg.return_date = raw_ret if raw_ret else None
+                pkg.return_date = _safe_parse_date(raw_ret)
 
             if 'includes_meal' in request.POST:
                 pkg.includes_meal = request.POST.get('includes_meal', 'true').lower() in ('true', '1', 'on')
