@@ -5931,7 +5931,9 @@
                             <div class="bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC] space-y-2">
                                 <div class="text-[10px] font-black uppercase tracking-wider text-[#567946] flex items-center justify-between border-b border-[#D9CBAC]/60 pb-1">
                                     <span>Accommodation Plan</span>
-                                    ${p.includes_meal ? `<span class="text-[#E06A26] font-extrabold text-xs"><i class="fa-solid fa-utensils mr-1"></i>${escapeHTML(p.meal_detail || 'Full Board Meals')}</span>` : ''}
+                                    <span class="${p.includes_meal ? 'text-[#E06A26]' : 'text-slate-500'} font-extrabold text-xs">
+                                        <i class="fa-solid ${p.includes_meal ? 'fa-utensils' : 'fa-ban'} mr-1"></i>Meal: ${p.includes_meal ? 'Yes' : 'No'}
+                                    </span>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     ${staysHtml}
@@ -6308,7 +6310,9 @@
                         <div style="margin-bottom: 18px;">
                             <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; color: #567946; letter-spacing: 0.8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                                 <span>Accommodations Plan</span>
-                                ${p.includes_meal ? `<span style="color: #E06A26; font-weight: 800;">🍽️ ${escapeHTML(p.meal_detail || 'Full Board Meals')}</span>` : ''}
+                                <span style="color: ${p.includes_meal ? '#E06A26' : '#64748B'}; font-weight: 800;">
+                                    ${p.includes_meal ? '🍽️ Meal: Yes' : '🚫 Meal: No'}
+                                </span>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 6px;">
                                 ${staysHtml}
