@@ -1,4 +1,30 @@
 <!-- ========================================== -->
+<!-- GLOBAL MODERN PROCESSING LOADING OVERLAY MODAL -->
+<!-- ========================================== -->
+<div id="app-processing-loading-overlay" class="fixed inset-0 z-[999999] hidden items-center justify-center bg-slate-950/80 backdrop-blur-md transition-opacity duration-300">
+    <div class="bg-white/95 border border-white/20 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200" style="margin: auto;">
+        
+        <!-- Glowing Spinner with Pulsing Kaaba Icon -->
+        <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full border-4 border-brand-orange/20 border-t-brand-orange animate-spin"></div>
+            <div class="w-12 h-12 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xl shadow-inner">
+                <i class="fa-solid fa-kaaba animate-pulse"></i>
+            </div>
+        </div>
+
+        <div>
+            <h3 id="app-loading-title" class="text-lg font-extrabold text-slate-900 tracking-tight">Processing Pilgrimage Booking...</h3>
+            <p id="app-loading-message" class="text-xs text-slate-500 mt-1 leading-relaxed">Securing package seats &amp; registering tracking details. Please wait a moment.</p>
+        </div>
+
+        <!-- Animated Progress Bar -->
+        <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-brand-orange h-full rounded-full animate-pulse w-full"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
 <!-- MODERN SUBMISSION SUCCESS POPUP MODAL       -->
 <!-- ========================================== -->
 <div id="submission-success-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
@@ -14,7 +40,6 @@
             <i class="fa-solid fa-check"></i>
         </div>
 
-        <!-- Greeting & Title -->
         <!-- Greeting & Title -->
         <div>
             <span id="app-modal-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[11px] font-bold uppercase tracking-wider mb-2">
@@ -142,12 +167,18 @@ function showSubmissionSuccessModal(options) {
 
     const closeBtn = document.getElementById('app-modal-close-btn');
     if (closeBtn) {
-        closeBtn.classList.toggle('hidden', isTrackingVisible || isDownloadVisible);
+        closeBtn.classList.remove('hidden');
+        closeBtn.style.display = 'inline-flex';
     }
 
     const dashBtn = document.getElementById('app-modal-dash-btn');
     if (dashBtn) {
         dashBtn.href = dashboardUrl;
+    }
+
+    // Automatically dismiss any active loading overlay when showing success modal
+    if (typeof window.hideBookingLoadingOverlay === 'function') {
+        window.hideBookingLoadingOverlay();
     }
 
     const modal = document.getElementById('submission-success-modal');
@@ -168,9 +199,44 @@ function showSubmissionSuccessModal(options) {
 }
 window.showSubmissionSuccessModal = showSubmissionSuccessModal;
 
+window.showBookingLoadingOverlay = function(title, message) {
+    const overlay = document.getElementById('app-processing-loading-overlay');
+    if (overlay) {
+        if (title) {
+            const tEl = document.getElementById('app-loading-title');
+            if (tEl) tEl.textContent = title;
+        }
+        if (message) {
+            const mEl = document.getElementById('app-loading-message');
+            if (mEl) mEl.textContent = message;
+        }
+        overlay.classList.remove('hidden');
+        overlay.style.display = 'flex';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '999999';
+    }
+};
+
+window.hideBookingLoadingOverlay = function() {
+    const overlay = document.getElementById('app-processing-loading-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.style.display = 'none';
+    }
+};
+
 window.closeSubmissionSuccessModal = function() {
     const modal = document.getElementById('submission-success-modal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
 };
 
 window.copyTrackingIdFromModal = function(evt) {

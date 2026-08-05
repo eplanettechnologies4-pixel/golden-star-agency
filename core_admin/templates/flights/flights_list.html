@@ -305,38 +305,25 @@
                             <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-0.5">Check-In Base</span>
                             <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5"><i class="fa-solid fa-suitcase-rolling text-blue-500"></i> {{ ticket.baggage_checkin }}</span>
                         </div>
-
                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-center">
                             <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block mb-0.5">In-Flight Meal</span>
                             <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5"><i class="fa-solid fa-utensils text-emerald-600"></i> {{ ticket.meal_service|default:"Meal Included" }}</span>
                         </div>
                     </div>
 
-                    <!-- Baggage Allowance Tiers (Hand carry, 20kg, 30kg, 40kg) -->
-                    <div class="bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
-                        <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-                            <i class="fa-solid fa-weight-hanging text-brand-orange"></i> Allotted Fares by Baggage Allowance:
-                        </span>
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            {% if ticket.price_handcarry %}
-                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', 'Hand Carry', '{{ ticket.price_handcarry }}', this)" 
-                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100 shadow-sm">
-                                Hand Carry
-                            </button>
-                            {% endif %}
-                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', '20 kg', '{{ ticket.get_price_20kg }}', this)" 
-                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-brand-orange text-white border-brand-orange shadow-sm">
-                                20 KG
-                            </button>
-                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', '30 kg', '{{ ticket.get_price_30kg }}', this)" 
-                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100 shadow-sm">
-                                30 KG
-                            </button>
-                            <button type="button" onclick="selectBaggageTier('{{ ticket.id }}', '40 kg', '{{ ticket.get_price_40kg }}', this)" 
-                                    class="baggage-btn-{{ ticket.id }} px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all bg-white text-slate-700 border-slate-200 hover:bg-slate-100 shadow-sm">
-                                40 KG
-                            </button>
-                        </div>
+                    <!-- Baggage Allowance Tiers Dropdown Select (Hand Carry, 20kg, 23kg, 25kg, 30kg, 35kg, 40kg, 46kg) -->
+                    <div class="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/80">
+                        <label class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider block mb-1 flex items-center gap-1">
+                            <i class="fa-solid fa-weight-hanging text-brand-orange"></i> Select Baggage Allowance & Fare:
+                        </label>
+                        <select onchange="updateTicketCardBaggagePrice('{{ ticket.id }}', this)" 
+                                class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-extrabold text-xs text-slate-800 focus:outline-none focus:border-brand-orange shadow-xs cursor-pointer">
+                            {% for bg in ticket.get_all_baggage_options %}
+                                <option value="{{ bg.price }}" data-weight="{{ bg.label }}" {% if bg.key == '20kg' or forloop.first %}selected{% endif %}>
+                                    {{ bg.label }} — PKR {{ bg.price|floatformat:0 }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
 
@@ -517,6 +504,20 @@
     }
 
     const IS_USER_LOGGED_IN = {% if user.is_authenticated %}true{% else %}false{% endif %};
+
+    function updateTicketCardBaggagePrice(ticketId, selectEl) {
+        const val = parseFloat(selectEl.value || 0);
+        const opt = selectEl.options[selectEl.selectedIndex];
+        const weightLabel = opt ? (opt.getAttribute('data-weight') || opt.text.split('—')[0].trim()) : 'Selected Baggage';
+        
+        if (typeof selectedFlightPrices !== 'undefined') selectedFlightPrices[ticketId] = val;
+        if (typeof selectedFlightBaggage !== 'undefined') selectedFlightBaggage[ticketId] = weightLabel;
+
+        const displayEl = document.getElementById(`ticket-price-display-${ticketId}`);
+        if (displayEl && val > 0) {
+            displayEl.textContent = `PKR ${val.toLocaleString('en-PK')}`;
+        }
+    }
 
     function openBookingModal(id, airline, flightNum, dep, dest, defaultPrice) {
         if (!IS_USER_LOGGED_IN) {

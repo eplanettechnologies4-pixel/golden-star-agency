@@ -4881,9 +4881,9 @@
         // ══════════════ LANDSCAPE FLIGHT CARD & CATEGORY PAGE JS ══════════════
         function renderLandscapeFlightCard(fi) {
             const logoHtml = fi.airline_logo_url
-                ? `<img src="${escapeHTML(fi.airline_logo_url)}" alt="${escapeHTML(fi.airline_name)}" class="h-10 max-w-[120px] object-contain" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
-                   <div class="hidden w-10 h-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] items-center justify-center font-bold text-lg shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`
-                : `<div class="w-10 h-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-lg shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`;
+                ? `<img src="${escapeHTML(fi.airline_logo_url)}" alt="${escapeHTML(fi.airline_name)}" class="h-16 w-full max-w-[170px] object-contain p-1" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                   <div class="hidden w-14 h-14 rounded-2xl bg-[#FDF2EA] text-[#E06A26] items-center justify-center font-bold text-2xl shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`
+                : `<div class="w-14 h-14 rounded-2xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-2xl shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`;
 
             const sectorBadge = fi.sector_name
                 ? `<span class="text-[10px] font-extrabold uppercase bg-[#FDF2EA] text-[#E06A26] px-2 py-0.5 rounded-md border border-[#FCE2D2]"><i class="fa-solid fa-route mr-1"></i>${escapeHTML(fi.sector_name)}</span>`
@@ -4900,57 +4900,132 @@
 
             const routeBadge = `<span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${fi.route_type === 'via' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}"><i class="fa-solid ${fi.route_type === 'via' ? 'fa-location-crosshairs' : 'fa-bolt'} mr-1"></i>${fi.route_type === 'via' ? 'Via ' + escapeHTML(fi.via_city || '') : 'Non-Stop Direct'}</span>`;
 
-            const returnLegHtml = (fi.trip_type === 'return' && fi.return_departure_time) ? `
-                <div class="mt-3 pt-3 border-t border-dashed border-[#E7DCB9] flex flex-wrap items-center justify-between gap-2 bg-[#F7F3E9]/50 p-2.5 rounded-xl">
-                    <div class="flex flex-wrap items-center gap-3 text-xs">
-                        <span class="text-[10px] font-black uppercase text-[#E06A26] bg-[#FDF2EA] px-2 py-0.5 rounded border border-[#FCE2D2] flex items-center gap-1"><i class="fa-solid fa-rotate-left"></i> Return Leg</span>
-                        <span class="font-black text-[#2D4424] flex items-center gap-1">
-                            <i class="fa-solid fa-plane-departure text-emerald-600"></i> ${escapeHTML(fi.destination_city)}
-                            <i class="fa-solid fa-arrow-right text-[#E06A26] mx-1"></i>
-                            <i class="fa-solid fa-plane-arrival text-[#E06A26]"></i> ${escapeHTML(fi.departure_city)}
-                        </span>
-                        <span class="text-[11px] font-semibold text-[#567946] flex items-center gap-1"><i class="fa-solid fa-clock text-amber-600"></i> ${escapeHTML(fi.return_departure_time)} - ${escapeHTML(fi.return_arrival_time)}</span>
-                    </div>
-                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${fi.return_route_type === 'via' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
-                        ${fi.return_route_type === 'via' ? 'Return Via ' + escapeHTML(fi.return_via_city || '') : 'Return Direct'}
-                    </span>
-                </div>
-            ` : '';
+            // ── Dynamic per-sector legs (sectors_data OR synthesized from flat fields) ──────────────
+            let sectors = (fi.sectors_data && fi.sectors_data.length > 0) ? fi.sectors_data : null;
 
-            let tiersSelectHtml = '';
-            if (fi.baggage_tiers && fi.baggage_tiers.length > 0) {
-                tiersSelectHtml = `
-                    <div class="space-y-1 w-full">
-                        <label class="block text-[10px] font-extrabold text-[#567946] uppercase flex items-center gap-1"><i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> Select Baggage Allowance</label>
-                        <select id="select-tier-card-${fi.id}" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9] text-[#2D4424] font-bold">
-                            ${fi.baggage_tiers.map(t => `<option value="${t.id}">🧳 ${t.weight_kg === 7 ? '7 KG Hand Carry' : t.weight_kg + ' KG Allowance'} — PKR ${Number(t.fare).toLocaleString()}</option>`).join('')}
-                        </select>
-                    </div>
-                `;
-            } else {
-                tiersSelectHtml = `
-                    <div class="space-y-1 w-full">
-                        <label class="block text-[10px] font-extrabold text-[#567946] uppercase flex items-center gap-1"><i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> Select Baggage Allowance</label>
-                        <select id="select-tier-card-${fi.id}" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9] text-[#2D4424] font-bold">
-                            <option value="default_7">🧳 Standard 7 KG Hand Carry</option>
-                            <option value="default_20">🧳 Standard 20 KG Allowance</option>
-                            <option value="default_30">🧳 Standard 30 KG Allowance</option>
-                            <option value="default_40">🧳 Standard 40 KG Allowance</option>
-                        </select>
-                    </div>
-                `;
+            // Synthesize sectors from flat fields for legacy/old tickets with no sectors_data
+            if (!sectors) {
+                const dep = fi.departure_city || '';
+                const dest = fi.destination_city || '';
+                const via = fi.via_city || '';
+                const depT = fi.departure_time || '';
+                const arrT = fi.arrival_time || '';
+                const rDepT = fi.return_departure_time || '';
+                const rArrT = fi.return_arrival_time || '';
+                const isVia = fi.route_type === 'via';
+                const isReturn = fi.trip_type === 'return';
+                const isMulti = fi.trip_type === 'multicity';
+
+                if (isVia && isReturn) {
+                    // 4 sectors: dep→via, via→dest, dest→via, via→dep
+                    sectors = [
+                        {route: dep + (via ? '-' + via : '-' + dest), dep_time: depT, arr_time: ''},
+                        {route: (via || dep) + '-' + dest, dep_time: '', arr_time: arrT},
+                        {route: dest + (via ? '-' + via : '-' + dep), dep_time: rDepT, arr_time: ''},
+                        {route: (via || dest) + '-' + dep, dep_time: '', arr_time: rArrT}
+                    ];
+                } else if (isVia) {
+                    // 2 sectors: dep→via, via→dest
+                    sectors = [
+                        {route: dep + '-' + (via || dest), dep_time: depT, arr_time: ''},
+                        {route: (via || dep) + '-' + dest, dep_time: '', arr_time: arrT}
+                    ];
+                } else if (isReturn) {
+                    // 2 sectors: dep→dest, dest→dep
+                    sectors = [
+                        {route: dep + '-' + dest, dep_time: depT, arr_time: arrT},
+                        {route: dest + '-' + dep, dep_time: rDepT || '', arr_time: rArrT || ''}
+                    ];
+                } else if (isMulti) {
+                    // 2 sectors: outbound + a second leg
+                    sectors = [
+                        {route: dep + '-' + dest, dep_time: depT, arr_time: arrT},
+                        {route: dest + '-' + dep, dep_time: '', arr_time: ''}
+                    ];
+                } else {
+                    // 1 sector: one-way direct
+                    sectors = [{route: dep + '-' + dest, dep_time: depT, arr_time: arrT}];
+                }
             }
 
-            const minFare = (fi.baggage_tiers && fi.baggage_tiers.length > 0)
-                ? Math.min(...fi.baggage_tiers.map(t => Number(t.fare)))
-                : null;
+            const _renderSectorCard = (sec, idx) => {
+                const sRoute = typeof sec === 'object' ? (sec.route || '') : String(sec);
+                const sFn = sec.flight_no || '';
+                const sDep = sec.dep_time || '';
+                const sArr = sec.arr_time || '';
+                const parts = sRoute.split('-');
+                const fromCity = parts[0] ? parts[0].trim() : '';
+                const toCity = parts.slice(1).join('-').trim() || '';
+                return `
+                <div class="bg-white rounded-xl border border-[#D9CBAC] p-2.5 space-y-1 shadow-2xs">
+                    <div class="flex items-center justify-between border-b border-[#F5EFE0] pb-1">
+                        <span class="text-[9px] font-black text-[#E06A26] uppercase">Sector ${idx + 1}</span>
+                        ${sFn ? `<span class="text-[9px] font-extrabold bg-[#FDF2EA] text-[#E06A26] px-1.5 py-0.5 rounded border border-[#FCE2D2]">${escapeHTML(sFn)}</span>` : `<span class="text-[9px] font-bold text-[#567946]">Leg ${idx + 1}</span>`}
+                    </div>
+                    <div class="text-[11px] font-black text-[#2D4424] flex items-center gap-1.5">
+                        <i class="fa-solid fa-plane-departure text-[#E06A26] text-[9px]"></i>
+                        <span>${escapeHTML(fromCity || sRoute)}</span>
+                        ${toCity ? `<i class="fa-solid fa-arrow-right text-[#E06A26] text-[9px]"></i><span>${escapeHTML(toCity)}</span><i class="fa-solid fa-plane-arrival text-emerald-600 text-[9px]"></i>` : ''}
+                    </div>
+                    <div class="flex items-center justify-between text-[9px] font-semibold text-[#567946] border-t border-[#F5EFE0] pt-1">
+                        <span><i class="fa-solid fa-clock text-amber-500 mr-0.5"></i>${escapeHTML(sDep) || '—'}</span>
+                        <i class="fa-solid fa-arrow-right text-[#D9CBAC] text-[8px]"></i>
+                        <span><i class="fa-solid fa-plane-arrival text-emerald-600 mr-0.5"></i>${escapeHTML(sArr) || '—'}</span>
+                    </div>
+                </div>`;
+            };
 
-            const minFareHtml = minFare
-                ? `<div class="text-right">
-                    <span class="text-[10px] font-bold text-[#567946] uppercase block">Starting Fare</span>
-                    <span class="text-lg font-black text-[#E06A26] font-mono">PKR ${minFare.toLocaleString()}</span>
-                   </div>`
-                : '';
+            const gridCols = sectors.length >= 3 ? 'md:grid-cols-4' : (sectors.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-1');
+
+            const sectorLegsHtml = `
+                <div class="mt-3 pt-3 border-t border-dashed border-[#E7DCB9] space-y-1.5">
+                    <div class="flex items-center justify-between text-[9px] font-black uppercase text-[#2D4424] mb-1.5">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-diagram-project text-[#E06A26]"></i> Flight Sector Legs (${sectors.length} Sector${sectors.length > 1 ? 's' : ''})</span>
+                        <span class="text-[9px] font-bold text-[#567946]">${fi.trip_type_display || fi.trip_type} &bull; ${fi.route_type === 'via' ? 'Via Connection' : 'Direct'}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 ${gridCols} gap-2">
+                        ${sectors.map((sec, idx) => _renderSectorCard(sec, idx)).join('')}
+                    </div>
+                </div>
+            `;
+
+
+            // ── Baggage tier select — value = tier ID so selectB2BTicket works ─
+            let tiersSelectHtml = '';
+            const hasTiers = fi.baggage_tiers && fi.baggage_tiers.length > 0;
+            const allOpts = hasTiers
+                ? fi.baggage_tiers.map(t => ({
+                    tierId: t.id,
+                    label: t.weight_kg === 7 ? 'Hand Carry (7 KG)' : `${t.weight_kg} KG Allowance`,
+                    fare: Number(t.fare)
+                }))
+                : [
+                    {tierId: null, label: '20 KG Baggage Allowance', fare: fi.price_20kg || fi.price || fi.net_fare || 140000},
+                    {tierId: null, label: '23 KG Baggage Allowance', fare: fi.price_23kg || (Number(fi.price||fi.net_fare||140000)+5000)},
+                    {tierId: null, label: '25 KG Baggage Allowance', fare: fi.price_25kg || (Number(fi.price||fi.net_fare||140000)+10000)},
+                    {tierId: null, label: '30 KG Baggage Allowance', fare: fi.price_30kg || (Number(fi.price||fi.net_fare||140000)+15000)},
+                    {tierId: null, label: '35 KG Baggage Allowance', fare: fi.price_35kg || (Number(fi.price||fi.net_fare||140000)+22000)},
+                    {tierId: null, label: '40 KG Baggage Allowance', fare: fi.price_40kg || (Number(fi.price||fi.net_fare||140000)+30000)},
+                    {tierId: null, label: '46 KG (2 PC x 23 KG)', fare: fi.price_46kg || (Number(fi.price||fi.net_fare||140000)+45000)}
+                ];
+
+            tiersSelectHtml = `
+                <div class="space-y-1 w-full">
+                    <label class="block text-[10px] font-extrabold text-[#567946] uppercase flex items-center gap-1"><i class="fa-solid fa-weight-hanging text-[#E06A26]"></i> Select Baggage Allowance &amp; Fare</label>
+                    <select id="select-tier-card-${fi.id}" onchange="updateAgentTicketCardPrice(${fi.id}, this)" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC] bg-[#F7F3E9] text-[#2D4424] font-bold shadow-xs cursor-pointer">
+                        ${allOpts.map(b => `<option value="${b.tierId !== null ? b.tierId : b.fare}" data-fare="${b.fare}" data-tier-id="${b.tierId !== null ? b.tierId : ''}">${b.label} — PKR ${Number(b.fare).toLocaleString('en-PK')}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+
+
+            // Dynamic live price display — updated in real-time by updateAgentTicketCardPrice()
+            const firstFare = allOpts.length > 0 ? allOpts[0].fare : (fi.net_fare || fi.price || 0);
+            const livePriceHtml = `<div class="text-right">
+                <span class="text-[10px] font-bold text-[#567946] uppercase block">Fare / Pax</span>
+                <span id="live-price-${fi.id}" class="text-lg font-black text-[#E06A26] font-mono transition-all duration-300">PKR ${Number(firstFare).toLocaleString('en-PK')}</span>
+            </div>`;
+
 
             const availSeats = (fi.available_seats !== undefined && fi.available_seats !== null) 
                 ? parseInt(fi.available_seats, 10) 
@@ -4984,8 +5059,8 @@
 
                     <!-- Left: Airline Carrier & Logo (col-span-3) -->
                     <div class="lg:col-span-3 flex flex-col items-start justify-between h-full border-b lg:border-b-0 lg:border-r border-[#E7DCB9]/80 pb-4 lg:pb-0 lg:pr-5">
-                        <div class="space-y-1.5">
-                            <div class="p-2.5 bg-white rounded-2xl border border-[#E7DCB9] shadow-xs inline-block">
+                        <div class="space-y-2 w-full">
+                            <div class="p-3 bg-white rounded-2xl border border-[#E7DCB9] shadow-xs w-full flex items-center justify-center min-h-[75px] overflow-hidden">
                                 ${logoHtml}
                             </div>
                             <h4 class="text-base font-black text-[#2D4424] tracking-tight mt-1">
@@ -5028,14 +5103,14 @@
                             <span><i class="fa-solid fa-clock text-amber-500 mr-1.5"></i> Dep: <strong class="text-[#2D4424] font-mono">${escapeHTML(fi.departure_time)}</strong></span>
                             <span><i class="fa-solid fa-plane-lock text-[#E06A26] mr-1.5"></i> Arr: <strong class="text-[#2D4424] font-mono">${escapeHTML(fi.arrival_time)}</strong></span>
                         </div>
-                        ${returnLegHtml}
+                        ${sectorLegsHtml}
                     </div>
 
                     <!-- Right: Seats, Pricing & Book Button (col-span-3) -->
                     <div class="lg:col-span-3 border-t lg:border-t-0 lg:border-l border-[#E7DCB9]/80 pt-4 lg:pt-0 lg:pl-6 flex flex-col justify-between items-end space-y-3.5">
                         <div class="flex items-center justify-between w-full gap-2">
                             ${seatBadgeHtml}
-                            ${minFareHtml}
+                            ${livePriceHtml}
                         </div>
 
                         ${tiersSelectHtml}
@@ -5049,10 +5124,41 @@
         function submitCardTicketBooking(flightId) {
             const sel = document.getElementById(`select-tier-card-${flightId}`);
             let tierId = null;
-            if (sel && sel.value && !sel.value.startsWith('default')) {
-                tierId = parseInt(sel.value);
+            let fare = null;
+            if (sel) {
+                const tidAttr = sel.options[sel.selectedIndex]?.getAttribute('data-tier-id');
+                const fareAttr = sel.options[sel.selectedIndex]?.getAttribute('data-fare');
+                tierId = (tidAttr && tidAttr !== '') ? parseInt(tidAttr) : null;
+                fare = fareAttr ? parseFloat(fareAttr) : null;
             }
-            selectB2BTicket(tierId, flightId);
+
+            if (tierId !== null) {
+                selectB2BTicket(tierId, flightId);
+            } else {
+                // No tier IDs (static fallback options) — open modal directly with the fare
+                const fi = (window._currentInventoryData || window._agentMasterFlightInventory || []).find(f => f.id === flightId);
+                if (!fi) return;
+                const title = `${fi.airline_name} — ${fi.departure_city} ➔ ${fi.destination_city}`;
+                const selectedFare = fare || (Number(sel?.value) || 140000);
+                openPassengerCountModal('ticket', null, flightId, title, selectedFare, fi.available_seats);
+            }
+        }
+
+        // Real-time price update when agent changes baggage tier dropdown
+        function updateAgentTicketCardPrice(flightId, selectEl) {
+            const opt = selectEl.options[selectEl.selectedIndex];
+            if (!opt) return;
+            const fare = parseFloat(opt.getAttribute('data-fare') || opt.value) || 0;
+            const priceEl = document.getElementById(`live-price-${flightId}`);
+            if (priceEl) {
+                // Pulse animation
+                priceEl.classList.add('scale-110', 'text-[#2D4424]');
+                priceEl.textContent = 'PKR ' + Number(fare).toLocaleString('en-PK');
+                setTimeout(() => {
+                    priceEl.classList.remove('scale-110', 'text-[#2D4424]');
+                    priceEl.classList.add('text-[#E06A26]');
+                }, 250);
+            }
         }
 
         window._currentCategoryKey = null;
@@ -5432,9 +5538,9 @@
 
         function renderLandscapeGroupTicketCard(p) {
             const logoHtml = p.airline_logo_url
-                ? `<img src="${escapeHTML(p.airline_logo_url)}" alt="${escapeHTML(p.airline_name)}" class="h-10 max-w-[120px] object-contain" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
-                   <div class="hidden w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A] text-white items-center justify-center font-bold text-xl shadow-md border border-white/20 shrink-0"><i class="fa-solid fa-plane-up text-[#E06A26]"></i></div>`
-                : `<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A] text-white flex items-center justify-center font-bold text-xl shadow-md border border-white/20 shrink-0"><i class="fa-solid fa-plane-up text-[#E06A26]"></i></div>`;
+                ? `<img src="${escapeHTML(p.airline_logo_url)}" alt="${escapeHTML(p.airline_name)}" class="h-16 w-full max-w-[170px] object-contain p-1" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                   <div class="hidden w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A] text-white items-center justify-center font-bold text-2xl shadow-md border border-white/20 shrink-0"><i class="fa-solid fa-plane-up text-[#E06A26]"></i></div>`
+                : `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#1F2E1A] text-white flex items-center justify-center font-bold text-2xl shadow-md border border-white/20 shrink-0"><i class="fa-solid fa-plane-up text-[#E06A26]"></i></div>`;
 
             const discStr = p.discount_type === 'percentage'
                 ? `${p.discount_value}% OFF`

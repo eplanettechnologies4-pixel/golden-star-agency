@@ -142,6 +142,13 @@ async function submitQuickBookModal(e, pkgId, basePrice) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Submitting...';
 
+    if (typeof showBookingLoadingOverlay === 'function') {
+        showBookingLoadingOverlay(
+            'Submitting Package Booking...',
+            'Registering your pilgrimage request & reference tracking ID. Please wait.'
+        );
+    }
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {

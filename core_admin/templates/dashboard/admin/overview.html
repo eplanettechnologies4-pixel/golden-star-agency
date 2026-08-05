@@ -5271,8 +5271,6 @@
                 document.getElementById('select-modal-route-type').value = fi.route_type || 'direct';
                 document.getElementById('input-modal-dep-city').value = fi.departure_city || '';
                 document.getElementById('input-modal-dest-city').value = fi.destination_city || '';
-                form.querySelector('[name="departure_time"]').value = fi.departure_time || '';
-                form.querySelector('[name="arrival_time"]').value = fi.arrival_time || '';
                 form.querySelector('[name="total_seats"]').value = fi.total_seats || 50;
                 form.querySelector('[name="has_meal"]').checked = fi.has_meal !== false;
 
@@ -5281,11 +5279,6 @@
                     document.getElementById('container-admin-via-city')?.classList.remove('hidden');
                 }
 
-                if (fi.return_departure_time) form.querySelector('[name="return_departure_time"]').value = fi.return_departure_time;
-                if (fi.return_arrival_time) form.querySelector('[name="return_arrival_time"]').value = fi.return_arrival_time;
-                if (fi.return_route_type) form.querySelector('[name="return_route_type"]').value = fi.return_route_type;
-                if (fi.return_via_city) form.querySelector('[name="return_via_city"]').value = fi.return_via_city;
-
                 // Populate baggage tiers if present
                 if (fi.baggage_tiers) {
                     fi.baggage_tiers.forEach(bt => {
@@ -5293,10 +5286,26 @@
                         if (inputFare) inputFare.value = bt.fare;
                     });
                 }
+
+                // Render sector legs, then populate with saved data
+                renderAirlineInvSectors();
+                const savedSectors = fi.sectors_data || [];
+                savedSectors.forEach((s, i) => {
+                    const idx = i + 1;
+                    const rEl = document.getElementById(`ai-inv-sector-route-${idx}`);
+                    const fnEl = document.getElementById(`ai-inv-sector-flightno-${idx}`);
+                    const dtEl = document.getElementById(`ai-inv-sector-deptime-${idx}`);
+                    const atEl = document.getElementById(`ai-inv-sector-arrtime-${idx}`);
+                    if (rEl) rEl.value = (typeof s === 'object' ? s.route : s) || '';
+                    if (fnEl) fnEl.value = (s.flight_no || '');
+                    if (dtEl) dtEl.value = (s.dep_time || '');
+                    if (atEl) atEl.value = (s.arr_time || '');
+                });
             } else {
                 document.getElementById('modal-flight-inv-title').innerHTML = '<i class="fa-solid fa-route text-[#E06A26]"></i> Add Flight Route Inventory';
                 form.reset();
                 document.getElementById('input-flight-inv-id').value = '';
+                renderAirlineInvSectors();
             }
 
             const modal = document.getElementById('modal-admin-add-flight-inventory');
@@ -5308,12 +5317,142 @@
             if (modal) { modal.style.display = 'none'; modal.classList.add('hidden'); }
         }
 
+        // ─── Dynamic Sector Leg Builder for Airline Ticketing Modal ──────────────
+        function renderAirlineInvSectors(existingSectors) {
+            const tripType = document.getElementById('select-modal-trip-type')?.value || 'return';
+            const routeType = document.getElementById('select-modal-route-type')?.value || 'direct';
+            const listEl = document.getElementById('ai-inv-sector-list');
+            const titleEl = document.getElementById('ai-inv-sector-title');
+            const badgeEl = document.getElementById('ai-inv-sector-badge');
+            if (!listEl) return;
+
+            // Determine count + labels based on trip+route combo
+            let count = 2;
+            let labels = [];
+            const isVia = routeType === 'via';
+
+            if (tripType === 'oneway' && !isVia) {
+                count = 1;
+                labels = ['Sector 1 — One Way Direct (e.g. LYP → JED)'];
+            } else if (tripType === 'oneway' && isVia) {
+                count = 2;
+                labels = [
+                    'Sector 1 — Outbound Leg 1 (Origin → Transit, e.g. LYP → SHJ)',
+                    'Sector 2 — Outbound Leg 2 (Transit → Destination, e.g. SHJ → JED)'
+                ];
+            } else if (tripType === 'return' && !isVia) {
+                count = 2;
+                labels = [
+                    'Sector 1 — Outbound (e.g. LYP → JED)',
+                    'Sector 2 — Return (e.g. JED → LYP)'
+                ];
+            } else if (tripType === 'return' && isVia) {
+                count = 4;
+                labels = [
+                    'Sector 1 — Outbound Leg 1 (e.g. LYP → SHJ)',
+                    'Sector 2 — Outbound Leg 2 (e.g. SHJ → JED)',
+                    'Sector 3 — Return Leg 3 (e.g. JED → SHJ)',
+                    'Sector 4 — Return Leg 4 (e.g. SHJ → LYP)'
+                ];
+            } else if (tripType === 'multicity' && !isVia) {
+                count = 2;
+                labels = [
+                    'Sector 1 — City 1 Leg (e.g. LYP → JED)',
+                    'Sector 2 — City 2 Leg (e.g. MED → LYP)'
+                ];
+            } else if (tripType === 'multicity' && isVia) {
+                count = 4;
+                labels = [
+                    'Sector 1 — Leg 1 (e.g. LYP → JED)',
+                    'Sector 2 — Leg 2 (e.g. JED → MED)',
+                    'Sector 3 — Leg 3 (e.g. MED → SHJ)',
+                    'Sector 4 — Leg 4 (e.g. SHJ → LYP)'
+                ];
+            }
+
+            if (titleEl) titleEl.textContent = `Flight Sector Legs (${count} Sector${count > 1 ? 's' : ''})`;
+            if (badgeEl) badgeEl.textContent = `${count} Sector${count > 1 ? 's' : ''}`;
+
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                const lbl = labels[i] || `Sector ${i+1}`;
+                const prev = (existingSectors && existingSectors[i]) || {};
+                const prevRoute = typeof prev === 'object' ? (prev.route || '') : (prev || '');
+                const prevFn = prev.flight_no || '';
+                const prevDep = prev.dep_time || '';
+                const prevArr = prev.arr_time || '';
+                html += `
+                <div class="bg-white rounded-xl border border-[#D9CBAC] p-3 space-y-2">
+                    <div class="flex items-center justify-between border-b border-[#F7F3E9] pb-1.5">
+                        <span class="text-[11px] font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-up text-[#E06A26]"></i> ${lbl}</span>
+                        <span class="text-[9px] font-bold bg-[#F7F3E9] text-[#567946] px-2 py-0.5 rounded border border-[#D9CBAC]">Leg ${i+1}</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Route (e.g. LYP-SHJ)</label>
+                            <input type="text" id="ai-inv-sector-route-${i+1}" value="${prevRoute}" placeholder="LYP-SHJ" class="w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-black text-[#2D4424] text-xs uppercase text-center tracking-widest" oninput="this.value=this.value.toUpperCase()">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Flight No</label>
+                            <input type="text" id="ai-inv-sector-flightno-${i+1}" value="${prevFn}" placeholder="SV-734" class="w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-extrabold text-[#2D4424] text-xs uppercase">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Departure Time</label>
+                            <input type="text" id="ai-inv-sector-deptime-${i+1}" value="${prevDep}" placeholder="03:30 AM" class="w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Arrival Time</label>
+                            <input type="text" id="ai-inv-sector-arrtime-${i+1}" value="${prevArr}" placeholder="07:15 AM" class="w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                        </div>
+                    </div>
+                </div>`;
+            }
+            listEl.innerHTML = html;
+        }
+
+        function toggleAdminFlightTripType(val) {
+            renderAirlineInvSectors();
+        }
+
+        function toggleAdminRouteVia(leg, val) {
+            // Show/hide outbound via-city input
+            if (leg === 'outbound') {
+                const el = document.getElementById('container-admin-via-city');
+                if (el) { el.classList.toggle('hidden', val !== 'via'); }
+            }
+            renderAirlineInvSectors();
+        }
+
+
         async function submitAdminAddFlightInventory(e) {
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
             const invId = document.getElementById('input-flight-inv-id').value;
             const url = invId ? `/dashboard/admin/api/flight-inventory/${invId}/` : '/dashboard/admin/api/flight-inventory/';
+
+            // Collect per-sector leg data
+            const sectors = [];
+            for (let i = 1; i <= 4; i++) {
+                const rEl = document.getElementById(`ai-inv-sector-route-${i}`);
+                const fnEl = document.getElementById(`ai-inv-sector-flightno-${i}`);
+                const dtEl = document.getElementById(`ai-inv-sector-deptime-${i}`);
+                const atEl = document.getElementById(`ai-inv-sector-arrtime-${i}`);
+                if (rEl && rEl.value.trim()) {
+                    sectors.push({
+                        route: rEl.value.trim().toUpperCase(),
+                        flight_no: fnEl ? fnEl.value.trim().toUpperCase() : '',
+                        dep_time: dtEl ? dtEl.value.trim() : '',
+                        arr_time: atEl ? atEl.value.trim() : ''
+                    });
+                }
+            }
+            formData.append('sectors_data', JSON.stringify(sectors));
+            // Set departure_time/arrival_time from first leg for backwards compat
+            if (sectors.length > 0) {
+                formData.set('departure_time', sectors[0].dep_time || '');
+                formData.set('arrival_time', sectors[0].arr_time || '');
+            }
 
             try {
                 const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
@@ -6227,44 +6366,53 @@
             const direct = document.getElementById('pkg-routes-direct');
             const via    = document.getElementById('pkg-routes-via');
             if (!direct || !via) return;
-            const isVia = (type || '') === 'via';
+            const isVia = (type === 'via' || type === 'multi_city');
             direct.classList.toggle('hidden', isVia);
             via.classList.toggle('hidden', !isVia);
             _syncRouteString();
         }
 
-        /* ── Assemble hidden route string from individual stop inputs ── */
+        /* ── Assemble hidden route string & sectors array from individual stop inputs ── */
         function _syncRouteString() {
             const type = _pkgVal('pkg-form-route-type');
             let parts = [];
-            if (type === 'via') {
+            if (type === 'via' || type === 'multi_city') {
                 ['pkg-route-v1','pkg-route-v2','pkg-route-v3','pkg-route-v4'].forEach(id => {
-                    const v = _pkgVal(id).trim();
+                    const v = _pkgVal(id).trim().toUpperCase();
                     if (v) parts.push(v);
                 });
             } else {
                 ['pkg-route-d1','pkg-route-d2'].forEach(id => {
-                    const v = _pkgVal(id).trim();
+                    const v = _pkgVal(id).trim().toUpperCase();
                     if (v) parts.push(v);
                 });
             }
             const route = parts.join(' - ');
             _pkgSet('pkg-form-routes', route);
             const preview = document.getElementById('pkg-route-preview');
-            if (preview) preview.innerHTML = `<i class="fa-solid fa-route mr-1"></i> Route: <strong>${route || '—'}</strong>`;
+            if (preview) {
+                const count = (type === 'via' || type === 'multi_city') ? '4 Sectors' : '2 Sectors';
+                const label = type === 'direct' ? 'Direct Flight' : (type === 'multi_city' ? 'Multi City' : 'Via Flight');
+                preview.innerHTML = `<i class="fa-solid fa-route mr-1 text-[#E06A26]"></i> <strong>${count} (${label}):</strong> ${parts.join(' ➔ ') || '—'}`;
+            }
         }
 
-        /* ── Parse a saved route string back into individual stop inputs ── */
-        function _parseRouteToInputs(routeStr, type) {
-            const stops = (routeStr || '').split(/\s*-\s*/).map(s => s.trim()).filter(Boolean);
-            if (type === 'via') {
-                _pkgSet('pkg-route-v1', stops[0] || '');
-                _pkgSet('pkg-route-v2', stops[1] || '');
-                _pkgSet('pkg-route-v3', stops[2] || '');
-                _pkgSet('pkg-route-v4', stops[3] || '');
+        /* ── Parse saved route string or sectors back into inputs ── */
+        function _parseRouteToInputs(routeStr, type, sectorsData) {
+            let stops = [];
+            if (Array.isArray(sectorsData) && sectorsData.length > 0) {
+                stops = sectorsData.map(s => String(s).trim().toUpperCase());
             } else {
-                _pkgSet('pkg-route-d1', stops[0] || '');
-                _pkgSet('pkg-route-d2', stops[stops.length - 1] || '');
+                stops = (routeStr || '').split(/\s*-\s*/).map(s => s.trim().toUpperCase()).filter(Boolean);
+            }
+            if (type === 'via' || type === 'multi_city') {
+                _pkgSet('pkg-route-v1', stops[0] || 'LYP-SHJ');
+                _pkgSet('pkg-route-v2', stops[1] || 'SHJ-JED');
+                _pkgSet('pkg-route-v3', stops[2] || 'JED-SHJ');
+                _pkgSet('pkg-route-v4', stops[3] || 'SHJ-LYP');
+            } else {
+                _pkgSet('pkg-route-d1', stops[0] || 'LYP-JED');
+                _pkgSet('pkg-route-d2', stops[stops.length - 1] || 'JED-LYP');
             }
             _syncRouteString();
         }
@@ -6279,7 +6427,7 @@
             if (isCustom && customInput) customInput.focus();
         }
         function _syncCustomAirline(val) {
-            // Nothing extra needed; _pkgGetAirlineVal reads it at submit time
+            // Read at submit time
         }
         function _pkgGetAirlineVal() {
             const sel = document.getElementById('pkg-form-airline');
@@ -6391,27 +6539,35 @@
             _pkgSet('pkg-form-departure-date', '');
             _pkgSet('pkg-form-return-date', '');
             _pkgSet('pkg-form-flight-dates', '');
-            _pkgSet('pkg-form-duration', '15');
+            _pkgSet('pkg-form-duration', '14');
             _pkgSet('pkg-form-seats', '30');
             _pkgSet('pkg-form-discount', '0');
             _pkgSet('pkg-form-price-sharing', '210000');
             _pkgSet('pkg-form-price-quad',    '245000');
             _pkgSet('pkg-form-price-triple',  '275000');
             _pkgSet('pkg-form-price-double',  '320000');
-            _pkgSet('pkg-form-price-child',   '180000');
+            _pkgSet('pkg-form-price-child-with-bed', '180000');
+            _pkgSet('pkg-form-price-child-no-bed',   '120000');
             _pkgSet('pkg-form-price-infant',  '65000');
             _pkgSetAirlineVal('Saudi Airlines');
             _pkgSetSel('pkg-form-route-type', 'direct');
-            _pkgSet('pkg-route-d1', 'KHI');
-            _pkgSet('pkg-route-d2', 'JED');
+            _pkgSet('pkg-route-d1', 'LYP-JED');
+            _pkgSet('pkg-route-d2', 'JED-LYP');
             _pkgSetSel('pkg-form-meal', 'Full Board');
             _pkgSetSel('pkg-form-transport', 'Sharing');
             _pkgSet('pkg-form-luggage', '20 kg + 7 kg Hand Carry');
             _pkgSet('pkg-form-makkah-hotel', 'Anjum Hotel Makkah');
             _pkgSet('pkg-form-makkah-dist',  '350m from Haram');
+            _pkgSet('pkg-form-makkah-nights', '7');
             _pkgSet('pkg-form-madinah-hotel', 'Pullman Zamzam Madinah');
             _pkgSet('pkg-form-madinah-dist',  "150m from Prophet's Mosque");
+            _pkgSet('pkg-form-madinah-nights', '7');
             _pkgSet('pkg-form-description', '');
+
+            const logoInput = document.getElementById('pkg-form-airline-logo');
+            if (logoInput) logoInput.value = '';
+            const logoImg = document.getElementById('pkg-airline-logo-preview-img');
+            if (logoImg) logoImg.src = '/static/images/saudi_logo.png';
 
             const coverInput = document.getElementById('pkg-form-cover-image');
             if (coverInput) coverInput.value = '';
@@ -6439,6 +6595,17 @@
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
 
+        function previewAirlineLogo(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('pkg-airline-logo-preview-img');
+                    if (preview) preview.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
 
         async function editB2CPackage(id) {
             _editingPackageId = id;
@@ -6459,25 +6626,33 @@
                     _pkgSet('pkg-form-duration', p.duration_days || 15);
                     _pkgSet('pkg-form-seats', p.available_seats || 30);
                     _pkgSet('pkg-form-discount', p.discount_percentage || 0);
-                    _pkgSet('pkg-form-price-sharing', p.price_sharing || p.price || '');
-                    _pkgSet('pkg-form-price-quad',    p.price_quad    || '');
-                    _pkgSet('pkg-form-price-triple',  p.price_triple  || '');
-                    _pkgSet('pkg-form-price-double',  p.price_double  || '');
-                    _pkgSet('pkg-form-price-child',   p.price_child   || '');
-                    _pkgSet('pkg-form-price-infant',  p.price_infant  || '');
+                    _pkgSet('pkg-form-price-sharing', p.price_sharing != null ? p.price_sharing : '');
+                    _pkgSet('pkg-form-price-quad',    p.price_quad    != null ? p.price_quad    : '');
+                    _pkgSet('pkg-form-price-triple',  p.price_triple  != null ? p.price_triple  : '');
+                    _pkgSet('pkg-form-price-double',  p.price_double  != null ? p.price_double  : '');
+                    _pkgSet('pkg-form-price-child-with-bed', p.price_child_with_bed != null ? p.price_child_with_bed : (p.price_child || ''));
+                    _pkgSet('pkg-form-price-child-no-bed',   p.price_child_no_bed   != null ? p.price_child_no_bed   : '');
+                    _pkgSet('pkg-form-price-infant',  p.price_infant  != null ? p.price_infant  : '');
                     _pkgSetAirlineVal(p.airline || 'Saudi Airlines');
                     const routeType = p.flight_route_type || 'direct';
                     _pkgSetSel('pkg-form-route-type', routeType);
                     onPkgRouteTypeChange(routeType);
-                    _parseRouteToInputs(p.flight_routes, routeType);
+                    _parseRouteToInputs(p.flight_routes, routeType, p.sectors_data);
                     _pkgSetSel('pkg-form-meal', p.meal_detail || 'Full Board');
                     _pkgSetSel('pkg-form-transport', p.transport_type || 'Sharing');
                     _pkgSet('pkg-form-luggage', p.luggage_weight || '20 kg + 7 kg Hand Carry');
                     _pkgSet('pkg-form-makkah-hotel', p.makkah_hotel_name);
                     _pkgSet('pkg-form-makkah-dist',  p.makkah_hotel_distance);
+                    _pkgSet('pkg-form-makkah-nights', p.makkah_nights || 7);
                     _pkgSet('pkg-form-madinah-hotel', p.madinah_hotel_name);
                     _pkgSet('pkg-form-madinah-dist',  p.madinah_hotel_distance);
+                    _pkgSet('pkg-form-madinah-nights', p.madinah_nights || 7);
                     _pkgSet('pkg-form-description',   p.description);
+
+                    const logoFileInput = document.getElementById('pkg-form-airline-logo');
+                    if (logoFileInput) logoFileInput.value = '';
+                    const logoImg = document.getElementById('pkg-airline-logo-preview-img');
+                    if (logoImg) logoImg.src = p.airline_logo || '/static/images/saudi_logo.png';
 
                     const coverInput = document.getElementById('pkg-form-cover-image');
                     if (coverInput) coverInput.value = '';
@@ -6516,38 +6691,74 @@
             const submitBtn = document.getElementById('pkg-form-submit-btn');
             const title = _pkgVal('pkg-form-title').trim();
             if (!title) { errEl.textContent = 'Package title is required.'; return; }
-            const sharing = parseFloat(_pkgVal('pkg-form-price-sharing')) || 210000;
+
+            const pSharing = _pkgVal('pkg-form-price-sharing');
+            const pQuad    = _pkgVal('pkg-form-price-quad');
+            const pTriple  = _pkgVal('pkg-form-price-triple');
+            const pDoubleVal = _pkgVal('pkg-form-price-double');
+
+            const routeType = _pkgVal('pkg-form-route-type');
+            let sectors = [];
+            if (routeType === 'via' || routeType === 'multi_city') {
+                ['pkg-route-v1','pkg-route-v2','pkg-route-v3','pkg-route-v4'].forEach(id => {
+                    const v = _pkgVal(id).trim().toUpperCase();
+                    if (v) sectors.push(v);
+                });
+            } else {
+                ['pkg-route-d1','pkg-route-d2'].forEach(id => {
+                    const v = _pkgVal(id).trim().toUpperCase();
+                    if (v) sectors.push(v);
+                });
+            }
+
+            const basePrice = parseFloat(pSharing) || parseFloat(pQuad) || parseFloat(pTriple) || parseFloat(pDoubleVal) || 210000;
 
             const formData = new FormData();
             formData.append('title', title);
             formData.append('category', _pkgVal('pkg-form-category'));
             formData.append('is_featured', document.getElementById('pkg-form-featured')?.checked ? 'true' : 'false');
-            formData.append('price', sharing);
-            formData.append('price_sharing', sharing);
-            formData.append('price_quad', parseFloat(_pkgVal('pkg-form-price-quad')) || sharing + 35000);
-            formData.append('price_triple', parseFloat(_pkgVal('pkg-form-price-triple')) || sharing + 65000);
-            formData.append('price_double', parseFloat(_pkgVal('pkg-form-price-double')) || sharing + 110000);
-            formData.append('price_child', parseFloat(_pkgVal('pkg-form-price-child')) || 180000);
-            formData.append('price_infant', parseFloat(_pkgVal('pkg-form-price-infant')) || 65000);
+            formData.append('price', basePrice);
+            if (pSharing) formData.append('price_sharing', pSharing);
+            if (pQuad)    formData.append('price_quad', pQuad);
+            if (pTriple)  formData.append('price_triple', pTriple);
+            if (pDoubleVal) formData.append('price_double', pDoubleVal);
+            
+            const childWithBed = _pkgVal('pkg-form-price-child-with-bed');
+            const childNoBed   = _pkgVal('pkg-form-price-child-no-bed');
+            const infantPrice  = _pkgVal('pkg-form-price-infant');
+
+            if (childWithBed) formData.append('price_child_with_bed', childWithBed);
+            if (childNoBed)   formData.append('price_child_no_bed', childNoBed);
+            if (childWithBed) formData.append('price_child', childWithBed);
+            if (infantPrice)  formData.append('price_infant', infantPrice);
+
             formData.append('discount_percentage', parseFloat(_pkgVal('pkg-form-discount')) || 0);
             formData.append('departure_date', _pkgVal('pkg-form-departure-date'));
             formData.append('return_date', _pkgVal('pkg-form-return-date'));
             formData.append('flight_dates', _pkgVal('pkg-form-flight-dates'));
-            formData.append('duration_days', parseInt(_pkgVal('pkg-form-duration')) || 15);
+            formData.append('duration_days', parseInt(_pkgVal('pkg-form-duration')) || 14);
             formData.append('available_seats', parseInt(_pkgVal('pkg-form-seats')) || 30);
             formData.append('total_seats', parseInt(_pkgVal('pkg-form-seats')) || 30);
             formData.append('airline', _pkgGetAirlineVal());
-            formData.append('flight_route_type', _pkgVal('pkg-form-route-type'));
+            formData.append('flight_route_type', routeType);
             formData.append('flight_routes', _pkgVal('pkg-form-routes'));
+            formData.append('sectors_data', JSON.stringify(sectors));
             formData.append('meal_detail', (_pkgVal('pkg-form-category') === 'umrah') ? '' : _pkgVal('pkg-form-meal'));
             formData.append('transport_type', _pkgVal('pkg-form-transport'));
             formData.append('luggage_weight', _pkgVal('pkg-form-luggage'));
             formData.append('makkah_hotel_name', _pkgVal('pkg-form-makkah-hotel'));
             formData.append('makkah_hotel_distance', _pkgVal('pkg-form-makkah-dist'));
+            formData.append('makkah_nights', parseInt(_pkgVal('pkg-form-makkah-nights')) || 7);
             formData.append('madinah_hotel_name', _pkgVal('pkg-form-madinah-hotel'));
             formData.append('madinah_hotel_distance', _pkgVal('pkg-form-madinah-dist'));
+            formData.append('madinah_nights', parseInt(_pkgVal('pkg-form-madinah-nights')) || 7);
             formData.append('description', _pkgVal('pkg-form-description'));
             formData.append('addons', JSON.stringify(_buildAddonsArray()));
+
+            const airlineLogoFileInput = document.getElementById('pkg-form-airline-logo');
+            if (airlineLogoFileInput && airlineLogoFileInput.files && airlineLogoFileInput.files[0]) {
+                formData.append('airline_logo', airlineLogoFileInput.files[0]);
+            }
 
             const coverFileInput = document.getElementById('pkg-form-cover-image');
             if (coverFileInput && coverFileInput.files && coverFileInput.files[0]) {
@@ -6701,16 +6912,95 @@
             }
         }
 
+        function renderAdminGroupSectors() {
+            const routeTypeEl = document.getElementById('gpm-flight-route-type') || document.getElementById('gpm-route-type');
+            const routeType = routeTypeEl ? routeTypeEl.value : 'round_trip_direct';
+            const listEl = document.getElementById('gpm-sectors-list');
+            const badgeEl = document.getElementById('gpm-sectors-badge');
+            const titleEl = document.getElementById('gpm-sectors-title');
+
+            let count = 2;
+            let sectorLabels = [];
+
+            if (routeType === 'one_way_direct') {
+                count = 1;
+                sectorLabels = ['Sector 1 (1 Sector = Leg e.g. LYP-SHJ or LYP-JED)'];
+            } else if (routeType === 'round_trip_direct') {
+                count = 2;
+                sectorLabels = ['Sector 1 (Leg 1 e.g. LYP-JED)', 'Sector 2 (Leg 2 e.g. JED-LYP)'];
+            } else if (routeType === 'multi_city_direct') {
+                count = 2;
+                sectorLabels = ['Sector 1 (Leg 1 e.g. LYP-JED)', 'Sector 2 (Leg 2 e.g. MED-LYP)'];
+            } else if (routeType === 'one_way_via') {
+                count = 2;
+                sectorLabels = ['Sector 1 (Origin → Transit e.g. LYP-SHJ)', 'Sector 2 (Transit → Destination e.g. SHJ-JED)'];
+            } else if (routeType === 'round_trip_via') {
+                count = 4;
+                sectorLabels = [
+                    'Sector 1 (Outbound Leg 1 e.g. LYP-SHJ)',
+                    'Sector 2 (Outbound Leg 2 e.g. SHJ-JED)',
+                    'Sector 3 (Return Leg 3 e.g. JED-SHJ)',
+                    'Sector 4 (Return Leg 4 e.g. SHJ-LYP)'
+                ];
+            } else if (routeType === 'multi_city_via') {
+                count = 4;
+                sectorLabels = [
+                    'Sector 1 (Leg 1 e.g. LYP-JED)',
+                    'Sector 2 (Leg 2 e.g. JED-MED)',
+                    'Sector 3 (Leg 3 e.g. MED-SHJ)',
+                    'Sector 4 (Leg 4 e.g. SHJ-LYP)'
+                ];
+            }
+
+            if (badgeEl) badgeEl.textContent = `${count} Sector${count > 1 ? 's' : ''}`;
+            if (titleEl) titleEl.textContent = `Route Sectors (${count} Sector${count > 1 ? 's' : ''} Configured | 1 Sector = 1 Leg e.g. LYP-SHJ)`;
+
+            if (listEl) {
+                let html = '';
+                for (let i = 0; i < count; i++) {
+                    const lbl = sectorLabels[i] || `Sector ${i+1}`;
+                    html += `
+                        <div class="bg-white p-3.5 rounded-2xl border border-[#D9CBAC] shadow-xs space-y-2 col-span-full">
+                            <div class="flex items-center justify-between text-[11px] font-black text-[#2D4424] border-b border-[#F7F3E9] pb-1.5">
+                                <span><i class="fa-solid fa-plane-up text-[#E06A26] mr-1"></i> ${lbl}</span>
+                                <span class="text-[9px] font-bold text-[#567946] bg-[#F7F3E9] px-2 py-0.5 rounded-md border border-[#D9CBAC]">Leg ${i+1} Details</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Sector Route (e.g. LYP-SHJ)</label>
+                                    <input type="text" id="gpm-sector-${i+1}" placeholder="LYP-SHJ" class="w-full px-2.5 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] text-xs focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center" oninput="this.value=this.value.toUpperCase()">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Flight No (e.g. G9-542)</label>
+                                    <input type="text" id="gpm-sector-flightno-${i+1}" placeholder="e.g. SV-734" class="w-full px-2.5 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-extrabold text-[#2D4424] text-xs focus:outline-none focus:border-[#E06A26] uppercase">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Leg Departure Time</label>
+                                    <input type="text" id="gpm-sector-deptime-${i+1}" placeholder="03:30 AM" class="w-full px-2.5 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] text-xs focus:outline-none focus:border-[#E06A26]">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Leg Arrival Time</label>
+                                    <input type="text" id="gpm-sector-arrtime-${i+1}" placeholder="07:15 AM" class="w-full px-2.5 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] text-xs focus:outline-none focus:border-[#E06A26]">
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                listEl.innerHTML = html;
+            }
+        }
+
         function openAddB2CFlightModal() {
-            const modal = document.getElementById('modal-add-b2c-flight');
+            const modal = document.getElementById('modal-add-b2c-flight') || document.getElementById('modal-admin-group-policy');
             if (modal) {
                 modal.style.display = 'flex';
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
+            renderAdminGroupSectors();
         }
         function closeAddB2CFlightModal() {
-            const modal = document.getElementById('modal-add-b2c-flight');
+            const modal = document.getElementById('modal-add-b2c-flight') || document.getElementById('modal-admin-group-policy');
             if (modal) {
                 modal.style.display = 'none';
                 modal.classList.add('hidden');
@@ -6721,6 +7011,36 @@
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
+
+            const routeTypeEl = document.getElementById('gpm-flight-route-type') || document.getElementById('gpm-route-type');
+            const routeType = routeTypeEl ? routeTypeEl.value : 'round_trip_direct';
+            formData.append('flight_route_type', routeType);
+
+            let sectors = [];
+            for (let i = 1; i <= 4; i++) {
+                const routeEl = document.getElementById(`gpm-sector-${i}`);
+                const flightNoEl = document.getElementById(`gpm-sector-flightno-${i}`);
+                const depTimeEl = document.getElementById(`gpm-sector-deptime-${i}`);
+                const arrTimeEl = document.getElementById(`gpm-sector-arrtime-${i}`);
+                if (routeEl && routeEl.value.trim()) {
+                    sectors.push({
+                        route: routeEl.value.trim().toUpperCase(),
+                        flight_no: flightNoEl ? flightNoEl.value.trim().toUpperCase() : '',
+                        dep_time: depTimeEl ? depTimeEl.value.trim() : '',
+                        arr_time: arrTimeEl ? arrTimeEl.value.trim() : ''
+                    });
+                }
+            }
+            formData.append('sectors_data', JSON.stringify(sectors));
+
+            const bgFields = ['price_handcarry', 'price_20kg', 'price_23kg', 'price_25kg', 'price_30kg', 'price_35kg', 'price_40kg', 'price_46kg'];
+            bgFields.forEach(f => {
+                const el = document.getElementById(`gpm-${f.replace('_', '-')}`) || document.getElementById(`gpm-${f}`);
+                if (el && el.value) {
+                    formData.append(f, el.value);
+                }
+            });
+
             try {
                 const csrfToken = (typeof getCookie === 'function' ? getCookie('csrftoken') : '') || (document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
                 const res = await fetch('/dashboard/admin/api/flight-tickets/', {
@@ -7143,25 +7463,32 @@
                             </div>
                         </div>
 
-                        <!-- Baggage & Fare Tier Options Allotment -->
+                        <!-- Baggage & Fare Tier Options Dropdown -->
                         <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#E7DCB9]">
-                            <div class="text-[9px] text-[#567946] uppercase font-bold mb-2 flex items-center gap-1">
-                                <i class="fa-solid fa-tags text-[#E06A26]"></i> Allotted Baggage Fares Listing
+                            <div class="text-[9px] text-[#567946] uppercase font-bold mb-1.5 flex items-center justify-between">
+                                <span><i class="fa-solid fa-weight-hanging text-[#E06A26] mr-1"></i> Baggage Allowance & Allotted Fares:</span>
                             </div>
-                            <div class="flex flex-wrap gap-2 text-[10px]">
-                                ${ft.price_handcarry ? `<span class="bg-slate-800 text-white px-3 py-1 rounded-lg font-black">Hand Carry Only — PKR ${Number(ft.price_handcarry).toLocaleString('en-PK')}</span>` : ''}
-                                <span class="bg-[#E06A26] text-white px-3 py-1 rounded-lg font-black">20 KG — PKR ${Number(ft.price_20kg||ft.price).toLocaleString('en-PK')}</span>
-                                <span class="bg-white border border-[#D9CBAC] text-[#2D4424] px-3 py-1 rounded-lg font-bold">30 KG — PKR ${Number(ft.price_30kg||(Number(ft.price)+15000)).toLocaleString('en-PK')}</span>
-                                <span class="bg-white border border-[#D9CBAC] text-[#2D4424] px-3 py-1 rounded-lg font-bold">40 KG — PKR ${Number(ft.price_40kg||(Number(ft.price)+30000)).toLocaleString('en-PK')}</span>
-                            </div>
+                            <select onchange="updateTicketCardBaggagePrice(${ft.id}, this)" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-extrabold text-xs text-[#2D4424] focus:outline-none focus:border-[#E06A26] shadow-xs cursor-pointer">
+                                ${(ft.baggage_options && ft.baggage_options.length ? ft.baggage_options : [
+                                    {key: '20kg', label: '20 KG Baggage Allowance', price: ft.price_20kg || ft.price},
+                                    {key: '23kg', label: '23 KG Baggage Allowance', price: ft.price_23kg || (Number(ft.price)+5000)},
+                                    {key: '25kg', label: '25 KG Baggage Allowance', price: ft.price_25kg || (Number(ft.price)+10000)},
+                                    {key: '30kg', label: '30 KG Baggage Allowance', price: ft.price_30kg || (Number(ft.price)+15000)},
+                                    {key: '35kg', label: '35 KG Baggage Allowance', price: ft.price_35kg || (Number(ft.price)+22000)},
+                                    {key: '40kg', label: '40 KG Baggage Allowance', price: ft.price_40kg || (Number(ft.price)+30000)},
+                                    {key: '46kg', label: '46 KG (2 PC x 23 KG)', price: ft.price_46kg || (Number(ft.price)+45000)}
+                                ]).map(b => `
+                                    <option value="${b.price}" ${b.key==='20kg'?'selected':''}>${b.label} — PKR ${Number(b.price).toLocaleString('en-PK')}</option>
+                                `).join('')}
+                            </select>
                         </div>
                     </div>
 
                     <!-- Right: Price & Actions -->
                     <div class="border-t lg:border-t-0 lg:border-l border-[#E7DCB9] p-5 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3 shrink-0 lg:w-48">
                         <div class="text-right">
-                            <div class="text-[10px] text-[#567946] uppercase font-bold">Starting Fare</div>
-                            <div class="text-2xl font-black text-[#E06A26]">PKR ${Number(ft.price).toLocaleString('en-PK')}</div>
+                            <div class="text-[10px] text-[#567946] uppercase font-bold">Selected Fare</div>
+                            <div class="text-2xl font-black text-[#E06A26]" id="ticket-price-display-${ft.id}">PKR ${Number(ft.price_20kg || ft.price).toLocaleString('en-PK')}</div>
                             ${ft.original_price ? '<div class="text-xs text-[#D9CBAC] line-through font-semibold">PKR '+Number(ft.original_price).toLocaleString('en-PK')+'</div>' : ''}
                             <div class="text-[9px] text-[#567946] mt-0.5">ID: #${ft.id}</div>
                         </div>
@@ -7173,6 +7500,14 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function updateTicketCardBaggagePrice(ticketId, selectEl) {
+            const val = parseFloat(selectEl.value || 0);
+            const displayEl = document.getElementById(`ticket-price-display-${ticketId}`);
+            if (displayEl && val > 0) {
+                displayEl.textContent = `PKR ${val.toLocaleString('en-PK')}`;
+            }
         }
 
         async function deleteB2CFlightTicket(ticketId) {
@@ -8994,49 +9329,21 @@
                         <input type="text" name="destination_city" id="input-modal-dest-city" required placeholder="e.g. Jeddah, Medina" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                     </div>
                 </div>
+                <!-- ── Dynamic Sector Leg Builder ─────────────────── -->
+                <div class="border border-[#D9CBAC] rounded-2xl overflow-hidden">
+                    <div class="bg-[#2D4424] px-4 py-2.5 flex items-center justify-between">
+                        <span class="text-xs font-black text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-route text-[#E06A26]"></i>
+                            <span id="ai-inv-sector-title">Flight Sector Legs (2 Sectors)</span>
+                        </span>
+                        <span id="ai-inv-sector-badge" class="text-[10px] font-extrabold bg-[#E06A26] text-white px-2.5 py-0.5 rounded-full">2 Sectors</span>
+                    </div>
+                    <div id="ai-inv-sector-list" class="p-3 space-y-2.5 bg-[#FAFAF8]">
+                        <!-- Dynamically rendered by renderAirlineInvSectors() -->
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Outbound Departure Time *</label>
-                        <input type="text" name="departure_time" required placeholder="e.g. 03:30 PM" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Outbound Arrival Time *</label>
-                        <input type="text" name="arrival_time" required placeholder="e.g. 07:45 PM" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                </div>
-
-                <!-- Return Leg Details -->
-                <div id="container-admin-return-leg-fields" class="border-t border-b border-[#E7DCB9] py-3 my-2 space-y-3 bg-[#F6FAF3] p-3 rounded-xl">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-black text-[#2D4424] uppercase"><i class="fa-solid fa-plane-arrival text-[#E06A26] mr-1"></i> Return Leg Details</span>
-                        <span class="text-[10px] text-[#567946] font-bold">Round-Trip Leg</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[11px] font-extrabold text-[#2D4424] mb-1">Return Departure Time</label>
-                            <input type="text" name="return_departure_time" placeholder="e.g. 10:00 AM" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-extrabold text-[#2D4424] mb-1">Return Arrival Time</label>
-                            <input type="text" name="return_arrival_time" placeholder="e.g. 02:30 PM" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC]">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[11px] font-extrabold text-[#2D4424] mb-1">Return Route Type</label>
-                            <select name="return_route_type" onchange="toggleAdminRouteVia('return', this.value)" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC]">
-                                <option value="direct" selected>Direct Flight</option>
-                                <option value="via">Via / Connecting Stop</option>
-                            </select>
-                        </div>
-                        <div id="container-admin-return-via-city" class="hidden">
-                            <label class="block text-[11px] font-extrabold text-[#E06A26] mb-1">Return Via City</label>
-                            <input type="text" name="return_via_city" placeholder="e.g. Sharjah" class="w-full p-2 text-xs rounded-xl border border-[#E06A26]">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between pt-1">
                     <div>
                         <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Total Allocated Seats *</label>
                         <input type="number" name="total_seats" required min="1" value="50" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
@@ -9049,22 +9356,38 @@
 
                 <div class="border-t border-[#E7DCB9] pt-3 space-y-2">
                     <label class="block text-xs font-black text-[#2D4424]">Baggage Allowance Tiers (PKR Pricing)</label>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                         <div>
-                            <span class="text-[10px] font-bold text-[#567946]">7 KG Hand Carry Fare (PKR)</span>
+                            <span class="text-[10px] font-bold text-[#567946]">7 KG Hand Carry</span>
                             <input type="number" name="baggage_fare_7" value="75000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-[#567946]">20 KG Baggage Fare (PKR)</span>
+                            <span class="text-[10px] font-bold text-[#567946]">20 KG Fare (PKR)</span>
                             <input type="number" name="baggage_fare_20" value="95000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-[#567946]">30 KG Baggage Fare (PKR)</span>
+                            <span class="text-[10px] font-bold text-[#567946]">23 KG Fare (PKR)</span>
+                            <input type="number" name="baggage_fare_23" placeholder="105000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">25 KG Fare (PKR)</span>
+                            <input type="number" name="baggage_fare_25" placeholder="110000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">30 KG Fare (PKR)</span>
                             <input type="number" name="baggage_fare_30" value="115000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
                         </div>
                         <div>
-                            <span class="text-[10px] font-bold text-[#567946]">40 KG Baggage Fare (PKR)</span>
+                            <span class="text-[10px] font-bold text-[#567946]">35 KG Fare (PKR)</span>
+                            <input type="number" name="baggage_fare_35" placeholder="125000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">40 KG Fare (PKR)</span>
                             <input type="number" name="baggage_fare_40" value="135000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-[#567946]">46 KG (2 PC) Fare</span>
+                            <input type="number" name="baggage_fare_46" placeholder="150000" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
                         </div>
                     </div>
                 </div>
@@ -11083,7 +11406,7 @@
 
                 <!-- ── SECTION 2: Pricing Matrix ── -->
                 <div class="border-t border-[#E7DCB9] pt-4">
-                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-tags"></i> Room-Type Pricing (PKR)</p>
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-tags"></i> Room & Child Pricing (PKR)</p>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <div class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3">
                             <label class="block font-black text-[#2D4424] mb-1 text-[10px] uppercase">Sharing (5-6 pax)</label>
@@ -11114,29 +11437,36 @@
                             </div>
                         </div>
                         <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3">
-                            <label class="block font-black text-amber-700 mb-1 text-[10px] uppercase">Child (with bed)</label>
+                            <label class="block font-black text-amber-800 mb-1 text-[10px] uppercase">Child (With Bed)</label>
                             <div class="flex items-center gap-1">
                                 <span class="text-amber-600 font-bold text-[10px]">PKR</span>
-                                <input type="number" id="pkg-form-price-child" min="0" step="1000" placeholder="180000" class="flex-1 bg-transparent font-extrabold text-amber-700 text-xs focus:outline-none w-full">
+                                <input type="number" id="pkg-form-price-child-with-bed" min="0" step="1000" placeholder="180000" class="flex-1 bg-transparent font-extrabold text-amber-800 text-xs focus:outline-none w-full">
                             </div>
                         </div>
-                        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3">
-                            <label class="block font-black text-blue-700 mb-1 text-[10px] uppercase">Infant (no bed)</label>
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
+                            <label class="block font-black text-emerald-800 mb-1 text-[10px] uppercase">Child (Without Bed)</label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-emerald-600 font-bold text-[10px]">PKR</span>
+                                <input type="number" id="pkg-form-price-child-no-bed" min="0" step="1000" placeholder="120000" class="flex-1 bg-transparent font-extrabold text-emerald-800 text-xs focus:outline-none w-full">
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3 sm:col-span-3">
+                            <label class="block font-black text-blue-800 mb-1 text-[10px] uppercase">Infant (Under 2 Yrs - Milk-feeding)</label>
                             <div class="flex items-center gap-1">
                                 <span class="text-blue-500 font-bold text-[10px]">PKR</span>
-                                <input type="number" id="pkg-form-price-infant" min="0" step="1000" placeholder="65000" class="flex-1 bg-transparent font-extrabold text-blue-700 text-xs focus:outline-none w-full">
+                                <input type="number" id="pkg-form-price-infant" min="0" step="1000" placeholder="65000" class="flex-1 bg-transparent font-extrabold text-blue-800 text-xs focus:outline-none w-full">
                             </div>
                         </div>
                     </div>
-                    <p class="text-[9px] text-[#567946] mt-2 font-semibold"><i class="fa-solid fa-circle-info mr-1"></i>Base Price shown in listing = Sharing price. All above prices shown to customers on package detail page.</p>
+                    <p class="text-[9px] text-[#567946] mt-2 font-semibold"><i class="fa-solid fa-circle-info mr-1"></i>Any price field left blank or 0 will NOT be displayed on the website catalog.</p>
                 </div>
 
                 <!-- ── SECTION 3: Flight Info ── -->
                 <div class="border-t border-[#E7DCB9] pt-4">
-                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-plane-departure"></i> Flight Information</p>
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-plane-departure"></i> Flight Information &amp; Sectors</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Airline</label>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Airline Partner</label>
                             <select id="pkg-form-airline" onchange="onPkgAirlineSelect(this.value)" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                                 <option value="Saudi Airlines">Saudi Airlines (Saudia)</option>
                                 <option value="PIA">PIA (Pakistan International)</option>
@@ -11150,52 +11480,68 @@
                                 <option value="Etihad Airways">Etihad Airways</option>
                                 <option value="__custom__">✏️ Custom Airline...</option>
                             </select>
-                            <!-- Custom airline text input (shown when Custom is selected) -->
                             <input type="text" id="pkg-form-airline-custom" placeholder="Type airline name here..." class="hidden w-full mt-2 px-3 py-2.5 bg-white border-2 border-[#E06A26] rounded-xl font-bold text-[#2D4424] focus:outline-none" oninput="_syncCustomAirline(this.value)">
                             <p class="hidden text-[9px] text-[#567946] mt-1 font-semibold" id="pkg-airline-custom-hint"><i class="fa-solid fa-circle-info mr-1"></i>This airline name will be shown on the package listing.</p>
                         </div>
                         <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Route Type</label>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Flight Route Type (Sectors)</label>
                             <select id="pkg-form-route-type" onchange="onPkgRouteTypeChange(this.value)" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                                <option value="direct">Direct Flight (2 stops)</option>
-                                <option value="via">Via / Connecting (4 stops)</option>
+                                <option value="direct">Direct Flight (Round Trip — 2 Sectors)</option>
+                                <option value="via">Round Trip (Via Flight — 4 Sectors)</option>
+                                <option value="multi_city">Multi City (Via Flight — 4 Sectors)</option>
                             </select>
+                        </div>
+                        <!-- Airline Logo Upload & Preview -->
+                        <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5 mt-1">
+                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-plane text-[#E06A26]"></i> Airline Logo Image Upload</span>
+                                <span class="text-[10px] text-[#567946] font-semibold">(PNG / JPG / WEBP logo file from disk)</span>
+                            </label>
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-12 rounded-xl overflow-hidden border-2 border-dashed border-[#D9CBAC] bg-white flex items-center justify-center shrink-0 shadow-inner p-1">
+                                    <img id="pkg-airline-logo-preview-img" src="/static/images/saudi_logo.png" class="w-full h-full object-contain" alt="Airline Logo Preview" onerror="this.onerror=null; this.src='/static/images/logo_icon.png'">
+                                </div>
+                                <div class="flex-1 space-y-1">
+                                    <input type="file" id="pkg-form-airline-logo" accept="image/*" onchange="previewAirlineLogo(this)" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-[#2D4424] file:text-white hover:file:bg-[#1a2c14] cursor-pointer">
+                                    <p class="text-[10px] text-[#567946] font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Upload custom logo or leave blank for default airline logo.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <!-- Dynamic Route Builder -->
                     <div id="pkg-route-builder" class="mt-3">
-                        <label class="block font-extrabold text-[#2D4424] mb-2 text-[10px] uppercase tracking-wider"><i class="fa-solid fa-route text-[#E06A26] mr-1"></i> Flight Route Stops</label>
-                        <!-- Direct: 2 stops -->
+                        <label class="block font-extrabold text-[#2D4424] mb-2 text-[10px] uppercase tracking-wider"><i class="fa-solid fa-route text-[#E06A26] mr-1"></i> Flight Route Sectors (1 Sector = Leg e.g. LYP-SHJ)</label>
+                        <!-- Direct: 2 sectors -->
                         <div id="pkg-routes-direct" class="grid grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Origin</label>
-                                <input type="text" id="pkg-route-d1" placeholder="KHI" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Sector 1 (Leg 1 e.g. LYP-JED)</label>
+                                <input type="text" id="pkg-route-d1" placeholder="LYP-JED" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-xs" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Destination</label>
-                                <input type="text" id="pkg-route-d2" placeholder="JED" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Sector 2 (Leg 2 e.g. JED-LYP)</label>
+                                <input type="text" id="pkg-route-d2" placeholder="JED-LYP" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-xs" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
                             </div>
                         </div>
-                        <!-- Via: 4 stops -->
-                        <div id="pkg-routes-via" class="grid grid-cols-4 gap-2 hidden">
+                        <!-- Via & Multi-City: 4 sectors -->
+                        <div id="pkg-routes-via" class="grid grid-cols-2 sm:grid-cols-4 gap-2 hidden">
                             <div>
-                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">From</label>
-                                <input type="text" id="pkg-route-v1" placeholder="KHI" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Sector 1 (e.g. LYP-SHJ)</label>
+                                <input type="text" id="pkg-route-v1" placeholder="LYP-SHJ" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-xs" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Via</label>
-                                <input type="text" id="pkg-route-v2" placeholder="DXB" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Sector 2 (e.g. SHJ-JED)</label>
+                                <input type="text" id="pkg-route-v2" placeholder="SHJ-JED" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-xs" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Dest.</label>
-                                <input type="text" id="pkg-route-v3" placeholder="JED" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Sector 3 (e.g. JED-SHJ)</label>
+                                <input type="text" id="pkg-route-v3" placeholder="JED-SHJ" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-xs" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Return</label>
-                                <input type="text" id="pkg-route-v4" placeholder="KHI" maxlength="5" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-sm" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Sector 4 (e.g. SHJ-LYP)</label>
+                                <input type="text" id="pkg-route-v4" placeholder="SHJ-LYP" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-xs" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
                             </div>
                         </div>
-                        <!-- Hidden field stores final route string -->
+                        <!-- Hidden fields -->
                         <input type="hidden" id="pkg-form-routes">
                         <p id="pkg-route-preview" class="text-[9px] text-[#567946] font-bold mt-1.5"><i class="fa-solid fa-route mr-1"></i> Route: —</p>
                     </div>
@@ -11205,7 +11551,6 @@
                 <div class="border-t border-[#E7DCB9] pt-4">
                     <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Inclusions & Services</p>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <!-- Meal Plan: only shown for Hajj & Tour packages, hidden for Umrah -->
                         <div id="pkg-meal-row" class="hidden">
                             <label class="block font-extrabold text-[#2D4424] mb-1">Meal Plan</label>
                             <select id="pkg-form-meal" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
@@ -11229,24 +11574,53 @@
                             <input type="text" id="pkg-form-luggage" placeholder="20 kg + 7 kg Hand Carry" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
                     </div>
-                    <!-- Umrah info note -->
                     <div id="pkg-meal-umrah-note" class="mt-2 flex items-center gap-2 text-[10px] text-[#567946] bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
                         <i class="fa-solid fa-circle-info text-emerald-500"></i>
                         <span>Umrah packages do not include a meal plan. Meals are arranged independently by pilgrims.</span>
                     </div>
                 </div>
 
-                <!-- ── SECTION 5: Hotels & Hotel Photos ── -->
+                <!-- ── SECTION 5: Hotels & Hotel Nights ── -->
                 <div class="border-t border-[#E7DCB9] pt-4">
-                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-hotel"></i> Hotel Information & Photos Upload</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Hotel</label>
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest mb-3 flex items-center gap-1.5"><i class="fa-solid fa-hotel"></i> Hotel Stay & Nights Breakdown</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Hotel Name</label>
                             <input type="text" id="pkg-form-makkah-hotel" placeholder="Anjum Hotel Makkah" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
                         <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Distance</label>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Nights *</label>
+                            <input type="number" id="pkg-form-makkah-nights" min="1" value="7" placeholder="7" class="w-full px-3 py-2.5 bg-amber-50 border border-amber-300 rounded-xl font-black text-amber-800 focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Distance from Haram</label>
                             <input type="text" id="pkg-form-makkah-dist" placeholder="350m from Haram" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <!-- Makkah Hotel Photos Upload -->
+                        <div class="sm:col-span-3 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5">
+                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                                <span class="flex items-center gap-1.5"><i class="fa-solid fa-kaaba text-amber-600"></i> Makkah Hotel Photos</span>
+                                <span class="text-[10px] text-[#567946] font-semibold">(Upload JPG/PNG photo files from disk)</span>
+                            </label>
+                            <div class="space-y-2">
+                                <input type="file" id="pkg-form-makkah-images" accept="image/*" multiple onchange="previewHotelImages(this, 'pkg-makkah-preview-grid')" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-amber-700 file:text-white hover:file:bg-amber-800 cursor-pointer">
+                                <div id="pkg-makkah-preview-grid" class="flex flex-wrap gap-2 min-h-[44px] p-2 bg-white rounded-xl border border-[#D9CBAC]">
+                                    <span class="text-[10px] text-slate-400 italic">No Makkah hotel photos uploaded yet.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Hotel Name</label>
+                            <input type="text" id="pkg-form-madinah-hotel" placeholder="Pullman Zamzam Madinah" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Nights *</label>
+                            <input type="number" id="pkg-form-madinah-nights" min="1" value="7" placeholder="7" class="w-full px-3 py-2.5 bg-emerald-50 border border-emerald-300 rounded-xl font-black text-emerald-800 focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div class="sm:col-span-3">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Distance from Haram</label>
+                            <input type="text" id="pkg-form-madinah-dist" placeholder="150m from Prophet's Mosque" class="w-full px-3 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
                         <!-- Makkah Hotel Photos Upload -->
                         <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5">
@@ -11477,32 +11851,29 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                         <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Trip Type</label>
-                            <select id="gpm-trip-type" onchange="renderAdminGroupSectors()" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                                <option value="oneway">One Way Group</option>
-                                <option value="return">Round Trip Group</option>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Flight Route & Sector Type *</label>
+                            <select id="gpm-flight-route-type" onchange="renderAdminGroupSectors()" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                                <option value="one_way_direct">1 Sector — One Way Direct Flight (e.g. LYP-JED)</option>
+                                <option value="round_trip_direct" selected>2 Sectors — Round Trip Direct Flight (e.g. LYP-JED, JED-LYP)</option>
+                                <option value="multi_city_direct">2 Sectors — Multi City Direct Flight (e.g. LYP-JED, MED-LYP)</option>
+                                <option value="one_way_via">2 Sectors — One Way Via Flight (e.g. LYP-SHJ, SHJ-JED)</option>
+                                <option value="round_trip_via">4 Sectors — Round Trip Via Flight (e.g. LYP-SHJ, SHJ-JED, JED-SHJ, SHJ-LYP)</option>
+                                <option value="multi_city_via">4 Sectors — Multi City Via Flight (e.g. LYP-JED, JED-MED, MED-SHJ, SHJ-LYP)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Route Type</label>
-                            <select id="gpm-route-type" onchange="renderAdminGroupSectors()" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                                <option value="direct">Non-Stop Direct</option>
-                                <option value="via">Via Connecting City</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Via Routes Summary</label>
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Via Routes / Connection Summary</label>
                             <input type="text" id="gpm-via-city" placeholder="e.g. KHI - DOH - JED - MED" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
                         </div>
                     </div>
 
-                    <!-- Dynamic Route Sectors Container (2, 4, or 8 Sectors) -->
+                    <!-- Dynamic Route Sectors Container (1, 2, or 4 Sectors) -->
                     <div id="gpm-sectors-wrapper" class="pt-3 border-t border-[#D9CBAC] space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="text-[11px] font-black uppercase text-[#E06A26] flex items-center gap-1.5">
-                                <i class="fa-solid fa-diagram-project"></i> <span id="gpm-sectors-title">Route Sectors (2 Sectors Required)</span>
+                                <i class="fa-solid fa-diagram-project"></i> <span id="gpm-sectors-title">Route Sectors (2 Sectors Configured)</span>
                             </div>
                             <span id="gpm-sectors-badge" class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#2D4424] text-white">2 Sectors</span>
                         </div>

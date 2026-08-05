@@ -80,6 +80,10 @@ class AirlineFlightInventory(models.Model):
     return_via_city = models.CharField(max_length=100, blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
+    sectors_data = models.JSONField(
+        default=list, blank=True,
+        help_text='Per-leg details: [{"route":"LYP-SHJ","flight_no":"SV-734","dep_time":"03:30 AM","arr_time":"07:15 AM"}, ...]'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

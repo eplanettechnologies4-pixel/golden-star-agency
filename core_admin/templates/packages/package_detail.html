@@ -65,12 +65,14 @@
         </p>
     </div>
 
-    <!-- Controls -->
+    <!-- Controls & Indicators (Only shown if multiple images exist) -->
+    {% with all_imgs=package.get_all_hotel_and_package_images %}
+    {% if all_imgs|length > 1 %}
     <button onclick="prevBanner()" class="absolute left-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-left"></i></button>
     <button onclick="nextBanner()" class="absolute right-6 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-slate-900/40 hover:bg-brand-orange text-white flex items-center justify-center border border-white/10 shadow transition-all z-20"><i class="fa-solid fa-chevron-right"></i></button>
-
-    <!-- Indicators -->
     <div id="banner-dots-container" class="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-20"></div>
+    {% endif %}
+    {% endwith %}
 </section>
 
 <section class="py-16 bg-slate-50">
@@ -83,8 +85,8 @@
                 <!-- Dynamic Image Slider Showcase -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm">
                     <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
-                        <span>Hotel & Package Photo Gallery</span>
-                        <span class="text-xs text-brand-orange font-semibold"><i class="fa-solid fa-images mr-1"></i>Makkah, Madinah & Package Photos</span>
+                        <span>Hotel &amp; Package Photo Gallery</span>
+                        <span class="text-xs text-brand-orange font-semibold"><i class="fa-solid fa-images mr-1"></i>Makkah, Madinah &amp; Package Photos</span>
                     </h3>
                     <div class="relative h-96 rounded-2xl overflow-hidden shadow-md group">
                         <div class="slider-container flex transition-transform duration-500 ease-out h-full">
@@ -97,13 +99,17 @@
                             </div>
                             {% empty %}
                             <div class="w-full h-full flex-shrink-0 relative">
-                                <img src="{% static 'images/umrah_card.png' %}" alt="Umrah Hotel" class="w-full h-full object-cover">
+                                <img src="{{ package.cover_url }}" alt="Umrah Hotel" class="w-full h-full object-cover">
                             </div>
                             {% endfor %}
                         </div>
                         <!-- Controls -->
+                        {% with all_imgs=package.get_all_hotel_and_package_images %}
+                        {% if all_imgs|length > 1 %}
                         <button onclick="prevSlide()" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-chevron-left"></i></button>
                         <button onclick="nextSlide()" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow transition-all opacity-0 group-hover:opacity-100"><i class="fa-solid fa-chevron-right"></i></button>
+                        {% endif %}
+                        {% endwith %}
                     </div>
                 </div>
 
@@ -292,34 +298,50 @@
                             </div>
                         </div>
 
-                        <!-- Room Sharing Choice -->
+                        <!-- Room Sharing Choice & Child Pricing Options -->
+                        {% with opts=package.get_available_pricing_options %}
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Room Sharing Category</label>
                             <select id="booking-sharing" onchange="recalculatePackagePrice()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
-                                <option value="Sharing" data-rate="{{ package.price_sharing|default:package.price }}" selected>Sharing Room (PKR {{ package.price_sharing|default:package.price }} / person)</option>
-                                <option value="Quad" data-rate="{{ package.price_quad|default:package.price }}">Quad Sharing (PKR {{ package.price_quad|default:package.price }} / person)</option>
-                                <option value="Triple" data-rate="{{ package.price_triple|default:package.price }}">Triple Sharing (PKR {{ package.price_triple|default:package.price }} / person)</option>
-                                <option value="Double" data-rate="{{ package.price_double|default:package.price }}">Double / Twin Sharing (PKR {{ package.price_double|default:package.price }} / person)</option>
+                                {% for opt in opts.room_options %}
+                                <option value="{{ opt.key }}" data-rate="{{ opt.price }}" {% if forloop.first %}selected{% endif %}>{{ opt.label }} (PKR {{ opt.price|floatformat:0 }} / person)</option>
+                                {% empty %}
+                                <option value="Sharing" data-rate="{{ package.price }}" selected>Standard Package (PKR {{ package.price }} / person)</option>
+                                {% endfor %}
                             </select>
                         </div>
 
-                        <!-- Adults, Children & Infants Quantity Controls -->
+                        <!-- Adults, Children (With Bed / Without Bed) & Infants Quantity Controls -->
                         <div class="space-y-3">
-                            <div class="grid grid-cols-3 gap-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Adults (12+)</label>
+                                    <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Adults (12+ Yrs)</label>
                                     <input id="booking-adults" type="number" value="1" min="1" max="{{ package.available_seats|default:30 }}" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
                                 </div>
+                                {% if opts.child_with_bed %}
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Child (2-11)</label>
-                                    <input id="booking-children" type="number" value="0" min="0" max="10" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                    <label class="block text-[10px] font-extrabold text-amber-800 mb-1 uppercase tracking-wider">Child (With Bed)</label>
+                                    <input id="booking-children-with-bed" type="number" value="0" min="0" max="10" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" class="w-full bg-amber-50/80 border border-amber-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                    <span class="text-[9px] text-amber-700 font-semibold block mt-0.5">PKR {{ opts.child_with_bed|floatformat:0 }} / child</span>
                                 </div>
+                                {% endif %}
+                                {% if opts.child_no_bed %}
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Infant (0-2)</label>
-                                    <input id="booking-infants" type="number" value="0" min="0" max="5" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                    <label class="block text-[10px] font-extrabold text-emerald-800 mb-1 uppercase tracking-wider">Child (Without Bed)</label>
+                                    <input id="booking-children-no-bed" type="number" value="0" min="0" max="10" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" class="w-full bg-emerald-50/80 border border-emerald-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                    <span class="text-[9px] text-emerald-700 font-semibold block mt-0.5">PKR {{ opts.child_no_bed|floatformat:0 }} / child</span>
                                 </div>
+                                {% endif %}
+                                {% if opts.infant %}
+                                <div>
+                                    <label class="block text-[10px] font-extrabold text-blue-800 mb-1 uppercase tracking-wider">Infant (Under 2 Yrs)</label>
+                                    <input id="booking-infants" type="number" value="0" min="0" max="5" onchange="recalculatePackagePrice()" oninput="recalculatePackagePrice()" class="w-full bg-blue-50/80 border border-blue-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
+                                    <span class="text-[9px] text-blue-700 font-semibold block mt-0.5">PKR {{ opts.infant|floatformat:0 }} / infant</span>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
+                        {% endwith %}
 
                         <!-- Optional Add-ons Checkboxes Configured by Admin -->
                         {% if package.addons %}
@@ -343,8 +365,7 @@
                         {% endif %}
 
                         <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[11px] text-slate-500 space-y-1">
-                            <p><i class="fa-solid fa-child text-brand-orange mr-1"></i>Child (2-11 Yrs): <strong>PKR {{ package.price_child|default:180000 }}</strong> | Infant (0-2 Yrs): <strong>PKR {{ package.price_infant|default:65000 }}</strong></p>
-                            <p id="calc-breakdown-text" class="text-slate-700 font-semibold mt-1 pt-1 border-t border-slate-200/60"></p>
+                            <p id="calc-breakdown-text" class="text-slate-700 font-semibold pt-1"></p>
                         </div>
                         
                         <button type="submit" id="btn-book-package" {% if package.available_seats == 0 %}disabled{% endif %} class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/15 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -413,7 +434,8 @@
                 priceQuad: parseFloat("{{ package.price_quad|default:package.price }}") || 245000,
                 priceTriple: parseFloat("{{ package.price_triple|default:package.price }}") || 275000,
                 priceDouble: parseFloat("{{ package.price_double|default:package.price }}") || 320000,
-                priceChild: parseFloat("{{ package.price_child|default:180000 }}") || 180000,
+                priceChildWithBed: parseFloat("{{ package.price_child_with_bed|default:package.price_child|default:180000 }}") || 180000,
+                priceChildNoBed: parseFloat("{{ package.price_child_no_bed|default:120000 }}") || 120000,
                 priceInfant: parseFloat("{{ package.price_infant|default:65000 }}") || 65000,
                 discPercent: parseFloat("{{ package.discount_percentage|default:0 }}") || 0,
                 discFlat: parseFloat("{{ package.discount_amount|default:0 }}") || 0,
@@ -421,20 +443,21 @@
 
             function recalculatePackagePrice() {
                 const sharingSelect = document.getElementById('booking-sharing');
-                const sharingType = sharingSelect ? sharingSelect.value.toLowerCase() : 'sharing';
-                
                 let rate = pkgData.priceSharing;
-                if (sharingType.includes('quad')) rate = pkgData.priceQuad;
-                else if (sharingType.includes('triple')) rate = pkgData.priceTriple;
-                else if (sharingType.includes('double')) rate = pkgData.priceDouble;
+                if (sharingSelect && sharingSelect.selectedIndex >= 0) {
+                    const optRate = parseFloat(sharingSelect.options[sharingSelect.selectedIndex].getAttribute('data-rate'));
+                    if (!isNaN(optRate) && optRate > 0) rate = optRate;
+                }
 
-                const adults = parseInt(document.getElementById('booking-adults').value) || 1;
-                const children = parseInt(document.getElementById('booking-children').value) || 0;
-                const infants = parseInt(document.getElementById('booking-infants').value) || 0;
+                const adults = parseInt(document.getElementById('booking-adults')?.value) || 1;
+                const childrenWithBed = parseInt(document.getElementById('booking-children-with-bed')?.value) || 0;
+                const childrenNoBed   = parseInt(document.getElementById('booking-children-no-bed')?.value) || 0;
+                const infants         = parseInt(document.getElementById('booking-infants')?.value) || 0;
 
-                const adultsCost = adults * rate;
-                const childrenCost = children * pkgData.priceChild;
-                const infantsCost = infants * pkgData.priceInfant;
+                const adultsCost          = adults * rate;
+                const childrenWithBedCost = childrenWithBed * pkgData.priceChildWithBed;
+                const childrenNoBedCost   = childrenNoBed * pkgData.priceChildNoBed;
+                const infantsCost         = infants * pkgData.priceInfant;
 
                 // Addons cost
                 let addonsCost = 0;
@@ -443,7 +466,7 @@
                     addonsCost += parseFloat(cb.dataset.price || 0);
                 });
 
-                const subtotal = adultsCost + childrenCost + infantsCost + addonsCost;
+                const subtotal = adultsCost + childrenWithBedCost + childrenNoBedCost + infantsCost + addonsCost;
 
                 const discount = (subtotal * pkgData.discPercent / 100) + pkgData.discFlat;
                 const finalTotal = Math.max(0, subtotal - discount);
@@ -453,10 +476,11 @@
                 const breakdownEl = document.getElementById('calc-breakdown-text');
                 if (breakdownEl) {
                     let desc = `${adults} Adult(s) @ PKR ${rate.toLocaleString()}`;
-                    if (children > 0) desc += ` + ${children} Child(ren)`;
-                    if (infants > 0) desc += ` + ${infants} Infant(s)`;
-                    if (addonsCost > 0) desc += ` + Add-ons PKR ${addonsCost.toLocaleString()}`;
-                    if (discount > 0) desc += ` (Disc: -PKR ${discount.toLocaleString()})`;
+                    if (childrenWithBed > 0) desc += ` + ${childrenWithBed} Child w/ Bed`;
+                    if (childrenNoBed > 0)   desc += ` + ${childrenNoBed} Child w/o Bed`;
+                    if (infants > 0)         desc += ` + ${infants} Infant(s)`;
+                    if (addonsCost > 0)      desc += ` + Add-ons PKR ${addonsCost.toLocaleString()}`;
+                    if (discount > 0)        desc += ` (Disc: -PKR ${discount.toLocaleString()})`;
                     breakdownEl.textContent = desc;
                 }
             }
@@ -466,7 +490,7 @@
                 window.location.href = "{% url 'customer_dashboard' %}";
             }
 
-            const IS_USER_LOGGED_IN = {{ user.is_authenticated|yesno:"true,false" }};
+            const IS_USER_LOGGED_IN = Boolean("{{ user.is_authenticated }}");
 
             document.addEventListener('DOMContentLoaded', () => {
                 recalculatePackagePrice();
@@ -495,9 +519,11 @@
                         const packageId = parseInt("{{ package.id }}") || 0;
                         
                         const sharingCategory = document.getElementById('booking-sharing').value;
-                        const adultsCount = parseInt(document.getElementById('booking-adults').value) || 1;
-                        const childrenCount = parseInt(document.getElementById('booking-children').value) || 0;
-                        const infantsCount = parseInt(document.getElementById('booking-infants').value) || 0;
+                        const adultsCount = parseInt(document.getElementById('booking-adults')?.value) || 1;
+                        const childrenWithBed = parseInt(document.getElementById('booking-children-with-bed')?.value) || 0;
+                        const childrenNoBed   = parseInt(document.getElementById('booking-children-no-bed')?.value) || 0;
+                        const totalChildren   = childrenWithBed + childrenNoBed;
+                        const infantsCount    = parseInt(document.getElementById('booking-infants')?.value) || 0;
 
                         const selectedAddons = [];
                         document.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
@@ -509,6 +535,13 @@
 
                         btn.disabled = true;
                         btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Processing Booking...`;
+
+                        if (typeof showBookingLoadingOverlay === 'function') {
+                            showBookingLoadingOverlay(
+                                'Processing Umrah Booking...',
+                                'Securing your package seats & generating your reference tracking ID. Please wait a moment.'
+                            );
+                        }
 
                         try {
                             const res = await fetch('/api/packages/book/', {
@@ -524,7 +557,9 @@
                                     email: guestEmail,
                                     sharing_category: sharingCategory,
                                     adults_count: adultsCount,
-                                    children_count: childrenCount,
+                                    children_count: totalChildren,
+                                    children_with_bed_count: childrenWithBed,
+                                    children_no_bed_count: childrenNoBed,
                                     infants_count: infantsCount,
                                     selected_addons: selectedAddons
                                 })
@@ -536,7 +571,7 @@
                                 if (data.children_count > 0) paxStr += `, ${data.children_count} Child(ren)`;
                                 if (infantsCount > 0) paxStr += `, ${infantsCount} Infant(s)`;
                                 
-                                const fullName = "{{ user.get_full_name|default:user.username }}";
+                                const fullName = guestName || "{{ user.get_full_name|default:user.username }}";
                                 showSubmissionSuccessModal({
                                     userName: fullName || 'Valued Pilgrim',
                                     title: 'Package Booking Submitted!',
@@ -550,12 +585,15 @@
                                     ]
                                 });
                             } else if (res.status === 401) {
+                                if (typeof hideBookingLoadingOverlay === 'function') hideBookingLoadingOverlay();
                                 alert("🔒 Account Login Required!\n\n" + (data.message || "Please log in to book pilgrimage packages."));
                                 window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
                             } else {
+                                if (typeof hideBookingLoadingOverlay === 'function') hideBookingLoadingOverlay();
                                 alert(data.message || 'Failed to register booking. Please try again.');
                             }
                         } catch (err) {
+                            if (typeof hideBookingLoadingOverlay === 'function') hideBookingLoadingOverlay();
                             console.error(err);
                             alert('Booking error: ' + (err.message || 'Please check your inputs and try again.'));
                         } finally {

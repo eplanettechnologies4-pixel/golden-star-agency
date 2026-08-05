@@ -76,6 +76,17 @@ class FlightTicketOffer(models.Model):
         ('one_stop', '1 Stop'),
         ('two_stop', '2 Stops'),
     )
+    ROUTE_TYPE_CHOICES = (
+        ('one_way_direct', 'One Way (Direct Flight — 1 Sector)'),
+        ('round_trip_direct', 'Round Trip (Direct Flight — 2 Sectors)'),
+        ('multi_city_direct', 'Multi City (Direct Flight — 2 Sectors)'),
+        ('one_way_via', 'One Way (Via Flight — 2 Sectors)'),
+        ('round_trip_via', 'Round Trip (Via Flight — 4 Sectors)'),
+        ('multi_city_via', 'Multi City (Via Flight — 4 Sectors)'),
+    )
+    
+    flight_route_type = models.CharField(max_length=35, default='round_trip_direct', choices=ROUTE_TYPE_CHOICES, blank=True, null=True)
+    sectors_data = models.JSONField(default=list, blank=True, null=True)
     
     airline_name = models.CharField(max_length=100) # e.g. PIA, Saudi Arabian Airlines (Saudia), FlyDubai, SalamAir, Air Arabia
     airline_code = models.CharField(max_length=10, blank=True, null=True) # PK, SV, FZ, OV, G9
@@ -97,8 +108,13 @@ class FlightTicketOffer(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2) # Base ticket price per seat in PKR
     price_handcarry = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_20kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price_23kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price_25kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_30kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price_35kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     price_40kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price_46kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    custom_baggage_fares = models.JSONField(default=dict, blank=True, null=True)
     original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     baggage_checkin = models.CharField(max_length=50, default='30 kg')
@@ -121,6 +137,90 @@ class FlightTicketOffer(models.Model):
 
     def __str__(self):
         return f"{self.airline_name} {self.flight_number}: {self.departure_city} -> {self.destination_city} (PKR {self.price})"
+
+    def get_all_baggage_options(self):
+        """
+        Returns structured list of baggage fare tiers for dropdown select menu.
+        """
+        opts = []
+        if self.price_handcarry and float(self.price_handcarry) > 0:
+            opts.append({'key': 'handcarry', 'label': 'Hand Carry Only (7 KG)', 'price': float(self.price_handcarry)})
+        
+        base_20 = float(self.price_20kg) if (self.price_20kg and float(self.price_20kg) > 0) else float(self.price)
+        opts.append({'key': '20kg', 'label': '20 KG Baggage Allowance', 'price': base_20})
+
+        if self.price_23kg and float(self.price_23kg) > 0:
+            opts.append({'key': '23kg', 'label': '23 KG Baggage Allowance', 'price': float(self.price_23kg)})
+            
+        if self.price_25kg and float(self.price_25kg) > 0:
+            opts.append({'key': '25kg', 'label': '25 KG Baggage Allowance', 'price': float(self.price_25kg)})
+
+        p_30 = float(self.price_30kg) if (self.price_30kg and float(self.price_30kg) > 0) else (base_20 + 15000.0)
+        opts.append({'key': '30kg', 'label': '30 KG Baggage Allowance', 'price': p_30})
+
+        if self.price_35kg and float(self.price_35kg) > 0:
+            opts.append({'key': '35kg', 'label': '35 KG Baggage Allowance', 'price': float(self.price_35kg)})
+
+        p_40 = float(self.price_40kg) if (self.price_40kg and float(self.price_40kg) > 0) else (base_20 + 30000.0)
+        opts.append({'key': '40kg', 'label': '40 KG Baggage Allowance', 'price': p_40})
+
+        if self.price_46kg and float(self.price_46kg) > 0:
+            opts.append({'key': '46kg', 'label': '46 KG (2 PC x 23 KG)', 'price': float(self.price_46kg)})
+
+        if isinstance(self.custom_baggage_fares, dict):
+            for k, v in self.custom_baggage_fares.items():
+                try:
+                    val = float(v)
+                    if val > 0:
+                        opts.append({'key': str(k).lower(), 'label': f"{k} Baggage Allowance", 'price': val})
+                except (ValueError, TypeError): pass
+
+        return opts
+
+    def get_sectors_info(self):
+        """
+        Returns sector list and count info based on flight_route_type and sectors_data.
+        """
+        secs = []
+        if isinstance(self.sectors_data, list):
+            secs = [str(s).strip().upper() for s in self.sectors_data if str(s).strip()]
+        
+        r_type = self.flight_route_type or 'round_trip_direct'
+        
+        # Fallback build if sectors_data is empty
+        if not secs:
+            dep = (self.departure_airport_code or self.departure_city or 'KHI')[:3].upper()
+            dest = (self.destination_airport_code or self.destination_city or 'JED')[:3].upper()
+            via = (self.via_routes or 'SHJ')[:3].upper()
+            
+            if r_type == 'one_way_direct':
+                secs = [f"{dep}-{dest}"]
+            elif r_type in ('round_trip_direct', 'multi_city_direct'):
+                secs = [f"{dep}-{dest}", f"{dest}-{dep}"]
+            elif r_type == 'one_way_via':
+                secs = [f"{dep}-{via}", f"{via}-{dest}"]
+            else: # round_trip_via, multi_city_via
+                secs = [f"{dep}-{via}", f"{via}-{dest}", f"{dest}-{via}", f"{via}-{dep}"]
+
+        count = len(secs)
+        
+        label_map = {
+            'one_way_direct': f"{count} Sector (One Way Direct)",
+            'round_trip_direct': f"{count} Sectors (Round Trip Direct)",
+            'multi_city_direct': f"{count} Sectors (Multi City Direct)",
+            'one_way_via': f"{count} Sectors (One Way Via)",
+            'round_trip_via': f"{count} Sectors (Round Trip Via)",
+            'multi_city_via': f"{count} Sectors (Multi City Via)",
+        }
+        
+        label = label_map.get(r_type, f"{count} Sectors")
+
+        return {
+            'sectors': secs,
+            'count': count,
+            'label': label,
+            'route_type': r_type
+        }
 
     @property
     def get_price_20kg(self):

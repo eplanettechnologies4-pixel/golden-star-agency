@@ -41,6 +41,20 @@ def _safe_format_date(val, fmt='%Y-%m-%d'):
         return val
     return str(val)
 
+
+def _safe_float_or_none(val):
+    if val is None:
+        return None
+    val_str = str(val).strip()
+    if not val_str or val_str in ('0', '0.0', 'null', 'None', 'none'):
+        return None
+    try:
+        f = float(val_str)
+        return f if f > 0 else None
+    except (ValueError, TypeError):
+        return None
+
+
 def umrah_list_view(request):
     # Fetch only Umrah packages dynamically from database for website Umrah page
     packages = Package.objects.filter(category__iexact='umrah').order_by('-created_at')
@@ -134,7 +148,8 @@ def admin_packages_list_api(request):
             'category': pkg.category,
             'is_featured': pkg.is_featured,
             'cover_url': pkg.cover_url,
-            'price': float(pkg.price),
+            'price': float(pkg.price) if pkg.price else 0.0,
+            'min_available_price': float(pkg.min_available_price),
             'duration_days': pkg.duration_days,
             'available_seats': pkg.available_seats,
             'total_seats': pkg.total_seats,
@@ -149,18 +164,23 @@ def admin_packages_list_api(request):
             'images': gallery_imgs,
             'all_hotel_images': pkg.get_all_hotel_and_package_images(),
             'airline': pkg.airline or 'Saudi Airlines',
+            'airline_logo': pkg.airline_logo or (pkg.get_airline_info().get('logo_url') if pkg.get_airline_info() else None),
             'flight_routes': pkg.flight_routes or 'KHI - JED - MED - KHI',
             'flight_route_type': pkg.flight_route_type or 'direct',
+            'sectors_data': pkg.sectors_data if isinstance(pkg.sectors_data, list) else [],
+            'sectors_info': pkg.get_sectors_list(),
             'flight_dates': pkg.flight_dates or '',
             'departure_date': _safe_format_date(pkg.departure_date, '%Y-%m-%d'),
             'return_date': _safe_format_date(pkg.return_date, '%Y-%m-%d'),
-            'price_sharing': float(pkg.price_sharing),
-            'price_quad': float(pkg.price_quad),
-            'price_triple': float(pkg.price_triple),
-            'price_double': float(pkg.price_double),
-            'price_child': float(pkg.price_child),
-            'price_infant': float(pkg.price_infant),
-            'discount_percentage': float(pkg.discount_percentage),
+            'price_sharing': float(pkg.price_sharing) if pkg.price_sharing is not None else None,
+            'price_quad': float(pkg.price_quad) if pkg.price_quad is not None else None,
+            'price_triple': float(pkg.price_triple) if pkg.price_triple is not None else None,
+            'price_double': float(pkg.price_double) if pkg.price_double is not None else None,
+            'price_child': float(pkg.price_child) if pkg.price_child is not None else None,
+            'price_child_with_bed': float(pkg.price_child_with_bed) if pkg.price_child_with_bed is not None else None,
+            'price_child_no_bed': float(pkg.price_child_no_bed) if pkg.price_child_no_bed is not None else None,
+            'price_infant': float(pkg.price_infant) if pkg.price_infant is not None else None,
+            'discount_percentage': float(pkg.discount_percentage) if pkg.discount_percentage else 0.0,
             'description': pkg.description or '',
             'created_at': _safe_format_date(pkg.created_at, '%Y-%m-%d'),
             'addons': pkg.addons if isinstance(pkg.addons, list) else [],
@@ -199,14 +219,17 @@ def admin_package_detail_api(request, pk):
                 'category': pkg.category,
                 'is_featured': pkg.is_featured,
                 'cover_url': pkg.cover_url,
-                'price': float(pkg.price),
-                'price_sharing': float(pkg.price_sharing),
-                'price_quad':    float(pkg.price_quad),
-                'price_triple':  float(pkg.price_triple),
-                'price_double':  float(pkg.price_double),
-                'price_child':   float(pkg.price_child),
-                'price_infant':  float(pkg.price_infant),
-                'discount_percentage': float(pkg.discount_percentage),
+                'price': float(pkg.price) if pkg.price else 0.0,
+                'min_available_price': float(pkg.min_available_price),
+                'price_sharing': float(pkg.price_sharing) if pkg.price_sharing is not None else None,
+                'price_quad':    float(pkg.price_quad) if pkg.price_quad is not None else None,
+                'price_triple':  float(pkg.price_triple) if pkg.price_triple is not None else None,
+                'price_double':  float(pkg.price_double) if pkg.price_double is not None else None,
+                'price_child':   float(pkg.price_child) if pkg.price_child is not None else None,
+                'price_child_with_bed': float(pkg.price_child_with_bed) if pkg.price_child_with_bed is not None else None,
+                'price_child_no_bed': float(pkg.price_child_no_bed) if pkg.price_child_no_bed is not None else None,
+                'price_infant':  float(pkg.price_infant) if pkg.price_infant is not None else None,
+                'discount_percentage': float(pkg.discount_percentage) if pkg.discount_percentage else 0.0,
                 'duration_days': pkg.duration_days,
                 'available_seats': pkg.available_seats,
                 'total_seats': pkg.total_seats,
@@ -221,8 +244,11 @@ def admin_package_detail_api(request, pk):
                 'images': gallery_imgs,
                 'all_hotel_images': pkg.get_all_hotel_and_package_images(),
                 'airline': pkg.airline or '',
+                'airline_logo': pkg.airline_logo or (pkg.get_airline_info().get('logo_url') if pkg.get_airline_info() else None),
                 'flight_routes': pkg.flight_routes or '',
                 'flight_route_type': pkg.flight_route_type or 'direct',
+                'sectors_data': pkg.sectors_data if isinstance(pkg.sectors_data, list) else [],
+                'sectors_info': pkg.get_sectors_list(),
                 'flight_dates': pkg.flight_dates or '',
                 'departure_date': _safe_format_date(pkg.departure_date, '%Y-%m-%d'),
                 'return_date': _safe_format_date(pkg.return_date, '%Y-%m-%d'),
@@ -259,25 +285,31 @@ def admin_package_detail_api(request, pk):
             pkg.madinah_hotel_images = _handle_hotel_images_upload(request, 'madinah_hotel_images', 'madinah', pkg.madinah_hotel_images)
 
         p_val = body.get('price') or request.POST.get('price')
-        if p_val is not None: pkg.price = float(p_val)
+        if p_val is not None: pkg.price = float(p_val) if float(p_val) > 0 else 210000.0
         
-        p_sh = body.get('price_sharing') or request.POST.get('price_sharing')
-        if p_sh is not None: pkg.price_sharing = float(p_sh)
+        if 'price_sharing' in body or 'price_sharing' in request.POST:
+            pkg.price_sharing = _safe_float_or_none(body.get('price_sharing') if 'price_sharing' in body else request.POST.get('price_sharing'))
 
-        p_qd = body.get('price_quad') or request.POST.get('price_quad')
-        if p_qd is not None: pkg.price_quad = float(p_qd)
+        if 'price_quad' in body or 'price_quad' in request.POST:
+            pkg.price_quad = _safe_float_or_none(body.get('price_quad') if 'price_quad' in body else request.POST.get('price_quad'))
 
-        p_tr = body.get('price_triple') or request.POST.get('price_triple')
-        if p_tr is not None: pkg.price_triple = float(p_tr)
+        if 'price_triple' in body or 'price_triple' in request.POST:
+            pkg.price_triple = _safe_float_or_none(body.get('price_triple') if 'price_triple' in body else request.POST.get('price_triple'))
 
-        p_db = body.get('price_double') or request.POST.get('price_double')
-        if p_db is not None: pkg.price_double = float(p_db)
+        if 'price_double' in body or 'price_double' in request.POST:
+            pkg.price_double = _safe_float_or_none(body.get('price_double') if 'price_double' in body else request.POST.get('price_double'))
 
-        p_ch = body.get('price_child') or request.POST.get('price_child')
-        if p_ch is not None: pkg.price_child = float(p_ch)
+        if 'price_child' in body or 'price_child' in request.POST:
+            pkg.price_child = _safe_float_or_none(body.get('price_child') if 'price_child' in body else request.POST.get('price_child'))
 
-        p_inf = body.get('price_infant') or request.POST.get('price_infant')
-        if p_inf is not None: pkg.price_infant = float(p_inf)
+        if 'price_child_with_bed' in body or 'price_child_with_bed' in request.POST:
+            pkg.price_child_with_bed = _safe_float_or_none(body.get('price_child_with_bed') if 'price_child_with_bed' in body else request.POST.get('price_child_with_bed'))
+
+        if 'price_child_no_bed' in body or 'price_child_no_bed' in request.POST:
+            pkg.price_child_no_bed = _safe_float_or_none(body.get('price_child_no_bed') if 'price_child_no_bed' in body else request.POST.get('price_child_no_bed'))
+
+        if 'price_infant' in body or 'price_infant' in request.POST:
+            pkg.price_infant = _safe_float_or_none(body.get('price_infant') if 'price_infant' in body else request.POST.get('price_infant'))
 
         disc = body.get('discount_percentage') or request.POST.get('discount_percentage')
         if disc is not None: pkg.discount_percentage = float(disc)
@@ -297,11 +329,17 @@ def admin_package_detail_api(request, pk):
         m_hd = body.get('makkah_hotel_distance') or request.POST.get('makkah_hotel_distance')
         if m_hd: pkg.makkah_hotel_distance = m_hd
 
+        m_n = body.get('makkah_nights') or request.POST.get('makkah_nights')
+        if m_n is not None and str(m_n).isdigit(): pkg.makkah_nights = int(m_n)
+
         md_hn = body.get('madinah_hotel_name') or request.POST.get('madinah_hotel_name')
         if md_hn: pkg.madinah_hotel_name = md_hn
 
         md_hd = body.get('madinah_hotel_distance') or request.POST.get('madinah_hotel_distance')
         if md_hd: pkg.madinah_hotel_distance = md_hd
+
+        md_n = body.get('madinah_nights') or request.POST.get('madinah_nights')
+        if md_n is not None and str(md_n).isdigit(): pkg.madinah_nights = int(md_n)
 
         air = body.get('airline') or request.POST.get('airline')
         if air: pkg.airline = air
@@ -311,6 +349,16 @@ def admin_package_detail_api(request, pk):
 
         frt = body.get('flight_route_type') or request.POST.get('flight_route_type')
         if frt: pkg.flight_route_type = frt
+
+        if 'sectors_data' in body or 'sectors_data' in request.POST:
+            sec_raw = body.get('sectors_data') if 'sectors_data' in body else request.POST.get('sectors_data')
+            if isinstance(sec_raw, str):
+                try:
+                    sec_raw = json.loads(sec_raw)
+                except Exception:
+                    sec_raw = []
+            if isinstance(sec_raw, list):
+                pkg.sectors_data = [str(s).strip().upper() for s in sec_raw if str(s).strip()]
 
         if 'departure_date' in body or 'departure_date' in request.POST:
             dep = body.get('departure_date') if 'departure_date' in body else request.POST.get('departure_date')
@@ -341,11 +389,22 @@ def admin_package_detail_api(request, pk):
                     addons_raw = []
             pkg.addons = [{'name': a['name'], 'price': int(a.get('price', 0))} for a in (addons_raw or []) if isinstance(a, dict) and a.get('name', '').strip()]
         
+        if 'airline_logo' in request.FILES:
+            logo_file = request.FILES['airline_logo']
+            fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'packages', 'airlines'), base_url=settings.MEDIA_URL + 'packages/airlines/')
+            filename = fs.save(logo_file.name, logo_file)
+            pkg.airline_logo = fs.url(filename)
+        elif 'airline_logo' in body or 'airline_logo' in request.POST:
+            logo_val = (body.get('airline_logo') or request.POST.get('airline_logo') or '').strip()
+            if logo_val:
+                pkg.airline_logo = logo_val
+
         pkg.save()
         return JsonResponse({
             'success': True,
             'message': 'Package updated successfully.',
             'cover_url': pkg.cover_url,
+            'airline_logo': pkg.airline_logo,
             'makkah_hotel_images': pkg.makkah_hotel_images,
             'madinah_hotel_images': pkg.madinah_hotel_images
         })
@@ -356,7 +415,7 @@ def admin_package_detail_api(request, pk):
 def admin_package_create_api(request):
     """
     POST /dashboard/admin/api/packages/create/
-    Creates a new Package with optional Cover & Hotel Images upload.
+    Creates a new Package with optional Cover, Airline Logo & Hotel Images upload.
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
@@ -385,6 +444,14 @@ def admin_package_create_api(request):
         except Exception:
             addons_raw = []
 
+    sectors_raw = body.get('sectors_data') if 'sectors_data' in body else request.POST.get('sectors_data')
+    if isinstance(sectors_raw, str):
+        try:
+            sectors_raw = json.loads(sectors_raw)
+        except Exception:
+            sectors_raw = []
+    clean_sectors = [str(s).strip().upper() for s in (sectors_raw or []) if str(s).strip()]
+
     makkah_imgs = _handle_hotel_images_upload(request, 'makkah_hotel_images', 'makkah', [])
     madinah_imgs = _handle_hotel_images_upload(request, 'madinah_hotel_images', 'madinah', [])
 
@@ -393,12 +460,14 @@ def admin_package_create_api(request):
         category=category,
         is_featured=is_featured,
         price=price,
-        price_sharing=float(body.get('price_sharing') or request.POST.get('price_sharing') or price),
-        price_quad=float(body.get('price_quad')    or request.POST.get('price_quad')    or price + 35000),
-        price_triple=float(body.get('price_triple') or request.POST.get('price_triple') or price + 65000),
-        price_double=float(body.get('price_double') or request.POST.get('price_double') or price + 110000),
-        price_child=float(body.get('price_child')  or request.POST.get('price_child')  or 180000),
-        price_infant=float(body.get('price_infant') or request.POST.get('price_infant') or 65000),
+        price_sharing=_safe_float_or_none(body.get('price_sharing') or request.POST.get('price_sharing')),
+        price_quad=_safe_float_or_none(body.get('price_quad') or request.POST.get('price_quad')),
+        price_triple=_safe_float_or_none(body.get('price_triple') or request.POST.get('price_triple')),
+        price_double=_safe_float_or_none(body.get('price_double') or request.POST.get('price_double')),
+        price_child=_safe_float_or_none(body.get('price_child') or request.POST.get('price_child')),
+        price_child_with_bed=_safe_float_or_none(body.get('price_child_with_bed') or request.POST.get('price_child_with_bed')),
+        price_child_no_bed=_safe_float_or_none(body.get('price_child_no_bed') or request.POST.get('price_child_no_bed')),
+        price_infant=_safe_float_or_none(body.get('price_infant') or request.POST.get('price_infant')),
         discount_percentage=float(body.get('discount_percentage') or request.POST.get('discount_percentage') or 0),
         duration_days=duration_days,
         total_seats=total_seats,
@@ -406,12 +475,15 @@ def admin_package_create_api(request):
         makkah_hotel_name=body.get('makkah_hotel_name') or request.POST.get('makkah_hotel_name') or 'Anjum Hotel Makkah',
         makkah_hotel_distance=body.get('makkah_hotel_distance') or request.POST.get('makkah_hotel_distance') or '350m from Haram',
         makkah_hotel_images=makkah_imgs,
+        makkah_nights=int(body.get('makkah_nights') or request.POST.get('makkah_nights') or 7),
         madinah_hotel_name=body.get('madinah_hotel_name') or request.POST.get('madinah_hotel_name') or 'Pullman Zamzam Madinah',
         madinah_hotel_distance=body.get('madinah_hotel_distance') or request.POST.get('madinah_hotel_distance') or "150m from Prophet's Mosque",
         madinah_hotel_images=madinah_imgs,
+        madinah_nights=int(body.get('madinah_nights') or request.POST.get('madinah_nights') or 7),
         airline=body.get('airline') or request.POST.get('airline') or 'Saudi Airlines',
         flight_routes=body.get('flight_routes') or request.POST.get('flight_routes') or 'KHI - JED - MED - KHI',
         flight_route_type=body.get('flight_route_type') or request.POST.get('flight_route_type') or 'direct',
+        sectors_data=clean_sectors,
         flight_dates=body.get('flight_dates') or request.POST.get('flight_dates') or '15 Aug 2026 - 30 Aug 2026',
         departure_date=(body.get('departure_date') or request.POST.get('departure_date') or '').strip() or None,
         return_date=(body.get('return_date') or request.POST.get('return_date') or '').strip() or None,
@@ -426,11 +498,24 @@ def admin_package_create_api(request):
         pkg.cover_image = request.FILES['cover_image']
         pkg.save()
 
+    if 'airline_logo' in request.FILES:
+        logo_file = request.FILES['airline_logo']
+        fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'packages', 'airlines'), base_url=settings.MEDIA_URL + 'packages/airlines/')
+        filename = fs.save(logo_file.name, logo_file)
+        pkg.airline_logo = fs.url(filename)
+        pkg.save()
+    elif body.get('airline_logo') or request.POST.get('airline_logo'):
+        logo_val = (body.get('airline_logo') or request.POST.get('airline_logo')).strip()
+        if logo_val:
+            pkg.airline_logo = logo_val
+            pkg.save()
+
     return JsonResponse({
         'success': True,
         'message': f'Package "{pkg.title}" created successfully.',
         'id': pkg.id,
         'cover_url': pkg.cover_url,
+        'airline_logo': pkg.airline_logo,
         'makkah_hotel_images': pkg.makkah_hotel_images,
         'madinah_hotel_images': pkg.madinah_hotel_images
     })

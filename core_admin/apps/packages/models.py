@@ -8,12 +8,14 @@ class Package(models.Model):
     duration_days = models.IntegerField(default=15) # e.g. 15, 18, 28 days
     
     # Room sharing & child/infant pricing (4 Room Categories: Sharing, Quad, Triple, Double)
-    price_sharing = models.DecimalField(max_digits=10, decimal_places=2, default=210000.00) # 5-6 bed room
-    price_quad = models.DecimalField(max_digits=10, decimal_places=2, default=245000.00) # 4 bed room
-    price_triple = models.DecimalField(max_digits=10, decimal_places=2, default=275000.00) # 3 bed room
-    price_double = models.DecimalField(max_digits=10, decimal_places=2, default=320000.00) # 2 bed room
-    price_child = models.DecimalField(max_digits=10, decimal_places=2, default=180000.00)
-    price_infant = models.DecimalField(max_digits=10, decimal_places=2, default=65000.00) # Milk-feeding infant / child under 2 yrs (no bed)
+    price_sharing = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=210000.00) # 5-6 bed room
+    price_quad = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=245000.00) # 4 bed room
+    price_triple = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=275000.00) # 3 bed room
+    price_double = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=320000.00) # 2 bed room
+    price_child = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=180000.00)
+    price_child_with_bed = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=180000.00) # Child with bed
+    price_child_no_bed = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=120000.00)   # Child without bed
+    price_infant = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=65000.00) # Milk-feeding infant / child under 2 yrs (no bed)
     
     # Discount options
     discount_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
@@ -24,7 +26,13 @@ class Package(models.Model):
     airline = models.CharField(max_length=100, default='Saudi Airlines', blank=True, null=True)
     airline_logo = models.CharField(max_length=255, blank=True, null=True)
     flight_routes = models.CharField(max_length=255, default='KHI - JED - MED - KHI', blank=True, null=True)
-    flight_route_type = models.CharField(max_length=20, default='direct', choices=(('direct', 'Direct Flight'), ('via', 'Via Flight')), blank=True, null=True)
+    ROUTE_TYPE_CHOICES = (
+        ('direct', 'Direct Flight (Round Trip)'),
+        ('via', 'Round Trip (Via Flight)'),
+        ('multi_city', 'Multi City (Via Flight)'),
+    )
+    flight_route_type = models.CharField(max_length=30, default='direct', choices=ROUTE_TYPE_CHOICES, blank=True, null=True)
+    sectors_data = models.JSONField(default=list, blank=True, null=True) # e.g. ["LYP-SHJ", "SHJ-JED", "JED-SHJ", "SHJ-LYP"]
     flight_dates = models.CharField(max_length=150, default='15 Aug 2026 - 30 Aug 2026', blank=True, null=True)
     departure_date = models.DateField(null=True, blank=True)
     return_date = models.DateField(null=True, blank=True)
@@ -49,7 +57,6 @@ class Package(models.Model):
     images = models.JSONField(default=list, blank=True, null=True)
     
     # Optional Add-on options with extra prices (configured by admin)
-    # Example: [{"id": "train", "name": "VIP Haramain High-Speed Train", "price": 25000}, ...]
     addons = models.JSONField(default=list, blank=True, null=True)
     
     # Seats tracking & announcement
@@ -78,26 +85,29 @@ class Package(models.Model):
         return "/static/images/umrah_card.png"
 
     def get_images_list(self):
+        if self.cover_image:
+            return [self.cover_image.url]
         if isinstance(self.images, list) and len(self.images) > 0:
             return self.images
-        return ["/static/images/umrah_card.png", "/static/images/hajj_card.png", "/static/images/turkey_card.png"]
+        return [self.cover_url]
 
     def get_all_hotel_and_package_images(self):
         imgs = []
+        if self.cover_image:
+            imgs.append(self.cover_image.url)
         if isinstance(self.makkah_hotel_images, list):
             imgs.extend(self.makkah_hotel_images)
         if isinstance(self.madinah_hotel_images, list):
             imgs.extend(self.madinah_hotel_images)
         if isinstance(self.images, list):
             imgs.extend(self.images)
-        if not imgs:
-            imgs = self.get_images_list()
+
         # Deduplicate preserving order
         unique_imgs = []
         for img in imgs:
             if img and isinstance(img, str) and img.strip() and img not in unique_imgs:
                 unique_imgs.append(img.strip())
-        return unique_imgs if unique_imgs else self.get_images_list()
+        return unique_imgs if unique_imgs else [self.cover_url]
 
     def get_airline_info(self):
         name = self.airline or "Saudi Airlines"
@@ -118,6 +128,95 @@ class Package(models.Model):
         elif 'air arabia' in name_lower:
             return {'name': 'Air Arabia', 'icon_class': 'fa-plane', 'badge_color': 'bg-rose-500/10 text-rose-600 border-rose-500/20'}
         return {'name': name, 'icon_class': 'fa-plane', 'badge_color': 'bg-blue-500/10 text-blue-600 border-blue-500/20'}
+
+    def get_sectors_list(self):
+        """
+        Parses sectors_data JSON list or flight_routes string into sector pills & label.
+        e.g. 2 Sectors: ["LYP-JED", "JED-LYP"] or 4 Sectors: ["LYP-SHJ", "SHJ-JED", "JED-SHJ", "SHJ-LYP"]
+        """
+        if isinstance(self.sectors_data, list) and len(self.sectors_data) > 0:
+            clean_sectors = [str(s).strip().upper() for s in self.sectors_data if str(s).strip()]
+            if clean_sectors:
+                count = len(clean_sectors)
+                route_type_display = "Direct" if self.flight_route_type == 'direct' else ("Multi-City" if self.flight_route_type == 'multi_city' else "Via Flight")
+                return {
+                    'sectors': clean_sectors,
+                    'count': count,
+                    'label': f"{count} Sectors ({route_type_display})",
+                    'formatted': " ➔ ".join(clean_sectors)
+                }
+        # Fallback: parse flight_routes string if sectors_data is missing
+        raw = (self.flight_routes or "KHI - JED - MED - KHI").replace('|', '-').replace('/', '-')
+        parts = [p.strip().upper() for p in raw.split('-') if p.strip()]
+        if len(parts) >= 2:
+            sectors = [f"{parts[i]}-{parts[i+1]}" for i in range(len(parts)-1)]
+            count = len(sectors)
+            route_type_display = "Direct" if self.flight_route_type == 'direct' else ("Multi-City" if self.flight_route_type == 'multi_city' else "Via Flight")
+            return {
+                'sectors': sectors,
+                'count': count,
+                'label': f"{count} Sectors ({route_type_display})",
+                'formatted': " ➔ ".join(sectors)
+            }
+        return {
+            'sectors': ["LYP-JED", "JED-LYP"],
+            'count': 2,
+            'label': "2 Sectors (Direct)",
+            'formatted': "LYP-JED ➔ JED-LYP"
+        }
+
+    @property
+    def min_available_price(self):
+        """
+        Returns lowest non-zero room price set by admin.
+        """
+        valid_prices = []
+        for p in [self.price_sharing, self.price_quad, self.price_triple, self.price_double]:
+            if p is not None:
+                try:
+                    val = float(p)
+                    if val > 0:
+                        valid_prices.append(val)
+                except (ValueError, TypeError):
+                    pass
+        if valid_prices:
+            return min(valid_prices)
+        try:
+            return float(self.price) if self.price else 0.0
+        except (ValueError, TypeError):
+            return 0.0
+
+    def get_available_pricing_options(self):
+        """
+        Returns dict containing ONLY the room sharing and child/infant pricing options
+        that have a valid price > 0 added by admin.
+        """
+        room_list = []
+        if self.price_sharing and float(self.price_sharing) > 0:
+            room_list.append({'key': 'Sharing', 'label': 'Sharing Room (5-6 Bed)', 'price': float(self.price_sharing)})
+        if self.price_quad and float(self.price_quad) > 0:
+            room_list.append({'key': 'Quad', 'label': 'Quad Room (4 Bed)', 'price': float(self.price_quad)})
+        if self.price_triple and float(self.price_triple) > 0:
+            room_list.append({'key': 'Triple', 'label': 'Triple Room (3 Bed)', 'price': float(self.price_triple)})
+        if self.price_double and float(self.price_double) > 0:
+            room_list.append({'key': 'Double', 'label': 'Double / Twin Room (2 Bed)', 'price': float(self.price_double)})
+        
+        # Fallback if room_list is empty
+        if not room_list:
+            base_p = float(self.price) if self.price else 210000.0
+            room_list.append({'key': 'Sharing', 'label': 'Standard Package', 'price': base_p})
+
+        child_bed_val = float(self.price_child_with_bed) if (self.price_child_with_bed and float(self.price_child_with_bed) > 0) else (float(self.price_child) if (self.price_child and float(self.price_child) > 0) else None)
+        child_no_bed_val = float(self.price_child_no_bed) if (self.price_child_no_bed and float(self.price_child_no_bed) > 0) else None
+        infant_val = float(self.price_infant) if (self.price_infant and float(self.price_infant) > 0) else None
+
+        return {
+            'room_options': room_list,
+            'child_with_bed': child_bed_val,
+            'child_no_bed': child_no_bed_val,
+            'infant': infant_val
+        }
+
 
 
 

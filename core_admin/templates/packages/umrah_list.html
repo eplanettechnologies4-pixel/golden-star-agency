@@ -212,11 +212,21 @@
                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-filter text-brand-orange"></i> Duration Filter:</span>
                 <select id="duration-filter-select" onchange="filterPackagesByDays(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
                     <option value="all" selected>All Durations</option>
+                    <option value="7">7 Days Packages</option>
+                    <option value="10">10 Days Packages</option>
+                    <option value="12">12 Days Packages</option>
+                    <option value="14">14 Days Packages</option>
                     <option value="15">15 Days Packages</option>
                     <option value="18">18 Days Packages</option>
+                    <option value="19">19 Days Packages</option>
+                    <option value="20">20 Days Packages</option>
+                    <option value="21">21 Days Packages</option>
+                    <option value="23">23 Days Packages</option>
+                    <option value="24">24 Days Packages</option>
+                    <option value="25">25 Days Packages</option>
+                    <option value="26">26 Days Packages</option>
+                    <option value="27">27 Days Packages</option>
                     <option value="28">28 Days Packages</option>
-                    <option value="10">10 Days Packages</option>
-                    <option value="7">7 Days Packages</option>
                 </select>
             </div>
             <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
@@ -276,12 +286,30 @@
                             {% endif %}
                         </div>
 
-                        <!-- Flight Route -->
-                        <p class="text-[11px] text-slate-500 font-semibold"><i class="fa-solid fa-route text-brand-orange mr-1.5"></i>Route: {{ pkg.flight_routes|default:"KHI - JED - MED - KHI" }}</p>
+                        <!-- Flight Route & Sectors Auto-Display -->
+                        {% with sec_info=pkg.get_sectors_list %}
+                        <div class="space-y-1 py-1 border-y border-slate-200/50 my-1.5">
+                            <div class="flex items-center justify-between text-[11px]">
+                                <span class="font-extrabold text-slate-800 flex items-center gap-1">
+                                    <i class="fa-solid fa-plane-flight text-brand-orange"></i> {{ sec_info.label }}
+                                </span>
+                                <span class="text-[10px] text-slate-500 font-semibold uppercase">{{ pkg.get_flight_route_type_display }}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1">
+                                {% for sector in sec_info.sectors %}
+                                <span class="bg-amber-50/80 text-amber-900 border border-amber-300/60 text-[10px] font-mono font-black px-2 py-0.5 rounded shadow-2xs">
+                                    {{ sector }}
+                                </span>
+                                {% empty %}
+                                <span class="text-[10px] text-slate-400 italic">Route: {{ pkg.flight_routes|default:"LYP - JED" }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endwith %}
 
                         <!-- Makkah Hotel Distance & Photos -->
                         <div class="flex items-center justify-between text-[11px] gap-2">
-                            <p class="truncate"><i class="fa-solid fa-hotel text-brand-orange mr-1.5"></i><strong>Makkah:</strong> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }} <span class="text-emerald-600 font-bold">({% if pkg.makkah_nights %}{{ pkg.makkah_nights }} Nights &bull; {% endif %}{{ pkg.makkah_hotel_distance|default:"350m" }})</span></p>
+                            <p class="truncate"><i class="fa-solid fa-hotel text-brand-orange mr-1.5"></i><strong>Makkah:</strong> {{ pkg.makkah_hotel_name|default:"Hotel Near Haram" }} <span class="text-emerald-700 font-extrabold">({{ pkg.makkah_nights|default:"7" }} Nights &bull; {{ pkg.makkah_hotel_distance|default:"350m" }})</span></p>
                             {% if pkg.makkah_hotel_images %}
                             <span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 border border-amber-200 shadow-xs" title="{{ pkg.makkah_hotel_images|length }} hotel photos uploaded from backend"><i class="fa-solid fa-camera text-amber-600"></i> {{ pkg.makkah_hotel_images|length }}</span>
                             {% endif %}
@@ -289,7 +317,7 @@
 
                         <!-- Madinah Hotel Distance & Photos -->
                         <div class="flex items-center justify-between text-[11px] gap-2">
-                            <p class="truncate"><i class="fa-solid fa-mosque text-brand-orange mr-1.5"></i><strong>Madinah:</strong> {{ pkg.madinah_hotel_name|default:"Hotel Near Markazia" }} <span class="text-emerald-600 font-bold">({% if pkg.madinah_nights %}{{ pkg.madinah_nights }} Nights &bull; {% endif %}{{ pkg.madinah_hotel_distance|default:"150m" }})</span></p>
+                            <p class="truncate"><i class="fa-solid fa-mosque text-brand-orange mr-1.5"></i><strong>Madinah:</strong> {{ pkg.madinah_hotel_name|default:"Hotel Near Markazia" }} <span class="text-emerald-700 font-extrabold">({{ pkg.madinah_nights|default:"7" }} Nights &bull; {{ pkg.madinah_hotel_distance|default:"150m" }})</span></p>
                             {% if pkg.madinah_hotel_images %}
                             <span class="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1 border border-emerald-200 shadow-xs" title="{{ pkg.madinah_hotel_images|length }} hotel photos uploaded from backend"><i class="fa-solid fa-camera text-emerald-600"></i> {{ pkg.madinah_hotel_images|length }}</span>
                             {% endif %}
@@ -301,8 +329,8 @@
 
                     <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                         <div>
-                            <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Per Person Price</span>
-                            <span class="text-lg font-extrabold text-brand-orange">PKR {{ pkg.price }}</span>
+                            <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Starting From</span>
+                            <span class="text-lg font-black text-brand-orange">PKR {{ pkg.min_available_price }}</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <a href="{% url 'package_detail' pk=pkg.pk %}" class="px-4 py-2.5 bg-brand-orange hover:bg-brand-orange-dark text-white rounded-xl text-xs font-extrabold transition-all duration-200 shadow-md flex items-center gap-1.5">

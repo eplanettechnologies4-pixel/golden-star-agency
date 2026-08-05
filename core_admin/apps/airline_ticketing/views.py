@@ -433,6 +433,7 @@ def admin_flight_inventory_api(request):
                 'return_route_type':     fi.return_route_type or '',
                 'return_via_city':       fi.return_via_city or '',
                 'is_active':            fi.is_active,
+                'sectors_data':         fi.sectors_data if fi.sectors_data else [],
                 'created_at':           fi.created_at.strftime('%Y-%m-%d %H:%M'),
                 'baggage_tiers':        tiers,
             })
@@ -454,13 +455,26 @@ def admin_flight_inventory_api(request):
         sector_id = request.POST.get('sector_id', '').strip()
         sector = get_object_or_404(Sector, pk=sector_id) if sector_id else None
 
+        # Parse per-sector legs JSON
+        raw_sectors = request.POST.get('sectors_data', '[]')
+        try:
+            parsed_sectors = json.loads(raw_sectors) if isinstance(raw_sectors, str) else raw_sectors
+            if not isinstance(parsed_sectors, list): parsed_sectors = []
+        except Exception:
+            parsed_sectors = []
+
+        # Derive outbound departure/arrival from first leg if not explicitly provided
+        leg0 = parsed_sectors[0] if parsed_sectors else {}
+        dep_time = request.POST.get('departure_time', '').strip() or leg0.get('dep_time', '00:00 AM')
+        arr_time = request.POST.get('arrival_time', '').strip() or leg0.get('arr_time', '00:00 AM')
+
         fi = AirlineFlightInventory(
             sector=sector,
             airline=airline,
             departure_city=departure_city,
             destination_city=destination_city,
-            departure_time=request.POST.get('departure_time', '00:00 AM').strip(),
-            arrival_time=request.POST.get('arrival_time', '00:00 AM').strip(),
+            departure_time=dep_time,
+            arrival_time=arr_time,
             total_seats=int(request.POST.get('total_seats', 0) or 0),
             booked_seats=int(request.POST.get('booked_seats', 0) or 0),
             trip_type=request.POST.get('trip_type', 'return').strip(),
@@ -472,6 +486,7 @@ def admin_flight_inventory_api(request):
             return_route_type=request.POST.get('return_route_type', '').strip(),
             return_via_city=request.POST.get('return_via_city', '').strip(),
             is_active=request.POST.get('is_active', 'true') == 'true',
+            sectors_data=parsed_sectors,
         )
         fi.save()
 
@@ -540,6 +555,21 @@ def admin_flight_inventory_detail_api(request, pk):
         fi.return_via_city = request.POST.get('return_via_city', fi.return_via_city or '').strip()
 
         fi.is_active = request.POST.get('is_active', 'true') == 'true'
+
+        # Update sectors_data if provided
+        if 'sectors_data' in request.POST:
+            raw_sectors = request.POST.get('sectors_data', '[]')
+            try:
+                parsed_sectors = json.loads(raw_sectors) if isinstance(raw_sectors, str) else raw_sectors
+                if not isinstance(parsed_sectors, list): parsed_sectors = []
+            except Exception:
+                parsed_sectors = []
+            fi.sectors_data = parsed_sectors
+            # Auto-sync first leg times if submitted without explicit departure_time
+            if parsed_sectors and not request.POST.get('departure_time', '').strip():
+                fi.departure_time = parsed_sectors[0].get('dep_time', fi.departure_time)
+                fi.arrival_time = parsed_sectors[0].get('arr_time', fi.arrival_time)
+
         fi.save()
 
         # Replace all baggage tiers with the newly submitted ones
@@ -583,12 +613,15 @@ def _save_baggage_tiers(flight_inventory, post_data):
                 pass
         i += 1
 
-    # Check for direct inputs e.g. baggage_fare_7, baggage_fare_20, baggage_fare_30, baggage_fare_40
     direct_tiers = [
         ('7',  post_data.get('baggage_fare_7')  or post_data.get('fare_7kg')  or post_data.get('fare_handcarry') or post_data.get('price_handcarry')),
         ('20', post_data.get('baggage_fare_20') or post_data.get('fare_20kg') or post_data.get('price_20kg') or post_data.get('price') or post_data.get('base_fare')),
+        ('23', post_data.get('baggage_fare_23') or post_data.get('fare_23kg') or post_data.get('price_23kg')),
+        ('25', post_data.get('baggage_fare_25') or post_data.get('fare_25kg') or post_data.get('price_25kg')),
         ('30', post_data.get('baggage_fare_30') or post_data.get('fare_30kg') or post_data.get('price_30kg')),
+        ('35', post_data.get('baggage_fare_35') or post_data.get('fare_35kg') or post_data.get('price_35kg')),
         ('40', post_data.get('baggage_fare_40') or post_data.get('fare_40kg') or post_data.get('price_40kg')),
+        ('46', post_data.get('baggage_fare_46') or post_data.get('fare_46kg') or post_data.get('price_46kg')),
     ]
     for w, f in direct_tiers:
         if f and str(f).strip():
@@ -2008,6 +2041,131 @@ def issue_pnr_and_tickets_for_order(order):
     return pnr or order.reference_number
 
 
+def send_b2b_order_notification_email(order, event_type='created'):
+    """
+    Automated email dispatcher for B2B Agent orders & Admin Panel alerts.
+    Events:
+    - 'created': Sent to Admin & Agent when order is placed (hold or paid).
+    - 'paid': Sent to Admin & Agent when agent pays for an order.
+    - 'ticketed': Sent to Agent & Traveler when order is confirmed/ticketed by admin.
+    """
+    try:
+        from apps.accounts.views import build_professional_email_html, _dispatch_email
+        from apps.accounts.models import User
+        from django.conf import settings
+
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', None) or 'goldenstartraveltours@gmail.com'
+
+        # Gather Admin emails
+        admin_emails = set()
+        default_admin = getattr(settings, 'ADMIN_NOTIFICATION_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', None)
+        if default_admin and default_admin.strip():
+            admin_emails.add(default_admin.strip())
+        
+        try:
+            superadmin_list = User.objects.filter(is_superuser=True, is_active=True).values_list('email', flat=True)
+            for em in superadmin_list:
+                if em and em.strip():
+                    admin_emails.add(em.strip())
+        except Exception:
+            pass
+        
+        admin_recipients = list(admin_emails)
+
+        agent_email = (order.agent_contact_email or (order.agent.email if order.agent else '') or '').strip()
+        traveler_email = (order.traveler_contact_email or '').strip()
+        agent_name = order.agent.get_full_name() if (order.agent and hasattr(order.agent, 'get_full_name')) else (order.agent.username if order.agent else 'Partner Agent')
+        agency_name = getattr(order.agent, 'company_name', '') if order.agent else ''
+
+        # Passengers list string
+        pax_list = list(order.passengers.all())
+        pax_names = ", ".join([f"{p.title} {p.first_name} {p.last_name}".strip() for p in pax_list]) if pax_list else f"{order.passenger_count or 1} Passenger(s)"
+
+        # Item title
+        if order.flight_inventory:
+            item_title = f"Flight: {order.flight_inventory.airline_name} ({order.flight_inventory.departure_city} ➔ {order.flight_inventory.destination_city})"
+        elif order.agent_package:
+            item_title = f"Umrah Package: {order.agent_package.title}"
+        elif order.agent_hajj_package:
+            item_title = f"Hajj Package: {order.agent_hajj_package.title}"
+        elif order.group_policy:
+            item_title = f"Group Fare Policy #{order.group_policy.id}"
+        else:
+            item_title = "B2B Ticket / Package Booking"
+
+        ref_no = order.reference_number or f"#{order.id}"
+        status_disp = order.get_status_display().upper()
+
+        if event_type in ('created', 'paid'):
+            # 1. Admin Email Alert
+            subject_admin = f"🚨 B2B ORDER ALERT [{ref_no}] — {status_disp} ({agency_name or agent_name})"
+            body_admin_html = f"""
+            <p>A B2B booking order <strong>#{ref_no}</strong> has been {event_type} by partner agent <strong>{agent_name}</strong> ({agency_name or 'N/A'}).</p>
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 16px 0;">
+                <h4 style="margin: 0 0 12px 0; color: #ea580c; font-size: 14px; text-transform: uppercase;">Order Summary</h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr><td style="padding: 4px 0; color: #64748b;">Order Ref #:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{ref_no}</td></tr>
+                    <tr><td style="padding: 4px 0; color: #64748b;">Status:</td><td style="padding: 4px 0; font-weight: bold; color: #ea580c; text-align: right;">{status_disp}</td></tr>
+                    <tr><td style="padding: 4px 0; color: #64748b;">Service / Item:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{item_title}</td></tr>
+                    <tr><td style="padding: 4px 0; color: #64748b;">Passengers:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{pax_names}</td></tr>
+                    <tr><td style="padding: 4px 0; color: #64748b;">Agent Contact:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{order.agent_phone_number or 'N/A'} ({agent_email})</td></tr>
+                    <tr style="border-top: 1px solid #e2e8f0;"><td style="padding: 8px 0 4px 0; color: #0f172a; font-weight: bold;">Total Amount:</td><td style="padding: 8px 0 4px 0; font-weight: 900; color: #ea580c; font-size: 16px; text-align: right;">PKR {float(order.total_fare):,.2f}</td></tr>
+                </table>
+            </div>
+            <p>Log in to the Golden Star Admin Dashboard to manage this order and allot ticket numbers / PNR.</p>
+            """
+            if admin_recipients:
+                html_admin = build_professional_email_html("B2B Order Alert", "Golden Star Admin", body_admin_html, "Manage Orders in Admin Panel", "http://127.0.0.1:8000/dashboard/admin/")
+                _dispatch_email(subject_admin, f"B2B Order Alert {ref_no}", from_email, admin_recipients, html_message=html_admin)
+
+            # 2. Agent Email Confirmation
+            if agent_email:
+                subject_agent = f"📋 B2B Order Confirmation — Ref: #{ref_no} [{status_disp}]"
+                body_agent_html = f"""
+                <p>Assalamu Alaikum <strong>{agent_name}</strong>,</p>
+                <p>Your B2B booking order <strong>#{ref_no}</strong> has been successfully placed in our system.</p>
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 16px 0;">
+                    <h4 style="margin: 0 0 12px 0; color: #ea580c; font-size: 14px; text-transform: uppercase;">Booking Details</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <tr><td style="padding: 4px 0; color: #64748b;">Reference #:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{ref_no}</td></tr>
+                        <tr><td style="padding: 4px 0; color: #64748b;">Service:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{item_title}</td></tr>
+                        <tr><td style="padding: 4px 0; color: #64748b;">Passengers:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{pax_names}</td></tr>
+                        <tr><td style="padding: 4px 0; color: #64748b;">Total Fare:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">PKR {float(order.total_fare):,.2f}</td></tr>
+                        <tr><td style="padding: 4px 0; color: #64748b;">Status:</td><td style="padding: 4px 0; font-weight: bold; color: #ea580c; text-align: right;">{status_disp}</td></tr>
+                    </table>
+                </div>
+                <p>You can track order status or print official vouchers anytime from your B2B Agent Dashboard.</p>
+                """
+                html_agent = build_professional_email_html("B2B Order Confirmation", agent_name, body_agent_html, "View Order Dashboard", "http://127.0.0.1:8000/dashboard/agent/")
+                _dispatch_email(subject_agent, f"B2B Order #{ref_no} Confirmation", from_email, [agent_email], html_message=html_agent)
+
+        elif event_type in ('ticketed', 'confirmed', 'paid_pending'):
+            # 3. Confirmation alert to Agent & Traveler
+            recipients = list(set([e for e in [agent_email, traveler_email] if e]))
+            if recipients:
+                subject_confirm = f"✅ B2B Order #{ref_no} Confirmed & Ticketed — Golden Star Travel"
+                pnr_str = order.pnr or 'Confirmed'
+                body_confirm_html = f"""
+                <p>Your B2B booking order <strong>#{ref_no}</strong> has been <strong>CONFIRMED & TICKETED</strong> by <strong>REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</strong></p>
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 16px 0;">
+                    <h4 style="margin: 0 0 12px 0; color: #166534; font-size: 14px; text-transform: uppercase;">Ticket & Reservation Summary</h4>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                        <tr><td style="padding: 4px 0; color: #64748b;">Reference #:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{ref_no}</td></tr>
+                        <tr><td style="padding: 4px 0; color: #64748b;">PNR Code:</td><td style="padding: 4px 0; font-weight: 900; color: #ea580c; font-size: 15px; font-family: monospace; text-align: right;">{pnr_str}</td></tr>
+                        <tr><td style="padding: 4px 0; color: #64748b;">Service:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{item_title}</td></tr>
+                        <tr><td style="padding: 4px 0; color: #64748b;">Passengers:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{pax_names}</td></tr>
+                        <tr style="border-top: 1px solid #e2e8f0;"><td style="padding: 8px 0 4px 0; color: #0f172a; font-weight: bold;">Status:</td><td style="padding: 8px 0 4px 0; font-weight: 900; color: #166534; font-size: 14px; text-align: right;">{status_disp}</td></tr>
+                    </table>
+                </div>
+                <p>You can print your official E-Ticket/Voucher anytime from your dashboard portal.</p>
+                """
+                html_confirm = build_professional_email_html("B2B Ticket Confirmation", agent_name, body_confirm_html, "Print Voucher / E-Ticket", f"http://127.0.0.1:8000/dashboard/agent/ticket-orders/{ref_no}/print/")
+                _dispatch_email(subject_confirm, f"B2B Order #{ref_no} Confirmed", from_email, recipients, html_message=html_confirm)
+
+    except Exception as err:
+        print(f"[b2b_mail_error] Failed sending B2B order email for #{getattr(order, 'reference_number', '')}: {err}")
+
+
 @csrf_exempt
 @user_passes_test(is_agent)
 def agent_create_ticket_order_api(request):
@@ -2235,6 +2393,9 @@ def agent_create_ticket_order_api(request):
                 order.pnr = None
                 order.status = 'paid'
                 order.save()
+
+            # Trigger automated email alert to Admin and Agent
+            send_b2b_order_notification_email(order, event_type='created')
 
         return JsonResponse({
             'success': True,
@@ -2608,6 +2769,9 @@ def admin_allot_tickets_api(request, pk):
                 passenger.allotted_ticket_number = str(t_num).strip()
                 passenger.save()
 
+    # Dispatch email notification to Agent and Traveler
+    send_b2b_order_notification_email(order, event_type='ticketed')
+
     return JsonResponse({
         'success': True,
         'message': f'Ticket numbers allotted and order status updated to {order.get_status_display()}.',
@@ -2636,6 +2800,7 @@ def admin_confirm_ticket_payment_api(request, pk):
         }, status=400)
 
     pnr = issue_pnr_and_tickets_for_order(order)
+    send_b2b_order_notification_email(order, event_type='ticketed')
 
     return JsonResponse({
         'success': True,

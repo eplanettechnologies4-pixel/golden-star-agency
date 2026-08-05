@@ -1615,8 +1615,14 @@ def admin_flight_tickets_api(request):
                 'price': str(ft.price),
                 'price_handcarry': str(ft.price_handcarry) if ft.price_handcarry else '',
                 'price_20kg': str(ft.price_20kg) if ft.price_20kg else str(ft.price),
+                'price_23kg': str(ft.price_23kg) if ft.price_23kg else '',
+                'price_25kg': str(ft.price_25kg) if ft.price_25kg else '',
                 'price_30kg': str(ft.price_30kg) if ft.price_30kg else '',
+                'price_35kg': str(ft.price_35kg) if ft.price_35kg else '',
                 'price_40kg': str(ft.price_40kg) if ft.price_40kg else '',
+                'price_46kg': str(ft.price_46kg) if ft.price_46kg else '',
+                'custom_baggage_fares': ft.custom_baggage_fares or {},
+                'baggage_options': ft.get_all_baggage_options(),
                 'original_price': str(ft.original_price) if ft.original_price else '',
                 'baggage_checkin': ft.baggage_checkin,
                 'baggage_hand': ft.baggage_hand,
@@ -1673,6 +1679,19 @@ def admin_flight_tickets_api(request):
             arrival_time_str = str(body.get('arrival_time_str') or '06:45 AM').strip()
             duration_str = str(body.get('duration_str') or '4h 15m').strip()
             flight_type = str(body.get('flight_type') or 'direct').strip()
+            flight_route_type = str(body.get('flight_route_type') or 'round_trip_direct').strip()
+
+            sectors_data = []
+            for s in sectors_raw:
+                if isinstance(s, dict):
+                    sectors_data.append({
+                        "route": str(s.get('route', '')).strip().upper(),
+                        "flight_no": str(s.get('flight_no', '')).strip().upper(),
+                        "dep_time": str(s.get('dep_time', '')).strip(),
+                        "arr_time": str(s.get('arr_time', '')).strip(),
+                    })
+                elif str(s).strip():
+                    sectors_data.append(str(s).strip().upper())
             
             # Extract up to 4 via route segments if transit
             via_route1 = str(body.get('via_route1') or '').strip()
@@ -1687,8 +1706,17 @@ def admin_flight_tickets_api(request):
             price = body.get('price') or '145000.00'
             price_handcarry = body.get('price_handcarry', None)
             price_20kg = body.get('price_20kg', None)
+            price_23kg = body.get('price_23kg', None)
+            price_25kg = body.get('price_25kg', None)
             price_30kg = body.get('price_30kg', None)
+            price_35kg = body.get('price_35kg', None)
             price_40kg = body.get('price_40kg', None)
+            price_46kg = body.get('price_46kg', None)
+            custom_fares = body.get('custom_baggage_fares', {})
+            if isinstance(custom_fares, str):
+                try: custom_fares = json.loads(custom_fares)
+                except Exception: custom_fares = {}
+
             original_price = body.get('original_price', None)
             
             baggage_checkin = str(body.get('baggage_checkin') or '30 kg').strip()
@@ -1717,13 +1745,20 @@ def admin_flight_tickets_api(request):
                 arrival_time_str=arrival_time_str,
                 duration_str=duration_str,
                 flight_type=flight_type,
+                flight_route_type=flight_route_type,
+                sectors_data=sectors_data,
                 via_routes=via_routes,
                 ticket_class=ticket_class,
                 price=price,
                 price_handcarry=price_handcarry if price_handcarry else None,
                 price_20kg=price_20kg if price_20kg else price,
+                price_23kg=price_23kg if price_23kg else None,
+                price_25kg=price_25kg if price_25kg else None,
                 price_30kg=price_30kg if price_30kg else None,
+                price_35kg=price_35kg if price_35kg else None,
                 price_40kg=price_40kg if price_40kg else None,
+                price_46kg=price_46kg if price_46kg else None,
+                custom_baggage_fares=custom_fares if isinstance(custom_fares, dict) else {},
                 original_price=original_price if original_price else None,
                 baggage_checkin=baggage_checkin,
                 baggage_hand=baggage_hand,
@@ -1778,14 +1813,38 @@ def admin_flight_ticket_detail_api(request, pk):
         ft.arrival_time_str = body.get('arrival_time_str', ft.arrival_time_str)
         ft.duration_str = body.get('duration_str', ft.duration_str)
         ft.flight_type = body.get('flight_type', ft.flight_type)
+        if 'flight_route_type' in body:
+            ft.flight_route_type = body.get('flight_route_type')
+        if 'sectors_data' in body:
+            s_raw = body.get('sectors_data')
+            if isinstance(s_raw, str):
+                try: s_raw = json.loads(s_raw)
+                except Exception: s_raw = []
+            ft.sectors_data = [str(s).strip().upper() for s in s_raw if str(s).strip()]
+
         ft.ticket_class = body.get('ticket_class', ft.ticket_class)
         ft.price = body.get('price', ft.price)
         if 'price_20kg' in body:
             ft.price_20kg = body.get('price_20kg') or None
+        if 'price_23kg' in body:
+            ft.price_23kg = body.get('price_23kg') or None
+        if 'price_25kg' in body:
+            ft.price_25kg = body.get('price_25kg') or None
         if 'price_30kg' in body:
             ft.price_30kg = body.get('price_30kg') or None
+        if 'price_35kg' in body:
+            ft.price_35kg = body.get('price_35kg') or None
         if 'price_40kg' in body:
             ft.price_40kg = body.get('price_40kg') or None
+        if 'price_46kg' in body:
+            ft.price_46kg = body.get('price_46kg') or None
+        if 'custom_baggage_fares' in body:
+            cb = body.get('custom_baggage_fares')
+            if isinstance(cb, str):
+                try: cb = json.loads(cb)
+                except Exception: cb = {}
+            ft.custom_baggage_fares = cb
+
         if 'original_price' in body:
             ft.original_price = body.get('original_price') or None
         ft.baggage_checkin = body.get('baggage_checkin', ft.baggage_checkin)
@@ -3359,6 +3418,86 @@ def process_b2b_agent_commission_and_email(user, tracking_id, item_title, seats_
         except Exception as e:
             print(f"[Agent Commission Error] {e}")
 
+def send_package_booking_confirmation_email(user, tracking_id, package, booking, guest_email=None, guest_name=None):
+    """Auto-dispatches a professional email confirmation with tracking reference ID to client/pilgrim."""
+    try:
+        from django.conf import settings
+        recipient_email = (user.email if (user and hasattr(user, 'email') and user.email) else guest_email or '').strip()
+        if not recipient_email:
+            return
+        
+        recipient_name = (user.get_full_name() if (user and hasattr(user, 'get_full_name') and user.get_full_name()) else guest_name) or 'Valued Pilgrim'
+        
+        subject = f"Package Booking Confirmed [{tracking_id}] - {package.title} | Golden Star Travel"
+
+        pax_parts = []
+        if booking.adults_count > 0:
+            pax_parts.append(f"{booking.adults_count} Adult(s)")
+        if booking.children_count > 0:
+            pax_parts.append(f"{booking.children_count} Child(ren)")
+        if booking.infants_count > 0:
+            pax_parts.append(f"{booking.infants_count} Infant(s)")
+        pax_summary = ", ".join(pax_parts) if pax_parts else f"{booking.adults_count} Adult(s)"
+
+        body_html = f"""
+        <p>JazakAllah Khair <strong>{recipient_name}</strong> for choosing <strong>REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</strong> for your holy pilgrimage.</p>
+        
+        <p>Your package booking has been successfully registered in our system and dispatched to our specialized consultants.</p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin: 24px 0;">
+            <h4 style="margin: 0 0 14px 0; color: #ea580c; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #cbd5e1; padding-bottom: 8px;">
+                📋 Booking Details & Reference
+            </h4>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Tracking Reference ID:</td>
+                    <td style="padding: 6px 0; font-weight: 900; color: #ea580c; font-family: monospace; font-size: 15px; text-align: right;">{tracking_id}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Package Name:</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #0f172a; text-align: right;">{package.title}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Duration:</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #0f172a; text-align: right;">{package.duration_days} Days</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Room Sharing:</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #0f172a; text-align: right;">{booking.sharing_category} Sharing</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #64748b;">Passengers:</td>
+                    <td style="padding: 6px 0; font-weight: bold; color: #0f172a; text-align: right;">{pax_summary}</td>
+                </tr>
+                <tr style="border-top: 1px solid #e2e8f0;">
+                    <td style="padding: 10px 0 4px 0; color: #0f172a; font-weight: bold;">Total Estimated Fare:</td>
+                    <td style="padding: 10px 0 4px 0; font-weight: 900; color: #166534; font-size: 17px; text-align: right;">PKR {float(booking.total_price):,.0f}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <p style="font-size: 12px; color: #64748b; background-color: #eff6ff; padding: 12px 16px; border-radius: 10px; border: 1px solid #bfdbfe;">
+            💡 <strong>Next Steps:</strong> You can track your live booking status anytime on our website using your Tracking Reference ID: <strong>{tracking_id}</strong>. Our pilgrimage consultant will contact you via WhatsApp/Phone shortly to verify your passport details and issue booking documents.
+        </p>
+        """
+
+        html_message = build_professional_email_html(
+            "Pilgrimage Package Booking Confirmed",
+            recipient_name,
+            body_html,
+            "Track My Booking Status",
+            f"http://127.0.0.1:8000/?track={tracking_id}#track-section"
+        )
+
+        plain_body = f"Hello {recipient_name},\n\nYour pilgrimage booking for {package.title} has been confirmed.\n\nTracking ID: {tracking_id}\nTotal Fare: PKR {float(booking.total_price):,.0f}\n\nREI GOLDEN STAR TRAVEL & TOURS"
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'goldenstartraveltours@gmail.com')
+
+        _dispatch_email(subject, plain_body, from_email, [recipient_email], html_message=html_message)
+        print(f"[Booking Email ✓] Automated email dispatched to {recipient_email} for tracking ID {tracking_id}")
+    except Exception as e:
+        print(f"[Booking Email Error] {e}")
+
+
 def submit_package_booking_api(request):
     from apps.bookings.models import Booking
     from apps.packages.models import Package
@@ -3374,14 +3513,14 @@ def submit_package_booking_api(request):
         except Exception:
             body = request.POST
 
+        guest_name = (body.get('full_name') or body.get('name') or '').strip()
+        guest_email = (body.get('email') or '').strip().lower()
+        guest_phone = (body.get('phone') or body.get('phone_number') or '').strip()
+
         # Resolve user or create guest customer user
         if request.user.is_authenticated:
             user = request.user
         else:
-            guest_name = (body.get('full_name') or body.get('name') or '').strip()
-            guest_email = (body.get('email') or '').strip().lower()
-            guest_phone = (body.get('phone') or body.get('phone_number') or '').strip()
-            
             if guest_email:
                 user = User.objects.filter(email__iexact=guest_email).first()
                 if not user:
@@ -3423,7 +3562,9 @@ def submit_package_booking_api(request):
         package_id = int(body.get('package_id'))
         sharing_category = body.get('sharing_category', 'Sharing').strip()
         adults_count = int(body.get('adults_count', body.get('quantity', 1)))
-        children_count = int(body.get('children_count', 0))
+        children_with_bed_count = int(body.get('children_with_bed_count', 0))
+        children_no_bed_count   = int(body.get('children_no_bed_count', 0))
+        children_count = int(body.get('children_count', children_with_bed_count + children_no_bed_count))
         infants_count = int(body.get('infants_count', 0))
         notes = body.get('notes', '').strip()
         
@@ -3453,11 +3594,15 @@ def submit_package_booking_api(request):
         else: # Quad
             room_rate = float(package.price_quad or package.price or 245000.0)
             
-        child_rate = float(package.price_child or 180000.0)
-        infant_rate = float(package.price_infant or 65000.0)
+        child_with_bed_rate = float(package.price_child_with_bed or package.price_child or 180000.0)
+        child_no_bed_rate   = float(package.price_child_no_bed or 120000.0)
+        infant_rate         = float(package.price_infant or 65000.0)
         
         adults_cost = adults_count * room_rate
-        children_cost = children_count * child_rate
+        if children_with_bed_count > 0 or children_no_bed_count > 0:
+            children_cost = (children_with_bed_count * child_with_bed_rate) + (children_no_bed_count * child_no_bed_rate)
+        else:
+            children_cost = children_count * child_with_bed_rate
         infants_cost = infants_count * infant_rate
         
         addons_cost = 0.0
@@ -3502,6 +3647,9 @@ def submit_package_booking_api(request):
         package.save()
 
         tracking_id = f"GSA-B-{booking.id}"
+
+        # Auto-send Email Notification to Client / Pilgrim with Tracking ID
+        send_package_booking_confirmation_email(user, tracking_id, package, booking, guest_email=guest_email, guest_name=guest_name)
 
         # B2B Agent Commission & Email Notification
         process_b2b_agent_commission_and_email(request.user, tracking_id, package.title, requested_seats, total_price)
