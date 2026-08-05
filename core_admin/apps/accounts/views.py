@@ -1217,17 +1217,19 @@ def admin_packages_api(request):
             try: url_images = json.loads(images_url_input)
             except Exception: url_images = [u.strip() for u in images_url_input.split(',') if u.strip()]
             images.extend(url_images)
-        # Handle uploaded image files
+        # Handle uploaded image files across multiple key names
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'packages')
         os.makedirs(upload_dir, exist_ok=True)
-        for uploaded_file in request.FILES.getlist('images_files'):
-            ext = os.path.splitext(uploaded_file.name)[1].lower()
-            safe_name = f"pkg_{title[:20].replace(' ','_')}_{uploaded_file.name[-20:]}"
+        uploaded_files_list = request.FILES.getlist('images_files') + request.FILES.getlist('gallery_images') + request.FILES.getlist('images')
+        for uploaded_file in uploaded_files_list:
+            safe_name = f"pkg_{title[:20].replace(' ','_')}_{uploaded_file.name[-20:].replace(' ', '_')}"
             file_path = os.path.join(upload_dir, safe_name)
             with open(file_path, 'wb+') as dest:
                 for chunk in uploaded_file.chunks():
                     dest.write(chunk)
-            images.append(f"{settings.MEDIA_URL}packages/{safe_name}")
+            img_url = f"{settings.MEDIA_URL}packages/{safe_name}"
+            if img_url not in images:
+                images.append(img_url)
 
         addons_input = request.POST.get('addons', '')
         if isinstance(addons_input, str) and addons_input.strip():
@@ -1349,13 +1351,16 @@ def admin_package_detail_api(request, pk):
             existing_images = url_images  # replace with what admin typed
         upload_dir = os.path.join(settings.MEDIA_ROOT, 'packages')
         os.makedirs(upload_dir, exist_ok=True)
-        for uploaded_file in request.FILES.getlist('images_files'):
-            safe_name = f"pkg_{package.id}_{uploaded_file.name[-30:]}"
+        uploaded_files_list = request.FILES.getlist('images_files') + request.FILES.getlist('gallery_images') + request.FILES.getlist('images')
+        for uploaded_file in uploaded_files_list:
+            safe_name = f"pkg_{package.id}_{uploaded_file.name[-25:].replace(' ', '_')}"
             file_path = os.path.join(upload_dir, safe_name)
             with open(file_path, 'wb+') as dest:
                 for chunk in uploaded_file.chunks():
                     dest.write(chunk)
-            existing_images.append(f"{settings.MEDIA_URL}packages/{safe_name}")
+            img_url = f"{settings.MEDIA_URL}packages/{safe_name}"
+            if img_url not in existing_images:
+                existing_images.append(img_url)
         package.images = existing_images
 
         if 'addons' in request.POST:

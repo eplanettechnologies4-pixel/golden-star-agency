@@ -4880,8 +4880,9 @@
 
         // ══════════════ LANDSCAPE FLIGHT CARD & CATEGORY PAGE JS ══════════════
         function renderLandscapeFlightCard(fi) {
-            const logoHtml = fi.airline_logo_url
-                ? `<img src="${escapeHTML(fi.airline_logo_url)}" alt="${escapeHTML(fi.airline_name)}" class="h-16 w-full max-w-[170px] object-contain p-1" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+            const logoUrl = fi.airline_logo_url || fi.airline_logo || fi.logo_url || (fi.airline ? (fi.airline.logo_url || fi.airline.logo) : '');
+            const logoHtml = logoUrl
+                ? `<img src="${escapeHTML(logoUrl)}" alt="${escapeHTML(fi.airline_name || 'Airline')}" class="h-16 w-full max-w-[170px] object-contain p-1" onerror="this.style.display='none'; if (this.nextElementSibling) this.nextElementSibling.style.display='flex';">
                    <div class="hidden w-14 h-14 rounded-2xl bg-[#FDF2EA] text-[#E06A26] items-center justify-center font-bold text-2xl shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`
                 : `<div class="w-14 h-14 rounded-2xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-2xl shadow-xs border border-[#FCE2D2]"><i class="fa-solid fa-plane-departure"></i></div>`;
 
@@ -5079,29 +5080,6 @@
                         <div class="flex flex-wrap items-center gap-2">
                             ${tripBadge}
                             ${routeBadge}
-                        </div>
-                        <div class="flex items-center justify-between text-sm font-black text-[#1F2E1A] bg-white p-3.5 rounded-2xl border border-[#E7DCB9] shadow-inner">
-                            <span class="flex items-center gap-2 text-base font-black text-[#2D4424]">
-                                <div class="w-8 h-8 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center text-sm shadow-xs border border-[#FCE2D2]">
-                                    <i class="fa-solid fa-plane-departure"></i>
-                                </div>
-                                <span>${escapeHTML(fi.departure_city)}</span>
-                            </span>
-                            <div class="flex-1 flex items-center justify-center px-4">
-                                <span class="h-0.5 w-full bg-gradient-to-r from-[#E06A26] via-[#90B576] to-emerald-600"></span>
-                                <i class="fa-solid fa-plane text-[#E06A26] mx-2 text-sm group-hover:translate-x-1 transition-transform"></i>
-                                <span class="h-0.5 w-full bg-gradient-to-r from-[#E06A26] via-[#90B576] to-emerald-600"></span>
-                            </div>
-                            <span class="flex items-center gap-2 text-base font-black text-[#2D4424]">
-                                <span>${escapeHTML(fi.destination_city)}</span>
-                                <div class="w-8 h-8 rounded-xl bg-[#F0F6EC] text-emerald-700 flex items-center justify-center text-sm shadow-xs border border-[#C6DCB4]">
-                                    <i class="fa-solid fa-plane-arrival"></i>
-                                </div>
-                            </span>
-                        </div>
-                        <div class="text-xs font-extrabold text-[#567946] flex items-center justify-between px-2">
-                            <span><i class="fa-solid fa-clock text-amber-500 mr-1.5"></i> Dep: <strong class="text-[#2D4424] font-mono">${escapeHTML(fi.departure_time)}</strong></span>
-                            <span><i class="fa-solid fa-plane-lock text-[#E06A26] mr-1.5"></i> Arr: <strong class="text-[#2D4424] font-mono">${escapeHTML(fi.arrival_time)}</strong></span>
                         </div>
                         ${sectorLegsHtml}
                     </div>
@@ -5470,13 +5448,19 @@
         }
 
         function applyAgentTicketRealtimeFilters() {
-            const container = document.getElementById("b2b-inventory-container");
+            const container = document.getElementById("agent-tickets-list-wrapper") ||
+                              document.getElementById("b2b-inventory-container") ||
+                              document.getElementById("category-wholesale-items-container");
             if (!container) return;
 
-            let routes = window._currentInventoryData || [];
-            const query = (document.getElementById("agent-ticket-search-input")?.value || "").toLowerCase().trim();
-            const ticketType = window._agentSelectedTicketType || "all";
-            const routeType = window._agentSelectedRouteType || "all";
+            const items = (window._agentMasterFlightInventory && window._agentMasterFlightInventory.length > 0)
+                ? window._agentMasterFlightInventory
+                : (window._currentInventoryData || []);
+
+            let routes = items;
+            const query = (document.getElementById("agent-ticket-search-input")?.value || document.getElementById("input-agent-ticket-search")?.value || window._agentTicketSearchQuery || "").toLowerCase().trim();
+            const ticketType = window._agentSelectedTicketType || window._agentTicketTypeFilter || "all";
+            const routeType = window._agentSelectedRouteType || window._agentTicketRouteFilter || "all";
 
             if (ticketType !== "all") {
                 routes = routes.filter(fi => {
@@ -5507,8 +5491,22 @@
                 );
             }
 
+            const countBadge = document.getElementById('category-wholesale-count-badge');
+            if (countBadge) {
+                countBadge.textContent = `${routes.length} Available`;
+            }
+
             if (routes.length === 0) {
-                container.innerHTML = `<div class="py-8 text-center text-[#567946] text-xs font-semibold">No flight routes found matching your search and filter criteria.</div>`;
+                container.innerHTML = `
+                    <div class="py-8 text-center bg-white rounded-2xl border border-dashed border-[#D9CBAC] p-6 space-y-2">
+                        <i class="fa-solid fa-plane-slash text-3xl text-amber-600"></i>
+                        <div class="font-extrabold text-sm text-[#2D4424]">No Matching Flight Tickets Found</div>
+                        <p class="text-xs text-[#567946]">No ticket routes match your selected ticket type, route configuration, or search query.</p>
+                        <button type="button" onclick="resetAgentTicketFilters()" class="mt-2 px-3 py-1.5 bg-[#F7F3E9] hover:bg-[#EBD8B3] border border-[#D9CBAC] text-[#2D4424] text-xs font-bold rounded-xl transition-all">
+                            Reset All Filters
+                        </button>
+                    </div>
+                `;
                 return;
             }
 
@@ -5611,7 +5609,7 @@
 
             const tripBadge = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${hasReturn ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'} shadow-2xs flex items-center gap-1.5"><i class="fa-solid ${hasReturn ? 'fa-plane-circle-check text-purple-600' : 'fa-plane-up text-blue-600'}"></i> ${hasReturn ? 'Round Trip Group' : 'One Way Group'}</span>`;
 
-            const returnSegmentHtml = hasReturn ? `
+            const returnSegmentHtml = (hasReturn && structuredSectors.length === 0) ? `
                 <div class="mt-3 pt-3 border-t border-dashed border-[#E7DCB9] grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-[#F7F3E9]/60 p-3 rounded-xl">
                     <div class="md:col-span-4 flex items-center gap-2">
                         <span class="text-[10px] font-black uppercase text-[#E06A26] bg-[#FDF2EA] px-2 py-0.5 rounded border border-[#FCE2D2] shrink-0 flex items-center gap-1.5"><i class="fa-solid fa-plane-arrival text-[#E06A26]"></i> Return Flight Leg</span>
@@ -5633,6 +5631,44 @@
                         <span class="text-[10px] font-black uppercase bg-[#F0F6EC] text-[#38522D] px-2.5 py-1 rounded-lg border border-[#C6DCB4] flex items-center gap-1.5">
                             <i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> Coming Baggage: <strong>${p.return_baggage_weight_kg || p.baggage_weight_kg} KG</strong>
                         </span>
+                    </div>
+                </div>
+            ` : '';
+
+            const outboundSummaryHtml = (structuredSectors.length === 0) ? `
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC]">
+                    <!-- Route Cities -->
+                    <div class="md:col-span-4 space-y-1">
+                        <div class="text-[10px] font-black uppercase text-[#E06A26] tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-plane-departure text-sm text-[#E06A26]"></i> Outbound Flight Route
+                        </div>
+                        <div class="text-sm sm:text-base font-black text-[#2D4424] flex items-center gap-2">
+                            <span>${escapeHTML(p.departure_city)}</span>
+                            <i class="fa-solid fa-plane-up rotate-90 text-[#E06A26] text-xs"></i>
+                            <span>${escapeHTML(p.destination_city)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Flight Timings -->
+                    <div class="md:col-span-5 flex flex-wrap items-center gap-4 text-xs">
+                        <div class="space-y-0.5">
+                            <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Departure</div>
+                            <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-departure text-amber-600"></i> ${escapeHTML(p.departure_time)}</div>
+                        </div>
+                        <div class="space-y-0.5">
+                            <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Arrival</div>
+                            <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-arrival text-emerald-600"></i> ${escapeHTML(p.arrival_time)}</div>
+                        </div>
+                    </div>
+
+                    <!-- Outbound Baggage Tier -->
+                    <div class="md:col-span-3 flex items-center justify-start md:justify-end">
+                        <div class="bg-white px-3 py-2 rounded-xl border border-[#E7DCB9] shadow-2xs space-y-0.5 text-right">
+                            <div class="text-[10px] font-extrabold uppercase text-[#567946]">Outbound Luggage</div>
+                            <div class="text-xs font-black text-[#2D4424] flex items-center gap-1.5 justify-end">
+                                <i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> ${p.baggage_weight_kg} KG Allowance
+                            </div>
+                        </div>
                     </div>
                 </div>
             ` : '';
@@ -5678,41 +5714,7 @@
 
                     <!-- Middle Flight Segment: Outbound Details -->
                     <div class="space-y-3">
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC]">
-                            <!-- Route Cities -->
-                            <div class="md:col-span-4 space-y-1">
-                                <div class="text-[10px] font-black uppercase text-[#E06A26] tracking-wider flex items-center gap-1.5">
-                                    <i class="fa-solid fa-plane-departure text-sm text-[#E06A26]"></i> Outbound Flight Route
-                                </div>
-                                <div class="text-sm sm:text-base font-black text-[#2D4424] flex items-center gap-2">
-                                    <span>${escapeHTML(p.departure_city)}</span>
-                                    <i class="fa-solid fa-plane-up rotate-90 text-[#E06A26] text-xs"></i>
-                                    <span>${escapeHTML(p.destination_city)}</span>
-                                </div>
-                            </div>
-
-                            <!-- Flight Timings -->
-                            <div class="md:col-span-5 flex flex-wrap items-center gap-4 text-xs">
-                                <div class="space-y-0.5">
-                                    <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Departure</div>
-                                    <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-departure text-amber-600"></i> ${escapeHTML(p.departure_time)}</div>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Arrival</div>
-                                    <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-arrival text-emerald-600"></i> ${escapeHTML(p.arrival_time)}</div>
-                                </div>
-                            </div>
-
-                            <!-- Outbound Baggage Tier -->
-                            <div class="md:col-span-3 flex items-center justify-start md:justify-end">
-                                <div class="bg-white px-3 py-2 rounded-xl border border-[#E7DCB9] shadow-2xs space-y-0.5 text-right">
-                                    <div class="text-[10px] font-extrabold uppercase text-[#567946]">Outbound Luggage</div>
-                                    <div class="text-xs font-black text-[#2D4424] flex items-center gap-1.5 justify-end">
-                                        <i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> ${p.baggage_weight_kg} KG Allowance
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        ${outboundSummaryHtml}
 
                         <!-- Detailed Route Sectors (If Specified) -->
                         ${structuredSectorsHtml}

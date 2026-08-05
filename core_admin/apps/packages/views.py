@@ -389,15 +389,30 @@ def admin_package_detail_api(request, pk):
                     addons_raw = []
             pkg.addons = [{'name': a['name'], 'price': int(a.get('price', 0))} for a in (addons_raw or []) if isinstance(a, dict) and a.get('name', '').strip()]
         
-        if 'airline_logo' in request.FILES:
-            logo_file = request.FILES['airline_logo']
-            fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'packages', 'airlines'), base_url=settings.MEDIA_URL + 'packages/airlines/')
-            filename = fs.save(logo_file.name, logo_file)
-            pkg.airline_logo = fs.url(filename)
-        elif 'airline_logo' in body or 'airline_logo' in request.POST:
-            logo_val = (body.get('airline_logo') or request.POST.get('airline_logo') or '').strip()
-            if logo_val:
-                pkg.airline_logo = logo_val
+        # Handle gallery images upload / update
+        gallery_imgs = list(pkg.images or [])
+        if 'images' in body or 'images_urls' in body or 'images' in request.POST:
+            raw_imgs = body.get('images') or body.get('images_urls') or request.POST.get('images')
+            if isinstance(raw_imgs, str):
+                try: raw_imgs = json.loads(raw_imgs)
+                except Exception: raw_imgs = [u.strip() for u in raw_imgs.split(',') if u.strip()]
+            if isinstance(raw_imgs, list):
+                gallery_imgs = [str(u).strip() for u in raw_imgs if str(u).strip()]
+
+        for key in ('images_files', 'gallery_images', 'images'):
+            if key in request.FILES:
+                upload_dir = os.path.join(settings.MEDIA_ROOT, 'packages', 'gallery')
+                os.makedirs(upload_dir, exist_ok=True)
+                for uploaded_file in request.FILES.getlist(key):
+                    safe_name = f"pkg_{pkg.id}_{uploaded_file.name[-25:].replace(' ', '_')}"
+                    file_path = os.path.join(upload_dir, safe_name)
+                    with open(file_path, 'wb+') as dest:
+                        for chunk in uploaded_file.chunks():
+                            dest.write(chunk)
+                    gallery_url = f"{settings.MEDIA_URL}packages/gallery/{safe_name}"
+                    if gallery_url not in gallery_imgs:
+                        gallery_imgs.append(gallery_url)
+        pkg.images = gallery_imgs
 
         pkg.save()
         return JsonResponse({
@@ -405,6 +420,7 @@ def admin_package_detail_api(request, pk):
             'message': 'Package updated successfully.',
             'cover_url': pkg.cover_url,
             'airline_logo': pkg.airline_logo,
+            'images': pkg.images,
             'makkah_hotel_images': pkg.makkah_hotel_images,
             'madinah_hotel_images': pkg.madinah_hotel_images
         })
@@ -510,12 +526,32 @@ def admin_package_create_api(request):
             pkg.airline_logo = logo_val
             pkg.save()
 
+    # Handle uploaded gallery images
+    gallery_imgs = []
+    for key in ('images_files', 'gallery_images', 'images'):
+        if key in request.FILES:
+            upload_dir = os.path.join(settings.MEDIA_ROOT, 'packages', 'gallery')
+            os.makedirs(upload_dir, exist_ok=True)
+            for uploaded_file in request.FILES.getlist(key):
+                safe_name = f"pkg_{pkg.id}_{uploaded_file.name[-25:].replace(' ', '_')}"
+                file_path = os.path.join(upload_dir, safe_name)
+                with open(file_path, 'wb+') as dest:
+                    for chunk in uploaded_file.chunks():
+                        dest.write(chunk)
+                gallery_url = f"{settings.MEDIA_URL}packages/gallery/{safe_name}"
+                if gallery_url not in gallery_imgs:
+                    gallery_imgs.append(gallery_url)
+    if gallery_imgs:
+        pkg.images = gallery_imgs
+        pkg.save()
+
     return JsonResponse({
         'success': True,
         'message': f'Package "{pkg.title}" created successfully.',
         'id': pkg.id,
         'cover_url': pkg.cover_url,
         'airline_logo': pkg.airline_logo,
+        'images': pkg.images,
         'makkah_hotel_images': pkg.makkah_hotel_images,
         'madinah_hotel_images': pkg.madinah_hotel_images
     })

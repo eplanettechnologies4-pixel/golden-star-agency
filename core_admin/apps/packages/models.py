@@ -85,15 +85,18 @@ class Package(models.Model):
         return "/static/images/umrah_card.png"
 
     def get_images_list(self):
-        if self.cover_image:
-            return [self.cover_image.url]
-        if isinstance(self.images, list) and len(self.images) > 0:
-            return self.images
-        return [self.cover_url]
+        imgs = []
+        if self.cover_image and hasattr(self.cover_image, 'url'):
+            imgs.append(self.cover_image.url)
+        if isinstance(self.images, list):
+            for img in self.images:
+                if img and isinstance(img, str) and img.strip() and img.strip() not in imgs:
+                    imgs.append(img.strip())
+        return imgs if imgs else [self.cover_url]
 
     def get_all_hotel_and_package_images(self):
         imgs = []
-        if self.cover_image:
+        if self.cover_image and hasattr(self.cover_image, 'url'):
             imgs.append(self.cover_image.url)
         if isinstance(self.makkah_hotel_images, list):
             imgs.extend(self.makkah_hotel_images)
@@ -105,7 +108,7 @@ class Package(models.Model):
         # Deduplicate preserving order
         unique_imgs = []
         for img in imgs:
-            if img and isinstance(img, str) and img.strip() and img not in unique_imgs:
+            if img and isinstance(img, str) and img.strip() and img.strip() not in unique_imgs:
                 unique_imgs.append(img.strip())
         return unique_imgs if unique_imgs else [self.cover_url]
 
@@ -114,7 +117,10 @@ class Package(models.Model):
         logo = self.airline_logo
         name_lower = name.lower()
         if logo:
-            return {'name': name, 'logo_url': logo, 'icon_class': 'fa-plane'}
+            logo_url = logo.url if hasattr(logo, 'url') else str(logo)
+            if logo_url and not logo_url.startswith('/') and not logo_url.startswith('http://') and not logo_url.startswith('https://'):
+                logo_url = '/' + logo_url
+            return {'name': name, 'logo_url': logo_url, 'icon_class': 'fa-plane'}
         elif 'pia' in name_lower or 'pakistan' in name_lower:
             return {'name': 'PIA (Pak International)', 'icon_class': 'fa-plane-departure', 'badge_color': 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}
         elif 'saudi' in name_lower or 'saudia' in name_lower:

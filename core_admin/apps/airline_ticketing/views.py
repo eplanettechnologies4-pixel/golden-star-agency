@@ -60,15 +60,24 @@ def _safe_airline_logo_url(obj_or_airline):
     if not obj_or_airline:
         return None
     airline = obj_or_airline if isinstance(obj_or_airline, Airline) else getattr(obj_or_airline, 'airline', None)
-    if not airline or not getattr(airline, 'logo', None):
+    logo = None
+    if airline and getattr(airline, 'logo', None):
+        logo = airline.logo
+    elif hasattr(obj_or_airline, 'airline_logo_url') and getattr(obj_or_airline, 'airline_logo_url'):
+        return getattr(obj_or_airline, 'airline_logo_url')
+    elif hasattr(obj_or_airline, 'airline_logo') and getattr(obj_or_airline, 'airline_logo'):
+        logo = getattr(obj_or_airline, 'airline_logo')
+    elif hasattr(obj_or_airline, 'logo') and getattr(obj_or_airline, 'logo'):
+        logo = getattr(obj_or_airline, 'logo')
+
+    if not logo:
         return None
     try:
-        logo_file = airline.logo
         url = None
-        if hasattr(logo_file, 'url') and logo_file.url:
-            url = str(logo_file.url)
-        elif isinstance(logo_file, str) and logo_file.strip():
-            url = logo_file.strip()
+        if hasattr(logo, 'url') and logo.url:
+            url = str(logo.url)
+        elif isinstance(logo, str) and logo.strip():
+            url = logo.strip()
         else:
             return None
         if url and not url.startswith('/') and not url.startswith('http://') and not url.startswith('https://'):
@@ -1768,36 +1777,68 @@ def agent_flight_inventory_api(request):
     GET → List active flight inventories for agent portal (flight tickets)
     Calculates available_seats = total_seats - booked_seats
     """
+    from django.db.models import Q
     airline_id = request.GET.get('airline_id', '').strip()
+    trip_type = request.GET.get('trip_type', '').strip()
+    search = request.GET.get('search', '').strip()
+    sector_id = request.GET.get('sector_id', '').strip()
+
     inventories = AirlineFlightInventory.objects.filter(is_active=True).select_related('airline', 'sector').prefetch_related('baggage_tiers').all()
+
     if airline_id:
         inventories = inventories.filter(airline_id=airline_id)
+
+    if sector_id:
+        inventories = inventories.filter(sector_id=sector_id)
+
+    if trip_type and trip_type != 'all':
+        if trip_type == 'oneway':
+            inventories = inventories.filter(Q(trip_type='oneway') | Q(trip_type='one_way'))
+        elif trip_type == 'return':
+            inventories = inventories.filter(Q(trip_type='return') | Q(trip_type='round_trip'))
+        else:
+            inventories = inventories.filter(trip_type=trip_type)
+
+    if search:
+        inventories = inventories.filter(
+            Q(departure_city__icontains=search) |
+            Q(destination_city__icontains=search) |
+            Q(airline__name__icontains=search) |
+            Q(sector__name__icontains=search) |
+            Q(via_city__icontains=search)
+        )
 
     data = []
     for fi in inventories:
         avail = max(0, fi.total_seats - fi.booked_seats)
         baggage_tiers = [{'id': b.id, 'weight_kg': b.weight_kg, 'fare': str(b.fare)} for b in fi.baggage_tiers.all()]
-        first_fare = baggage_tiers[0]['fare'] if baggage_tiers else '0.00'
+        first_fare = baggage_tiers[0]['fare'] if baggage_tiers else '140000.00'
         base_fare_str = str(getattr(fi, 'base_fare', first_fare))
         data.append({
             'id':                     fi.id,
+            'sector_id':              fi.sector_id,
+            'sector_name':            fi.sector.name if fi.sector else None,
             'airline_id':             fi.airline_id,
             'airline_name':           fi.airline.name if fi.airline else '',
+            'airline_iata_code':      fi.airline.iata_code if (fi.airline and getattr(fi.airline, 'iata_code', None)) else '',
             'airline_logo_url':       _safe_airline_logo_url(fi),
             'departure_city':         fi.departure_city,
             'destination_city':       fi.destination_city,
             'departure_time':         fi.departure_time,
             'arrival_time':           fi.arrival_time,
-            'return_departure_time': fi.return_departure_time,
-            'return_arrival_time':   fi.return_arrival_time,
+            'return_departure_time': fi.return_departure_time or '',
+            'return_arrival_time':   fi.return_arrival_time or '',
             'trip_type':              fi.trip_type,
+            'trip_type_display':      fi.get_trip_type_display(),
             'route_type':             fi.route_type,
+            'route_type_display':     fi.get_route_type_display(),
             'via_city':               fi.via_city or '',
             'has_meal':               fi.has_meal,
             'base_fare':              base_fare_str,
             'total_seats':            fi.total_seats,
             'booked_seats':           fi.booked_seats,
             'available_seats':        avail,
+            'sectors_data':           fi.sectors_data if fi.sectors_data else [],
             'baggage_tiers':          baggage_tiers,
         })
     return JsonResponse({'success': True, 'inventory': data})
@@ -1814,7 +1855,7 @@ def agent_group_fare_policies_api(request):
     for p in policies:
         fi = p.flight_inventory
         air_name = p.airline_name_custom or (p.airline.name if p.airline else (fi.airline.name if (fi and fi.airline) else 'Saudi Airlines'))
-        air_logo = (p.airline.logo.url if (p.airline and p.airline.logo) else (fi.airline.logo.url if (fi and fi.airline and fi.airline.logo) else None))
+        air_logo = _safe_airline_logo_url(p) or _safe_airline_logo_url(fi)
         
         dep = p.departure_city or (fi.departure_city if fi else 'Karachi')
         dest = p.destination_city or (fi.destination_city if fi else 'Jeddah')
