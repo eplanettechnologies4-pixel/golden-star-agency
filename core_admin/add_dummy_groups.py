@@ -10,17 +10,20 @@ from apps.airline_ticketing.models import GroupFarePolicy, Airline
 from decimal import Decimal
 
 def create_dummy_group_tickets():
+    # Remove existing dummy test policies if present to replace cleanly
+    GroupFarePolicy.objects.filter(airline_name_custom__icontains='Air').delete()
+
     saudia = Airline.objects.filter(name__icontains='Saudia').first() or Airline.objects.first()
     pia = Airline.objects.filter(name__icontains='PIA').first() or Airline.objects.first()
-    qatar = Airline.objects.filter(name__icontains='Qatar').first() or Airline.objects.first()
+    airblue = Airline.objects.filter(name__icontains='AirBlue').first() or Airline.objects.first()
     emirates = Airline.objects.filter(name__icontains='Emirates').first() or Airline.objects.first()
 
     dummy_tickets = [
-        # Ticket 1: One Way + Direct (2 Sectors)
+        # Ticket 1: One Way + Direct (1 Sector: LHE ➔ JED)
         {
             "airline": saudia,
-            "airline_name_custom": "Saudi Arabian Airlines (Saudia)",
-            "departure_city": "Karachi (KHI)",
+            "airline_name_custom": "Saudi Arabian Airlines",
+            "departure_city": "Lahore (LHE)",
             "destination_city": "Jeddah (JED)",
             "departure_time": "03:30 AM",
             "arrival_time": "06:45 AM",
@@ -29,7 +32,7 @@ def create_dummy_group_tickets():
             "via_city": "",
             "has_meal": True,
             "total_seats": 60,
-            "available_seats": 42,
+            "available_seats": 45,
             "min_group_size": 10,
             "discount_type": "flat",
             "discount_value": Decimal("7000.00"),
@@ -40,30 +43,22 @@ def create_dummy_group_tickets():
             "is_active": True,
             "route_sectors": [
                 {
-                    "from_city": "Karachi (KHI)",
+                    "from_city": "Lahore (LHE)",
                     "to_city": "Jeddah (JED)",
-                    "flight_no": "SV-701",
+                    "flight_no": "SV-733",
                     "flight_date": "10 AUG",
                     "dep_time": "03:30 AM",
                     "arr_time": "06:45 AM"
-                },
-                {
-                    "from_city": "Jeddah (JED)",
-                    "to_city": "Jeddah Terminal 1",
-                    "flight_no": "SV-701",
-                    "flight_date": "10 AUG",
-                    "dep_time": "06:45 AM",
-                    "arr_time": "07:15 AM"
                 }
             ]
         },
 
-        # Ticket 2: Round Trip + Direct (4 Sectors)
+        # Ticket 2: Round Trip + Direct (2 Sectors: LHE ➔ JED, JED ➔ LHE)
         {
             "airline": pia,
             "airline_name_custom": "PIA - Pakistan International Airlines",
             "departure_city": "Lahore (LHE)",
-            "destination_city": "Medina (MED)",
+            "destination_city": "Jeddah (JED)",
             "departure_time": "09:00 AM",
             "arrival_time": "01:30 PM",
             "return_departure_time": "04:00 PM",
@@ -73,7 +68,7 @@ def create_dummy_group_tickets():
             "via_city": "",
             "has_meal": True,
             "total_seats": 80,
-            "available_seats": 65,
+            "available_seats": 60,
             "min_group_size": 15,
             "discount_type": "flat",
             "discount_value": Decimal("13000.00"),
@@ -85,187 +80,123 @@ def create_dummy_group_tickets():
             "route_sectors": [
                 {
                     "from_city": "Lahore (LHE)",
-                    "to_city": "Medina (MED)",
-                    "flight_no": "PK-743",
+                    "to_city": "Jeddah (JED)",
+                    "flight_no": "PK-759",
                     "flight_date": "15 SEP",
                     "dep_time": "09:00 AM",
                     "arr_time": "01:30 PM"
                 },
                 {
-                    "from_city": "Medina (MED)",
-                    "to_city": "MED Terminal Arrival",
-                    "flight_no": "PK-743",
-                    "flight_date": "15 SEP",
-                    "dep_time": "01:30 PM",
-                    "arr_time": "02:00 PM"
-                },
-                {
-                    "from_city": "Medina (MED)",
+                    "from_city": "Jeddah (JED)",
                     "to_city": "Lahore (LHE)",
-                    "flight_no": "PK-744",
+                    "flight_no": "PK-760",
                     "flight_date": "30 SEP",
                     "dep_time": "04:00 PM",
                     "arr_time": "10:30 PM"
-                },
-                {
-                    "from_city": "Lahore (LHE)",
-                    "to_city": "LHE Main Gate",
-                    "flight_no": "PK-744",
-                    "flight_date": "30 SEP",
-                    "dep_time": "10:30 PM",
-                    "arr_time": "11:00 PM"
                 }
             ]
         },
 
-        # Ticket 3: One Way + Via Connection (4 Sectors)
+        # Ticket 3: One Way + Via Flight (2 Sectors: LYP ➔ SHJ, SHJ ➔ JED)
         {
-            "airline": qatar,
-            "airline_name_custom": "Qatar Airways",
-            "departure_city": "Islamabad (ISB)",
+            "airline": airblue,
+            "airline_name_custom": "Air Arabia",
+            "departure_city": "Faisalabad (LYP)",
             "destination_city": "Jeddah (JED)",
             "departure_time": "02:15 AM",
-            "arrival_time": "11:15 AM",
+            "arrival_time": "08:45 AM",
             "trip_type": "oneway",
             "route_type": "via",
-            "via_city": "Doha (DOH) - Riyadh (RUH)",
+            "via_city": "Sharjah (SHJ)",
             "has_meal": True,
             "total_seats": 50,
-            "available_seats": 38,
+            "available_seats": 35,
             "min_group_size": 10,
             "discount_type": "flat",
-            "discount_value": Decimal("12000.00"),
-            "baggage_weight_kg": 40,
+            "discount_value": Decimal("10000.00"),
+            "baggage_weight_kg": 30,
             "return_baggage_weight_kg": 0,
-            "base_fare": Decimal("110000.00"),
-            "group_fare_override": Decimal("98000.00"),
+            "base_fare": Decimal("95000.00"),
+            "group_fare_override": Decimal("85000.00"),
             "is_active": True,
             "route_sectors": [
                 {
-                    "from_city": "Islamabad (ISB)",
-                    "to_city": "Doha (DOH)",
-                    "flight_no": "QR-633",
+                    "from_city": "Faisalabad (LYP)",
+                    "to_city": "Sharjah (SHJ)",
+                    "flight_no": "G9-542",
                     "flight_date": "20 OCT",
                     "dep_time": "02:15 AM",
                     "arr_time": "04:30 AM"
                 },
                 {
-                    "from_city": "Doha Transit",
-                    "to_city": "DOH Gate B",
-                    "flight_no": "QR-Transit",
-                    "flight_date": "20 OCT",
-                    "dep_time": "04:30 AM",
-                    "arr_time": "06:00 AM"
-                },
-                {
-                    "from_city": "Doha (DOH)",
-                    "to_city": "Riyadh (RUH)",
-                    "flight_no": "QR-1165",
-                    "flight_date": "20 OCT",
-                    "dep_time": "06:00 AM",
-                    "arr_time": "07:45 AM"
-                },
-                {
-                    "from_city": "Riyadh (RUH)",
+                    "from_city": "Sharjah (SHJ)",
                     "to_city": "Jeddah (JED)",
-                    "flight_no": "SV-1020",
+                    "flight_no": "G9-115",
                     "flight_date": "20 OCT",
-                    "dep_time": "09:30 AM",
-                    "arr_time": "11:15 AM"
+                    "dep_time": "06:15 AM",
+                    "arr_time": "08:45 AM"
                 }
             ]
         },
 
-        # Ticket 4: Round Trip + Via Connection (8 Sectors)
+        # Ticket 4: Round Trip + Via Flight (4 Sectors: LYP ➔ SHJ, SHJ ➔ JED, JED ➔ SHJ, SHJ ➔ LYP)
         {
             "airline": emirates,
-            "airline_name_custom": "Emirates & Oman Air",
-            "departure_city": "Karachi (KHI)",
-            "destination_city": "Medina (MED)",
-            "departure_time": "08:30 AM",
-            "arrival_time": "09:00 AM (+1)",
-            "return_departure_time": "02:00 PM",
-            "return_arrival_time": "07:45 AM (+1)",
+            "airline_name_custom": "Air Arabia Roundtrip",
+            "departure_city": "Faisalabad (LYP)",
+            "destination_city": "Jeddah (JED)",
+            "departure_time": "02:15 AM",
+            "arrival_time": "08:45 AM",
+            "return_departure_time": "01:00 PM",
+            "return_arrival_time": "09:30 PM",
             "trip_type": "return",
             "route_type": "via",
-            "via_city": "Dubai (DXB) - Muscat (MCT) - Jeddah (JED)",
+            "via_city": "Sharjah (SHJ)",
             "has_meal": True,
-            "total_seats": 100,
-            "available_seats": 78,
-            "min_group_size": 20,
+            "total_seats": 70,
+            "available_seats": 52,
+            "min_group_size": 15,
             "discount_type": "flat",
-            "discount_value": Decimal("21000.00"),
-            "baggage_weight_kg": 40,
-            "return_baggage_weight_kg": 40,
-            "base_fare": Decimal("210000.00"),
-            "group_fare_override": Decimal("189000.00"),
+            "discount_value": Decimal("18000.00"),
+            "baggage_weight_kg": 35,
+            "return_baggage_weight_kg": 35,
+            "base_fare": Decimal("175000.00"),
+            "group_fare_override": Decimal("157000.00"),
             "is_active": True,
             "route_sectors": [
-                # 4 Outbound Sectors
+                # 2 Outbound Sectors
                 {
-                    "from_city": "Karachi (KHI)",
-                    "to_city": "Dubai (DXB)",
-                    "flight_no": "EK-609",
+                    "from_city": "Faisalabad (LYP)",
+                    "to_city": "Sharjah (SHJ)",
+                    "flight_no": "G9-542",
                     "flight_date": "05 NOV",
-                    "dep_time": "08:30 AM",
-                    "arr_time": "10:45 AM"
+                    "dep_time": "02:15 AM",
+                    "arr_time": "04:30 AM"
                 },
                 {
-                    "from_city": "Dubai (DXB)",
-                    "to_city": "Muscat (MCT)",
-                    "flight_no": "EK-862",
-                    "flight_date": "05 NOV",
-                    "dep_time": "01:15 PM",
-                    "arr_time": "02:30 PM"
-                },
-                {
-                    "from_city": "Muscat (MCT)",
+                    "from_city": "Sharjah (SHJ)",
                     "to_city": "Jeddah (JED)",
-                    "flight_no": "WY-671",
+                    "flight_no": "G9-115",
                     "flight_date": "05 NOV",
-                    "dep_time": "04:00 PM",
-                    "arr_time": "06:45 PM"
+                    "dep_time": "06:15 AM",
+                    "arr_time": "08:45 AM"
                 },
+                # 2 Return Sectors
                 {
                     "from_city": "Jeddah (JED)",
-                    "to_city": "Medina (MED)",
-                    "flight_no": "SV-1430",
-                    "flight_date": "06 NOV",
-                    "dep_time": "08:00 AM",
-                    "arr_time": "09:00 AM"
-                },
-                # 4 Return Sectors
-                {
-                    "from_city": "Medina (MED)",
-                    "to_city": "Jeddah (JED)",
-                    "flight_no": "SV-1431",
+                    "to_city": "Sharjah (SHJ)",
+                    "flight_no": "G9-116",
                     "flight_date": "20 NOV",
-                    "dep_time": "02:00 PM",
-                    "arr_time": "03:00 PM"
+                    "dep_time": "01:00 PM",
+                    "arr_time": "04:30 PM"
                 },
                 {
-                    "from_city": "Jeddah (JED)",
-                    "to_city": "Muscat (MCT)",
-                    "flight_no": "WY-672",
+                    "from_city": "Sharjah (SHJ)",
+                    "to_city": "Faisalabad (LYP)",
+                    "flight_no": "G9-543",
                     "flight_date": "20 NOV",
-                    "dep_time": "05:30 PM",
-                    "arr_time": "09:15 PM"
-                },
-                {
-                    "from_city": "Muscat (MCT)",
-                    "to_city": "Dubai (DXB)",
-                    "flight_no": "EK-863",
-                    "flight_date": "21 NOV",
-                    "dep_time": "01:00 AM",
-                    "arr_time": "02:15 AM"
-                },
-                {
-                    "from_city": "Dubai (DXB)",
-                    "to_city": "Karachi (KHI)",
-                    "flight_no": "EK-608",
-                    "flight_date": "21 NOV",
-                    "dep_time": "04:30 AM",
-                    "arr_time": "07:45 AM"
+                    "dep_time": "06:45 PM",
+                    "arr_time": "09:30 PM"
                 }
             ]
         }
@@ -277,7 +208,7 @@ def create_dummy_group_tickets():
         created += 1
         print(f"Created Group Ticket #{policy.id}: {policy.airline_name_custom} ({policy.trip_type} / {policy.route_type}) - {len(policy.route_sectors)} Sectors")
 
-    print(f"Successfully added {created} dummy group tickets!")
+    print(f"Successfully generated {created} updated group tickets!")
 
 if __name__ == '__main__':
     create_dummy_group_tickets()
