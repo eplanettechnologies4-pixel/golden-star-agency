@@ -978,15 +978,14 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
                         <!-- 1. TICKETS -->
                         <button onclick="switchB2BSubTab('tickets')" id="b2b-subtab-btn-tickets"
-                            class="b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#E06A26] via-[#D45917] to-[#B3450B] text-white border-[#E06A26] shadow-xl shadow-orange-500/25 ring-4 ring-orange-500/20 scale-[1.02]">
-                            <div class="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-all duration-500 pointer-events-none"></div>
+                            class="b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#E06A26] via-[#D45917] to-[#B3450B] text-white border-[#E06A26] shadow-xl shadow-orange-500/25 ring-4 ring-orange-500/20 scale-[1.02]">
                             <div class="flex items-center justify-between w-full mb-3">
-                                <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 text-white backdrop-blur-md border border-white/20 shadow-xs">
+                                <span class="px-2.5 py-1 rounded-none text-[9px] font-black uppercase tracking-wider bg-white/20 text-white border border-white/20 shadow-xs">
                                     Live Inventory ⚡
                                 </span>
                                 <i class="fa-solid fa-plane-departure text-white/50 text-xs"></i>
                             </div>
-                            <div class="h-12 w-12 rounded-2xl bg-white/20 text-white backdrop-blur-md flex items-center justify-center text-xl shadow-inner mb-3 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 border border-white/30">
+                            <div class="h-12 w-12 rounded-none bg-white/20 text-white flex items-center justify-center text-xl shadow-inner mb-3 border border-white/30">
                                 <i class="fa-solid fa-ticket"></i>
                             </div>
                             <span class="text-sm font-black tracking-tight block">Tickets</span>
@@ -995,14 +994,14 @@
 
                         <!-- 2. GROUP TICKETING -->
                         <button onclick="switchB2BSubTab('group')" id="b2b-subtab-btn-group"
-                            class="b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1">
+                            class="b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]">
                             <div class="flex items-center justify-between w-full mb-3">
-                                <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">
+                                <span class="px-2.5 py-1 rounded-none text-[9px] font-black uppercase tracking-wider bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">
                                     Vol Discounts 🏷️
                                 </span>
                                 <i class="fa-solid fa-users-gear text-[#567946]/40 text-xs"></i>
                             </div>
-                            <div class="h-12 w-12 rounded-2xl bg-[#F0F6EC] text-[#567946] border border-[#C6DCB4] flex items-center justify-center text-xl shadow-xs mb-3 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                            <div class="h-12 w-12 rounded-none bg-[#F0F6EC] text-[#567946] border border-[#C6DCB4] flex items-center justify-center text-xl shadow-xs mb-3">
                                 <i class="fa-solid fa-users"></i>
                             </div>
                             <span class="text-sm font-black tracking-tight block text-[#2D4424]">Group Ticketing</span>
@@ -1011,14 +1010,14 @@
 
                         <!-- 3. UMRAH PACKAGE -->
                         <button onclick="switchB2BSubTab('umrah')" id="b2b-subtab-btn-umrah"
-                            class="b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1">
+                            class="b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]">
                             <div class="flex items-center justify-between w-full mb-3">
-                                <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">
+                                <span class="px-2.5 py-1 rounded-none text-[9px] font-black uppercase tracking-wider bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2]">
                                     Hot Deals 🕋
                                 </span>
                                 <i class="fa-solid fa-kaaba text-[#E06A26]/40 text-xs"></i>
                             </div>
-                            <div class="h-12 w-12 rounded-2xl bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2] flex items-center justify-center text-xl shadow-xs mb-3 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                            <div class="h-12 w-12 rounded-none bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2] flex items-center justify-center text-xl shadow-xs mb-3">
                                 <i class="fa-solid fa-kaaba"></i>
                             </div>
                             <span class="text-sm font-black tracking-tight block text-[#2D4424]">Umrah Package</span>
@@ -1027,14 +1026,14 @@
 
                         <!-- 4. HAJJ PACKAGE -->
                         <button onclick="switchB2BSubTab('hajj')" id="b2b-subtab-btn-hajj"
-                            class="b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1">
+                            class="b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]">
                             <div class="flex items-center justify-between w-full mb-3">
-                                <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#FDF2EA] text-[#D45917] border border-[#FCE2D2]">
+                                <span class="px-2.5 py-1 rounded-none text-[9px] font-black uppercase tracking-wider bg-[#FDF2EA] text-[#D45917] border border-[#FCE2D2]">
                                     Pilgrimage 🕌
                                 </span>
                                 <i class="fa-solid fa-mosque text-[#E06A26]/40 text-xs"></i>
                             </div>
-                            <div class="h-12 w-12 rounded-2xl bg-[#FDF2EA] text-[#D45917] border border-[#FCE2D2] flex items-center justify-center text-xl shadow-xs mb-3 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                            <div class="h-12 w-12 rounded-none bg-[#FDF2EA] text-[#D45917] border border-[#FCE2D2] flex items-center justify-center text-xl shadow-xs mb-3">
                                 <i class="fa-solid fa-mosque"></i>
                             </div>
                             <span class="text-sm font-black tracking-tight block text-[#2D4424]">Hajj Package</span>
@@ -1043,14 +1042,14 @@
 
                         <!-- 5. MY ORDERS -->
                         <button onclick="switchB2BSubTab('orders')" id="b2b-subtab-btn-orders"
-                            class="b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1">
+                            class="b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]">
                             <div class="flex items-center justify-between w-full mb-3">
-                                <span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">
+                                <span class="px-2.5 py-1 rounded-none text-[9px] font-black uppercase tracking-wider bg-[#F0F6EC] text-[#38522D] border border-[#C6DCB4]">
                                     E-Vouchers 📄
                                 </span>
                                 <i class="fa-solid fa-file-invoice text-[#2D4424]/40 text-xs"></i>
                             </div>
-                            <div class="h-12 w-12 rounded-2xl bg-[#F0F6EC] text-[#2D4424] border border-[#C6DCB4] flex items-center justify-center text-xl shadow-xs mb-3 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                            <div class="h-12 w-12 rounded-none bg-[#F0F6EC] text-[#2D4424] border border-[#C6DCB4] flex items-center justify-center text-xl shadow-xs mb-3">
                                 <i class="fa-solid fa-file-invoice-dollar"></i>
                             </div>
                             <span class="text-sm font-black tracking-tight block text-[#2D4424]">My Orders</span>
@@ -4283,24 +4282,24 @@
 
             const configs = {
                 tickets: {
-                    activeClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#E06A26] via-[#D45917] to-[#B3450B] text-white border-[#E06A26] shadow-xl shadow-orange-500/25 ring-4 ring-orange-500/20 scale-[1.02]",
-                    inactiveClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1"
+                    activeClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#E06A26] via-[#D45917] to-[#B3450B] text-white border-[#E06A26] shadow-xl shadow-orange-500/25 ring-4 ring-orange-500/20 scale-[1.02]",
+                    inactiveClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]"
                 },
                 group: {
-                    activeClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#38522D] via-[#2D4424] to-[#1F2E1A] text-white border-[#38522D] shadow-xl shadow-emerald-900/25 ring-4 ring-emerald-700/20 scale-[1.02]",
-                    inactiveClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1"
+                    activeClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#38522D] via-[#2D4424] to-[#1F2E1A] text-white border-[#38522D] shadow-xl shadow-emerald-900/25 ring-4 ring-emerald-700/20 scale-[1.02]",
+                    inactiveClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]"
                 },
                 umrah: {
-                    activeClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#567946] text-white border-[#567946] shadow-xl shadow-emerald-800/25 ring-4 ring-emerald-600/20 scale-[1.02]",
-                    inactiveClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1"
+                    activeClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#2D4424] via-[#38522D] to-[#567946] text-white border-[#567946] shadow-xl shadow-emerald-800/25 ring-4 ring-emerald-600/20 scale-[1.02]",
+                    inactiveClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]"
                 },
                 hajj: {
-                    activeClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#D45917] via-[#C45517] to-[#8C3405] text-white border-[#D45917] shadow-xl shadow-orange-900/25 ring-4 ring-orange-600/20 scale-[1.02]",
-                    inactiveClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1"
+                    activeClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-[#D45917] via-[#C45517] to-[#8C3405] text-white border-[#D45917] shadow-xl shadow-orange-900/25 ring-4 ring-orange-600/20 scale-[1.02]",
+                    inactiveClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]"
                 },
                 orders: {
-                    activeClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white border-slate-700 shadow-xl shadow-slate-900/30 ring-4 ring-slate-700/20 scale-[1.02]",
-                    inactiveClass: "b2b-subtab-btn relative overflow-hidden group p-5 rounded-3xl border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26] hover:shadow-xl hover:-translate-y-1"
+                    activeClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white border-slate-700 shadow-xl shadow-slate-900/30 ring-4 ring-slate-700/20 scale-[1.02]",
+                    inactiveClass: "b2b-subtab-btn relative overflow-hidden p-5 rounded-none border-2 transition-all duration-300 flex flex-col items-center justify-between text-center bg-gradient-to-b from-white to-[#FAF7F2] text-[#2D4424] border-[#E7DCB9] hover:border-[#E06A26]"
                 }
             };
 
@@ -5429,16 +5428,6 @@
                     window.currentB2BBookingState.group_policy_id = null;
                 }
             }
-
-            if (window.currentB2BBookingState) {
-                const groupCount = Math.min(minSeats || 10, maxSeats);
-                window.currentB2BBookingState.adults = groupCount;
-                window.currentB2BBookingState.totalPassengers = groupCount;
-                window.currentB2BBookingState.totalFare = groupCount * fare;
-                const cAdults = document.getElementById('count-adults-display'); if (cAdults) cAdults.textContent = groupCount;
-                updateCounterButtonsUI();
-                updateStep1Summary();
-            }
         }
 
         function renderLandscapeGroupTicketCard(p) {
@@ -5457,7 +5446,62 @@
                 ? `<span class="text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1.5 shadow-2xs"><i class="fa-solid fa-utensils text-emerald-600"></i> In-Flight Meal Included</span>`
                 : `<span class="text-[10px] font-extrabold uppercase bg-slate-50 text-slate-500 px-2.5 py-1 rounded-lg border border-slate-200 flex items-center gap-1.5 shadow-2xs"><i class="fa-solid fa-ban text-slate-400"></i> No Meal</span>`;
 
-            const routeBadge = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${p.route_type === 'via' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'} shadow-2xs flex items-center gap-1.5"><i class="fa-solid ${p.route_type === 'via' ? 'fa-route text-amber-600' : 'fa-jet-fighter-up text-emerald-600'}"></i> ${p.route_type === 'via' ? 'Via ' + escapeHTML(p.via_city || '') : 'Non-Stop Direct'}</span>`;
+            const routeBadge = p.route_type === 'via'
+                ? `<span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs flex items-center gap-1.5"><i class="fa-solid fa-route text-amber-600"></i> Via / Connecting Route</span>`
+                : `<span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs flex items-center gap-1.5"><i class="fa-solid fa-jet-fighter-up text-emerald-600"></i> Non-Stop Direct</span>`;
+
+            // Render structured sector cards if route_sectors array is present
+            const structuredSectors = Array.isArray(p.route_sectors) ? p.route_sectors.filter(s => s.from_city || s.to_city || s.flight_no) : [];
+            const structuredSectorsHtml = structuredSectors.length > 0 ? `
+                <div class="mt-3 pt-3 border-t border-dashed border-[#E7DCB9] bg-[#F7F3E9]/80 p-3 rounded-xl space-y-2">
+                    <div class="text-[10px] font-black uppercase text-[#2D4424] flex items-center justify-between">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-diagram-project text-[#E06A26]"></i> Flight Route Sectors (${structuredSectors.length} Sectors)</span>
+                        <span class="text-[9px] font-bold text-[#567946]">${p.trip_type === 'return' ? 'Round Trip' : 'One Way'} ${p.route_type === 'via' ? 'Via Connection' : 'Direct'}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
+                        ${structuredSectors.map((sec, idx) => `
+                            <div class="bg-white p-2.5 rounded-lg border border-[#D9CBAC] text-xs space-y-1 shadow-2xs">
+                                <div class="flex items-center justify-between text-[9px] font-black text-[#E06A26] uppercase border-b border-[#F5EFE0] pb-1">
+                                    <span>Sector ${idx + 1}</span>
+                                    ${sec.flight_no ? `<span class="bg-[#FDF2EA] text-[#E06A26] px-1 py-0.2 rounded border border-[#FCE2D2]">${escapeHTML(sec.flight_no)}</span>` : ''}
+                                </div>
+                                <div class="font-black text-[#2D4424] flex items-center justify-between pt-0.5">
+                                    <span>${escapeHTML(sec.from_city || '—')}</span>
+                                    <i class="fa-solid fa-arrow-right text-[#E06A26] text-[10px]"></i>
+                                    <span>${escapeHTML(sec.to_city || '—')}</span>
+                                </div>
+                                <div class="text-[10px] text-[#567946] flex items-center justify-between pt-0.5 border-t border-[#F5EFE0]">
+                                    <span>📅 ${escapeHTML(sec.flight_date || 'TBA')}</span>
+                                    <span>⏰ ${escapeHTML(sec.dep_time || '')} - ${escapeHTML(sec.arr_time || '')}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : '';
+
+            // Parse via_city into individual route stops (split by common separators)
+            const viaSegments = (p.route_type === 'via' && p.via_city)
+                ? p.via_city.split(/\s*[-|→>]\s*/).map(s => s.trim()).filter(s => s.length > 0)
+                : [];
+
+            const viaRouteChainHtml = (p.route_type === 'via' && viaSegments.length > 0 && structuredSectors.length === 0)
+                ? `<div class="mt-3 pt-3 border-t border-dashed border-amber-200 bg-amber-50/60 p-3 rounded-xl">
+                    <div class="text-[10px] font-black uppercase text-amber-700 flex items-center gap-1.5 mb-2">
+                        <i class="fa-solid fa-route text-amber-600"></i> Full Via Route Chain (${viaSegments.length} Stops)
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        ${viaSegments.map((seg, idx) => `
+                            <span class="inline-flex items-center gap-1">
+                                <span class="px-2.5 py-1 bg-white border border-amber-300 rounded-lg text-[11px] font-black text-amber-900 shadow-2xs whitespace-nowrap">
+                                    <i class="fa-solid fa-location-dot text-amber-500 text-[9px] mr-0.5"></i>${escapeHTML(seg)}
+                                </span>
+                                ${idx < viaSegments.length - 1 ? '<i class="fa-solid fa-chevron-right text-amber-400 text-[9px]"></i>' : '<i class="fa-solid fa-plane-arrival text-amber-600 text-[9px] ml-0.5"></i>'}
+                            </span>`).join('')}
+                    </div>
+                </div>`
+                : '';
+
 
             const tripBadge = `<span class="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${hasReturn ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'} shadow-2xs flex items-center gap-1.5"><i class="fa-solid ${hasReturn ? 'fa-plane-circle-check text-purple-600' : 'fa-plane-up text-blue-600'}"></i> ${hasReturn ? 'Round Trip Group' : 'One Way Group'}</span>`;
 
@@ -5527,40 +5571,48 @@
                     </div>
 
                     <!-- Middle Flight Segment: Outbound Details -->
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC]">
-                        <!-- Route Cities -->
-                        <div class="md:col-span-4 space-y-1">
-                            <div class="text-[10px] font-black uppercase text-[#E06A26] tracking-wider flex items-center gap-1.5">
-                                <i class="fa-solid fa-plane-departure text-sm text-[#E06A26]"></i> Outbound Flight Route
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC]">
+                            <!-- Route Cities -->
+                            <div class="md:col-span-4 space-y-1">
+                                <div class="text-[10px] font-black uppercase text-[#E06A26] tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plane-departure text-sm text-[#E06A26]"></i> Outbound Flight Route
+                                </div>
+                                <div class="text-sm sm:text-base font-black text-[#2D4424] flex items-center gap-2">
+                                    <span>${escapeHTML(p.departure_city)}</span>
+                                    <i class="fa-solid fa-plane-up rotate-90 text-[#E06A26] text-xs"></i>
+                                    <span>${escapeHTML(p.destination_city)}</span>
+                                </div>
                             </div>
-                            <div class="text-sm sm:text-base font-black text-[#2D4424] flex items-center gap-2">
-                                <span>${escapeHTML(p.departure_city)}</span>
-                                <i class="fa-solid fa-plane-up rotate-90 text-[#E06A26] text-xs"></i>
-                                <span>${escapeHTML(p.destination_city)}</span>
-                            </div>
-                        </div>
 
-                        <!-- Flight Timings -->
-                        <div class="md:col-span-5 flex flex-wrap items-center gap-4 text-xs">
-                            <div class="space-y-0.5">
-                                <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Departure</div>
-                                <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-departure text-amber-600"></i> ${escapeHTML(p.departure_time)}</div>
+                            <!-- Flight Timings -->
+                            <div class="md:col-span-5 flex flex-wrap items-center gap-4 text-xs">
+                                <div class="space-y-0.5">
+                                    <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Departure</div>
+                                    <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-departure text-amber-600"></i> ${escapeHTML(p.departure_time)}</div>
+                                </div>
+                                <div class="space-y-0.5">
+                                    <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Arrival</div>
+                                    <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-arrival text-emerald-600"></i> ${escapeHTML(p.arrival_time)}</div>
+                                </div>
                             </div>
-                            <div class="space-y-0.5">
-                                <div class="text-[10px] font-bold text-[#567946] uppercase">Outbound Arrival</div>
-                                <div class="font-black text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-plane-arrival text-emerald-600"></i> ${escapeHTML(p.arrival_time)}</div>
-                            </div>
-                        </div>
 
-                        <!-- Outbound Baggage Tier -->
-                        <div class="md:col-span-3 flex items-center justify-start md:justify-end">
-                            <div class="bg-white px-3 py-2 rounded-xl border border-[#E7DCB9] shadow-2xs space-y-0.5 text-right">
-                                <div class="text-[10px] font-extrabold uppercase text-[#567946]">Outbound Luggage</div>
-                                <div class="text-xs font-black text-[#2D4424] flex items-center gap-1.5 justify-end">
-                                    <i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> ${p.baggage_weight_kg} KG Allowance
+                            <!-- Outbound Baggage Tier -->
+                            <div class="md:col-span-3 flex items-center justify-start md:justify-end">
+                                <div class="bg-white px-3 py-2 rounded-xl border border-[#E7DCB9] shadow-2xs space-y-0.5 text-right">
+                                    <div class="text-[10px] font-extrabold uppercase text-[#567946]">Outbound Luggage</div>
+                                    <div class="text-xs font-black text-[#2D4424] flex items-center gap-1.5 justify-end">
+                                        <i class="fa-solid fa-suitcase-rolling text-[#E06A26]"></i> ${p.baggage_weight_kg} KG Allowance
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Detailed Route Sectors (If Specified) -->
+                        ${structuredSectorsHtml}
+
+                        <!-- Via Route Chain: All Stops Displayed -->
+                        ${viaRouteChainHtml}
                     </div>
 
                     <!-- Return Segment (If Roundtrip / Return Leg) -->
@@ -5585,7 +5637,7 @@
 
                         <div class="flex items-center gap-2 shrink-0">
                             <button type="button" onclick="selectB2BGroupFare(${p.id}, ${p.flight_inventory_id || 'null'}, '${escapeHTML(p.airline_name)}', '${escapeHTML(p.departure_city)}', '${escapeHTML(p.destination_city)}', ${p.group_fare || p.base_fare}, ${p.available_seats}, ${p.min_group_size}, ${p.flight_inventory_id ? 'false' : 'true'})" class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-[#E06A26] to-[#C45517] hover:from-[#C45517] hover:to-[#E06A26] text-white text-xs sm:text-sm font-extrabold rounded-xl transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-plane-up text-amber-300"></i> Book Group Fare Now (${p.min_group_size} Seats)
+                                <i class="fa-solid fa-plane-up text-amber-300"></i> Book Group Fare Now
                             </button>
                         </div>
                     </div>

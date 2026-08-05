@@ -164,6 +164,7 @@ class GroupFarePolicy(models.Model):
     return_baggage_weight_kg = models.PositiveIntegerField(default=30, help_text='Return Baggage allowance in KG')
     base_fare = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     group_fare_override = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text='Override calculated net group fare directly')
+    route_sectors = models.JSONField(default=list, blank=True, null=True, help_text='Structured leg/sector details: flight_no, dep/arr city, date, time')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

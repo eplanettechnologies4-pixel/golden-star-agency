@@ -1470,6 +1470,7 @@ def admin_group_fare_policies_api(request):
                 'base_fare':                round(b_fare, 2),
                 'group_fare_override':      float(p.group_fare_override) if p.group_fare_override is not None else None,
                 'group_fare':               round(g_fare, 2),
+                'route_sectors':            p.route_sectors or [],
                 'is_active':                p.is_active,
                 'route_display':            f"{air_name} — {dep} → {dest}",
             })
@@ -1503,6 +1504,7 @@ def admin_group_fare_policies_api(request):
                 return_baggage_weight_kg=int(payload.get('return_baggage_weight_kg', 30)),
                 base_fare=Decimal(str(payload.get('base_fare', 0))),
                 group_fare_override=Decimal(str(payload.get('group_fare_override'))) if payload.get('group_fare_override') not in [None, ''] else None,
+                route_sectors=payload.get('route_sectors', []),
                 is_active=bool(payload.get('is_active', True))
             )
             return JsonResponse({'success': True, 'policy_id': p.id, 'message': 'Group ticket created successfully!'})
@@ -1830,6 +1832,7 @@ def agent_group_fare_policies_api(request):
             'base_fare':                round(b_fare, 2),
             'group_fare_override':      float(p.group_fare_override) if p.group_fare_override is not None else None,
             'group_fare':               round(g_fare, 2),
+            'route_sectors':            p.route_sectors or [],
             'is_active':                p.is_active,
             'route_display':            f"{air_name} — {dep} ➔ {dest}",
         })

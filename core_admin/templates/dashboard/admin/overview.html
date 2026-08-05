@@ -3455,6 +3455,8 @@
                         document.getElementById('gpm-base-fare').value = p.base_fare || 0;
                         document.getElementById('gpm-group-fare-override').value = p.group_fare_override !== null ? p.group_fare_override : '';
                         document.getElementById('gpm-is-active').checked = p.is_active;
+
+                        renderAdminGroupSectors(p.route_sectors || []);
                     }
                 } catch (e) {}
             } else {
@@ -3462,6 +3464,7 @@
                 document.getElementById('gpm-edit-id').value = '';
                 const form = document.getElementById('gpm-form');
                 if (form) form.reset();
+                renderAdminGroupSectors();
             }
 
             openModal('modal-admin-group-policy');
@@ -3473,6 +3476,78 @@
             closeModal('modal-admin-group-policy');
         }
         window.closeAdminGroupPolicyModal = closeAdminGroupPolicyModal;
+
+        function renderAdminGroupSectors(existingSectors = []) {
+            const tripType = document.getElementById('gpm-trip-type')?.value || 'oneway';
+            const routeType = document.getElementById('gpm-route-type')?.value || 'direct';
+
+            let count = 2;
+            if (tripType === 'oneway' && routeType === 'direct') count = 2;
+            else if (tripType === 'return' && routeType === 'direct') count = 4;
+            else if (tripType === 'oneway' && routeType === 'via') count = 4;
+            else if (tripType === 'return' && routeType === 'via') count = 8;
+
+            const titleElem = document.getElementById('gpm-sectors-title');
+            const badgeElem = document.getElementById('gpm-sectors-badge');
+            if (titleElem) titleElem.textContent = `Route Sectors (${count} Sectors Configured)`;
+            if (badgeElem) badgeElem.textContent = `${count} Sectors`;
+
+            const listElem = document.getElementById('gpm-sectors-list');
+            if (!listElem) return;
+
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                const s = existingSectors[i] || {};
+                const defaultLabel = (tripType === 'return' && i >= count / 2) ? `Return Leg Sector ${i - Math.floor(count / 2) + 1}` : `Outbound Sector ${i + 1}`;
+                html += `
+                    <div class="bg-white p-3 rounded-xl border border-[#E7DCB9] shadow-2xs space-y-2">
+                        <div class="text-[10px] font-black uppercase text-[#2D4424] flex items-center justify-between border-b border-[#E7DCB9] pb-1">
+                            <span><i class="fa-solid fa-plane-departure text-[#E06A26] mr-1"></i>Sector ${i + 1}: ${defaultLabel}</span>
+                            <span class="text-[9px] font-bold text-[#567946]">Sector #${i + 1}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946]">From City</label>
+                                <input type="text" data-sec-idx="${i}" data-sec-key="from_city" value="${escapeHTML(s.from_city || '')}" placeholder="e.g. KHI" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946]">To City</label>
+                                <input type="text" data-sec-idx="${i}" data-sec-key="to_city" value="${escapeHTML(s.to_city || '')}" placeholder="e.g. DOH" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946]">Flight No.</label>
+                                <input type="text" data-sec-idx="${i}" data-sec-key="flight_no" value="${escapeHTML(s.flight_no || '')}" placeholder="e.g. SV-701" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946]">Date</label>
+                                <input type="text" data-sec-idx="${i}" data-sec-key="flight_date" value="${escapeHTML(s.flight_date || '')}" placeholder="e.g. 15 SEP" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946]">Dep Time</label>
+                                <input type="text" data-sec-idx="${i}" data-sec-key="dep_time" value="${escapeHTML(s.dep_time || '')}" placeholder="e.g. 03:30 AM" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946]">Arr Time</label>
+                                <input type="text" data-sec-idx="${i}" data-sec-key="arr_time" value="${escapeHTML(s.arr_time || '')}" placeholder="e.g. 06:45 AM" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            listElem.innerHTML = html;
+        }
+
+        function collectAdminGroupSectors() {
+            const inputs = document.querySelectorAll('.gpm-sec-input');
+            const sectorsObj = {};
+            inputs.forEach(inp => {
+                const idx = inp.getAttribute('data-sec-idx');
+                const key = inp.getAttribute('data-sec-key');
+                if (!sectorsObj[idx]) sectorsObj[idx] = {};
+                sectorsObj[idx][key] = inp.value.trim();
+            });
+            return Object.values(sectorsObj);
+        }
 
         async function saveAdminGroupPolicy(e) {
             if (e) e.preventDefault();
@@ -3499,6 +3574,7 @@
                 return_baggage_weight_kg: parseInt(document.getElementById('gpm-return-baggage-kg').value || 30),
                 base_fare: parseFloat(document.getElementById('gpm-base-fare').value || 0),
                 group_fare_override: document.getElementById('gpm-group-fare-override').value ? parseFloat(document.getElementById('gpm-group-fare-override').value) : null,
+                route_sectors: collectAdminGroupSectors(),
                 is_active: document.getElementById('gpm-is-active').checked
             };
 
@@ -11404,21 +11480,34 @@
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                         <div>
                             <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Trip Type</label>
-                            <select id="gpm-trip-type" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                            <select id="gpm-trip-type" onchange="renderAdminGroupSectors()" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
                                 <option value="oneway">One Way Group</option>
                                 <option value="return">Round Trip Group</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Route Type</label>
-                            <select id="gpm-route-type" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                            <select id="gpm-route-type" onchange="renderAdminGroupSectors()" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
                                 <option value="direct">Non-Stop Direct</option>
                                 <option value="via">Via Connecting City</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Via City (If Via)</label>
-                            <input type="text" id="gpm-via-city" placeholder="e.g. Riyadh (RUH)" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Via Routes Summary</label>
+                            <input type="text" id="gpm-via-city" placeholder="e.g. KHI - DOH - JED - MED" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Route Sectors Container (2, 4, or 8 Sectors) -->
+                    <div id="gpm-sectors-wrapper" class="pt-3 border-t border-[#D9CBAC] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="text-[11px] font-black uppercase text-[#E06A26] flex items-center gap-1.5">
+                                <i class="fa-solid fa-diagram-project"></i> <span id="gpm-sectors-title">Route Sectors (2 Sectors Required)</span>
+                            </div>
+                            <span id="gpm-sectors-badge" class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#2D4424] text-white">2 Sectors</span>
+                        </div>
+                        <div id="gpm-sectors-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- Populated dynamically via renderAdminGroupSectors() -->
                         </div>
                     </div>
                 </div>
