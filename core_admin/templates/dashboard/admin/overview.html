@@ -3952,8 +3952,11 @@
                     <td class="p-3 font-bold text-[#567946]">${pkg.duration_days} Days</td>
                     <td class="p-3 font-mono font-black text-[#E06A26]">PKR ${Number(pkg.agent_price).toLocaleString()}</td>
                     <td class="p-3 text-[11px] text-[#1F2E1A]">
-                        🏨 Makkah: ${escapeHTML(pkg.makkah_hotel_name || 'N/A')}<br>
-                        🏨 Madinah: ${escapeHTML(pkg.madinah_hotel_name || 'N/A')}
+                        🕋 Makkah: ${escapeHTML(pkg.makkah_hotel_name || 'N/A')}
+                        <span class="ml-1 px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold text-[10px]">${pkg.makkah_nights || 7} Nts</span><br>
+                        🕌 Madinah: ${escapeHTML(pkg.madinah_hotel_name || 'N/A')}
+                        <span class="ml-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-[10px]">${pkg.madinah_nights || 7} Nts</span>
+                        ${(pkg.airline_name && pkg.airline_name !== '') ? `<br><span class="text-[10px] text-[#567946] font-bold">✈ ${escapeHTML(pkg.airline_name)}</span>` : (pkg.flight_name ? `<br><span class="text-[10px] text-[#567946] font-bold">✈ ${escapeHTML(pkg.flight_name)}</span>` : '')}
                     </td>
                     <td class="p-3 font-mono font-bold text-[#2D4424]">
                         <div class="flex items-center gap-1.5">

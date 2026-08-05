@@ -1176,9 +1176,19 @@
                                         class="bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl px-3 py-1.5 text-xs text-[#1F2E1A] font-bold focus:outline-none focus:border-[#E06A26]">
                                         <option value="all">⏱️ All Durations</option>
                                         <option value="7">7 Days</option>
+                                        <option value="10">10 Days</option>
+                                        <option value="12">12 Days</option>
                                         <option value="14">14 Days</option>
                                         <option value="15">15 Days</option>
+                                        <option value="18">18 Days</option>
+                                        <option value="19">19 Days</option>
+                                        <option value="20">20 Days</option>
                                         <option value="21">21 Days</option>
+                                        <option value="23">23 Days</option>
+                                        <option value="24">24 Days</option>
+                                        <option value="25">25 Days</option>
+                                        <option value="26">26 Days</option>
+                                        <option value="27">27 Days</option>
                                         <option value="28">28 Days</option>
                                     </select>
                                 </div>
@@ -5805,8 +5815,8 @@
                     </div>
                 `).join('');
             } else {
-                const makkahNightsNum = p.makkah_nights || Math.floor((parseInt(p.duration_days, 10) || 14) / 2) || 7;
-                const madinahNightsNum = p.madinah_nights || ((parseInt(p.duration_days, 10) || 14) - makkahNightsNum) || 7;
+                const makkahNightsNum = (p.makkah_nights != null && p.makkah_nights !== undefined && p.makkah_nights > 0) ? p.makkah_nights : Math.floor((parseInt(p.duration_days, 10) || 14) / 2) || 7;
+                const madinahNightsNum = (p.madinah_nights != null && p.madinah_nights !== undefined && p.madinah_nights > 0) ? p.madinah_nights : ((parseInt(p.duration_days, 10) || 14) - makkahNightsNum) || 7;
                 const makkahDist = p.makkah_hotel_distance ? `${escapeHTML(p.makkah_hotel_distance)} • ` : '';
                 const madinahDist = p.madinah_hotel_distance ? `${escapeHTML(p.madinah_hotel_distance)} • ` : '';
                 staysHtml = `
@@ -5907,13 +5917,19 @@
                                         ${logoBadge}
                                     </h4>
                                     ${p.description ? `<p class="text-xs text-gray-500 line-clamp-1 mt-0.5 font-medium">${escapeHTML(p.description)}</p>` : ''}
-                                    ${p.airline_name ? `
+                                    ${(p.airline_name && p.airline_name !== '') ? `
                                         <div class="text-xs font-extrabold text-[#567946] flex items-center gap-2 mt-1">
                                             <i class="fa-solid fa-plane-departure text-[#E06A26]"></i>
                                             <span>${escapeHTML(p.airline_name)}</span>
                                             ${p.flight_route ? `<span class="font-mono text-gray-500">(${escapeHTML(p.flight_route)})</span>` : ''}
                                         </div>
-                                    ` : ''}
+                                    ` : (p.flight_name && p.flight_name !== '' ? `
+                                        <div class="text-xs font-extrabold text-[#567946] flex items-center gap-2 mt-1">
+                                            <i class="fa-solid fa-plane-departure text-[#E06A26]"></i>
+                                            <span>${escapeHTML(p.flight_name)}</span>
+                                            ${p.flight_route ? `<span class="font-mono text-gray-500">(${escapeHTML(p.flight_route)})</span>` : ''}
+                                        </div>
+                                    ` : '')}
                                 </div>
                                 <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                                     <span class="px-3 py-1.5 rounded-xl text-xs font-black uppercase border ${seatDetailsBadgeClass} shadow-2xs flex items-center gap-1">
@@ -6256,8 +6272,8 @@
                     </div>
                 `).join('');
             } else {
-                const makkahNightsNum = p.makkah_nights || Math.floor((parseInt(p.duration_days, 10) || 14) / 2) || 7;
-                const madinahNightsNum = p.madinah_nights || ((parseInt(p.duration_days, 10) || 14) - makkahNightsNum) || 7;
+                const makkahNightsNum = (p.makkah_nights != null && p.makkah_nights !== undefined && p.makkah_nights > 0) ? p.makkah_nights : Math.floor((parseInt(p.duration_days, 10) || 14) / 2) || 7;
+                const madinahNightsNum = (p.madinah_nights != null && p.madinah_nights !== undefined && p.madinah_nights > 0) ? p.madinah_nights : ((parseInt(p.duration_days, 10) || 14) - makkahNightsNum) || 7;
                 const makkahDist = p.makkah_hotel_distance ? `${escapeHTML(p.makkah_hotel_distance)} • ` : '';
                 const madinahDist = p.madinah_hotel_distance ? `${escapeHTML(p.madinah_hotel_distance)} • ` : '';
                 staysHtml = `
