@@ -145,10 +145,22 @@
                             <span class="block text-xs font-extrabold text-slate-800 mt-1 truncate" title="{{ package.madinah_hotel_name }}">{{ package.madinah_hotel_name }}</span>
                             <span class="text-[10px] font-bold text-emerald-600">({{ package.madinah_hotel_distance }})</span>
                         </div>
-                        <div class="p-3 bg-slate-50 rounded-xl">
-                            <span class="text-[10px] uppercase font-bold text-slate-400 block">Airline Partner</span>
-                            <span class="block text-xs font-extrabold text-slate-800 mt-1 truncate">{{ package.airline }}</span>
-                            <span class="text-[10px] font-bold text-brand-orange">{{ package.flight_routes }}</span>
+                        <div class="p-3 bg-slate-50 rounded-xl flex flex-col items-center justify-center">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Airline Partner</span>
+                            {% with logo_info=package.get_airline_info %}
+                            {% if logo_info.logo_url %}
+                            <div class="flex items-center justify-center gap-1.5 h-7 my-0.5">
+                                <img src="{{ logo_info.logo_url }}" alt="{{ logo_info.name }}" class="h-6 max-h-6 w-auto object-contain max-w-[90px]">
+                                <span class="text-xs font-extrabold text-slate-800 truncate">{{ logo_info.name }}</span>
+                            </div>
+                            {% else %}
+                            <div class="flex items-center justify-center gap-1.5 my-0.5">
+                                <i class="fa-solid {{ logo_info.icon_class }} text-brand-orange text-xs"></i>
+                                <span class="block text-xs font-extrabold text-slate-800 truncate">{{ logo_info.name }}</span>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            <span class="text-[10px] font-bold text-brand-orange mt-0.5">{{ package.flight_routes }}</span>
                         </div>
                     </div>
                 </div>

@@ -143,9 +143,12 @@ class Package(models.Model):
         name = self.airline or "Saudi Airlines"
         logo = self.airline_logo
         name_lower = name.lower()
+        logo_url = None
         if logo:
             raw_url = logo.url if hasattr(logo, 'url') else str(logo)
-            logo_url = _clean_img_url(raw_url)
+            if raw_url and str(raw_url).strip() and str(raw_url).strip().lower() not in ('none', 'null', '0', ''):
+                logo_url = _clean_img_url(raw_url)
+        if logo_url:
             return {'name': name, 'logo_url': logo_url, 'icon_class': 'fa-plane'}
         elif 'pia' in name_lower or 'pakistan' in name_lower:
             return {'name': 'PIA (Pak International)', 'icon_class': 'fa-plane-departure', 'badge_color': 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}
