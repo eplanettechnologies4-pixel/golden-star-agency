@@ -276,7 +276,7 @@ async function submitHajjInquiry(e) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}'
+                'X-CSRFToken': (typeof getCookie === 'function' ? getCookie('csrftoken') : null) || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}'
             },
             body: JSON.stringify({
                 name: name,

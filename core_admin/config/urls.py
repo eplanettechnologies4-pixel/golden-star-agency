@@ -179,7 +179,7 @@ urlpatterns = [
     path('dashboard/admin/api/ledger/<int:entry_id>/delete/', accounts_views.admin_agent_ledger_delete_api, name='admin_agent_ledger_delete_api'),
 
     # Public Website Client Submission APIs (Bookings, Visas, Flight Quotes)
-    path('api/packages/book/', accounts_views.submit_package_booking_api, name='submit_package_booking_api'),
+    path('api/packages/book/', packages_views.book_package_api, name='book_package_api'),
     path('api/visa/submit/', accounts_views.submit_visa_application_api, name='submit_visa_application_api'),
     path('api/flights/quote/', accounts_views.submit_flight_quote_api, name='submit_flight_quote_api'),
 

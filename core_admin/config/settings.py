@@ -25,10 +25,23 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-default-change-me-in-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')]
+ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOSTS', default='localhost,127.0.0.1,reigoldenstar.com,www.reigoldenstar.com').split(',') if host.strip()]
+
+# Security & Proxy Settings (Required for HTTPS behind Nginx reverse proxy)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+CSRF_TRUSTED_ORIGINS = [
+    host.strip() for host in config(
+        'CSRF_TRUSTED_ORIGINS',
+        default='https://reigoldenstar.com,https://www.reigoldenstar.com,http://localhost:8000,http://127.0.0.1:8000'
+    ).split(',') if host.strip()
+]
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
 
 # Feature Flags
 AI_CHATBOT_ENABLED = config('AI_CHATBOT_ENABLED', default=False, cast=bool)
+
 
 
 # Application definition

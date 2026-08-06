@@ -503,10 +503,11 @@
     </div>
 </section>
 
-<!-- Premium Agent Partners Section (Clean White Background) -->
+<!-- Premium Agent Partners Section (Clean White Background - Single Row Auto Slider) -->
 <section class="py-20 bg-white border-t border-slate-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
+        <div class="text-center mb-10">
+            <span class="text-xs font-bold text-brand-orange bg-brand-orange/10 px-3.5 py-1 rounded-full uppercase tracking-wider mb-2 inline-block">Verified Operators</span>
             <h2 class="text-3xl font-extrabold text-slate-900">Our Premium Agent Partners</h2>
             <p class="text-slate-500 mt-2 max-w-xl mx-auto text-sm leading-relaxed">Book directly through our highly-rated, verified local travel operators for exceptional ground support.</p>
         </div>
@@ -529,65 +530,80 @@
             <p id="agent-search-status" class="text-center text-xs text-brand-orange font-semibold mt-2 hidden"></p>
         </div>
 
-        <!-- Agent Partners Cards Grid (Single Render - ONE Card per Agent) -->
-        <div id="agent-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {% for agent in best_agents %}
-            <div class="agent-card bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
-                 data-company-name="{{ agent.company_name|default:agent.username }}"
-                 data-about="{{ agent.about|default:'Professional B2B travel partner facilitating flight bookings, custom reselling, and visa processing.' }}"
-                 data-email="{{ agent.email }}">
-                <!-- Cover Photo / Gradient banner -->
-                <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#E06A26]{% endif %}">
-                    {% if agent.cover_photo %}
-                    <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
-                    {% endif %}
-                    
-                    <!-- Profile Photo Overlapping -->
-                    <div class="absolute -bottom-6 left-6">
-                        <div class="h-16 w-16 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow">
-                            {% if agent.profile_photo %}
-                            <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name|default:agent.username }}" class="h-full w-full object-cover">
-                            {% else %}
-                            <div class="h-full w-full flex items-center justify-center bg-[#E06A26] text-white font-extrabold text-lg uppercase">
-                                {{ agent.company_name|default:agent.username|slice:":1" }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+        <!-- Single-Row Automatic Slider Container -->
+        <div class="relative group">
+            <!-- Left Slider Navigation Button -->
+            <button onclick="slideAgents('prev')" aria-label="Previous Agent"
+                    class="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-brand-orange text-white flex items-center justify-center border border-white/20 shadow-xl transition-all z-20 focus:outline-none opacity-80 hover:opacity-100 hover:scale-105">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
 
-                <div class="p-6 pt-8 flex-grow flex flex-col justify-between space-y-4">
-                    <div>
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-[#E06A26] transition-colors truncate">
-                                {{ agent.company_name|default:agent.get_full_name|default:agent.username }}
-                            </a>
-                            <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                <i class="fa-solid fa-shield-check mr-1 text-emerald-600"></i>Verified
-                            </span>
-                        </div>
+            <!-- Right Slider Navigation Button -->
+            <button onclick="slideAgents('next')" aria-label="Next Agent"
+                    class="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-brand-orange text-white flex items-center justify-center border border-white/20 shadow-xl transition-all z-20 focus:outline-none opacity-80 hover:opacity-100 hover:scale-105">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
+
+            <!-- Single Row Cards Track -->
+            <div id="agent-cards-container" class="flex gap-6 overflow-x-auto scrollbar-none scroll-smooth snap-x snap-mandatory py-4 px-1">
+                {% for agent in best_agents %}
+                <div class="agent-card flex-none w-[290px] sm:w-[320px] snap-start bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
+                     data-company-name="{{ agent.company_name|default:agent.username }}"
+                     data-about="{{ agent.about|default:'Professional B2B travel partner facilitating flight bookings, custom reselling, and visa processing.' }}"
+                     data-email="{{ agent.email }}">
+                    <!-- Cover Photo / Gradient banner -->
+                    <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#E06A26]{% endif %}">
+                        {% if agent.cover_photo %}
+                        <img src="{{ agent.cover_photo.url }}" alt="Cover" class="w-full h-full object-cover">
+                        {% endif %}
                         
-                        <p class="text-xs text-slate-500 line-clamp-3 leading-relaxed">
-                            {% if agent.about %}
-                            {{ agent.about }}
-                            {% else %}
-                            Professional B2B travel partner facilitating flight bookings, group deals, custom package reselling, and visa processing.
-                            {% endif %}
-                        </p>
+                        <!-- Profile Photo Overlapping -->
+                        <div class="absolute -bottom-6 left-6">
+                            <div class="h-16 w-16 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow">
+                                {% if agent.profile_photo %}
+                                <img src="{{ agent.profile_photo.url }}" alt="{{ agent.company_name|default:agent.username }}" class="h-full w-full object-cover">
+                                {% else %}
+                                <div class="h-full w-full flex items-center justify-center bg-[#E06A26] text-white font-extrabold text-lg uppercase">
+                                    {{ agent.company_name|default:agent.username|slice:":1" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="pt-4 border-t border-slate-200/80 flex flex-col gap-3">
-                        <div class="flex items-center justify-between text-[11px] text-slate-600 font-semibold gap-2">
-                            <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-[#E06A26]"></i>{{ agent.email }}</span>
-                            <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-[#2D4424]"></i>{{ agent.phone|default:"N/A" }}</span>
+                    <div class="p-6 pt-8 flex-grow flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-[#E06A26] transition-colors truncate">
+                                    {{ agent.company_name|default:agent.get_full_name|default:agent.username }}
+                                </a>
+                                <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                    <i class="fa-solid fa-shield-check mr-1 text-emerald-600"></i>Verified
+                                </span>
+                            </div>
+                            
+                            <p class="text-xs text-slate-500 line-clamp-3 leading-relaxed">
+                                {% if agent.about %}
+                                {{ agent.about }}
+                                {% else %}
+                                Professional B2B travel partner facilitating flight bookings, group deals, custom package reselling, and visa processing.
+                                {% endif %}
+                            </p>
                         </div>
-                        <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-[#E06A26] hover:text-white border border-slate-200 hover:border-[#E06A26] text-[11px] font-bold rounded-xl transition-all duration-200 text-slate-700 shadow-xs">
-                            <i class="fa-solid fa-id-card mr-1"></i> View Agent Profile
-                        </a>
+
+                        <div class="pt-4 border-t border-slate-200/80 flex flex-col gap-3">
+                            <div class="flex items-center justify-between text-[11px] text-slate-600 font-semibold gap-2">
+                                <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-[#E06A26]"></i>{{ agent.email }}</span>
+                                <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-[#2D4424]"></i>{{ agent.phone|default:"N/A" }}</span>
+                            </div>
+                            <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-[#E06A26] hover:text-white border border-slate-200 hover:border-[#E06A26] text-[11px] font-bold rounded-xl transition-all duration-200 text-slate-700 shadow-xs">
+                                <i class="fa-solid fa-id-card mr-1"></i> View Agent Profile
+                            </a>
+                        </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
 
         <!-- No Results Empty State -->
@@ -595,6 +611,118 @@
             <span class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-lg mx-auto mb-3"><i class="fa-solid fa-user-slash text-slate-400"></i></span>
             <p class="text-slate-500 text-sm font-semibold">No agent partners matched your search query.</p>
         </div>
+
+        <!-- Automatic Agent Slider Script -->
+        <script>
+            (function() {
+                const container = document.getElementById('agent-cards-container');
+                const searchInput = document.getElementById('agent-search-input');
+                const searchClear = document.getElementById('agent-search-clear');
+                const searchStatus = document.getElementById('agent-search-status');
+                const noResults = document.getElementById('agent-no-results');
+                let autoTimer = null;
+
+                function stepSlide(dir) {
+                    if (!container) return;
+                    const step = 340;
+                    if (dir === 'next') {
+                        const maxScroll = container.scrollWidth - container.clientWidth;
+                        if (container.scrollLeft >= maxScroll - 10) {
+                            container.scrollTo({ left: 0, behavior: 'smooth' });
+                        } else {
+                            container.scrollBy({ left: step, behavior: 'smooth' });
+                        }
+                    } else {
+                        if (container.scrollLeft <= 10) {
+                            const maxScroll = container.scrollWidth - container.clientWidth;
+                            container.scrollTo({ left: maxScroll, behavior: 'smooth' });
+                        } else {
+                            container.scrollBy({ left: -step, behavior: 'smooth' });
+                        }
+                    }
+                }
+
+                window.slideAgents = function(dir) {
+                    stepSlide(dir);
+                    restartAutoSlide();
+                };
+
+                function startAutoSlide() {
+                    if (!autoTimer && container) {
+                        autoTimer = setInterval(() => stepSlide('next'), 3500);
+                    }
+                }
+
+                function stopAutoSlide() {
+                    if (autoTimer) {
+                        clearInterval(autoTimer);
+                        autoTimer = null;
+                    }
+                }
+
+                function restartAutoSlide() {
+                    stopAutoSlide();
+                    startAutoSlide();
+                }
+
+                if (container) {
+                    container.addEventListener('mouseenter', stopAutoSlide);
+                    container.addEventListener('mouseleave', startAutoSlide);
+                    startAutoSlide();
+                }
+
+                // Instant Search Filtering
+                if (searchInput) {
+                    searchInput.addEventListener('input', function() {
+                        const query = this.value.trim().toLowerCase();
+                        const cards = document.querySelectorAll('.agent-card');
+                        let visibleCount = 0;
+
+                        if (searchClear) {
+                            if (query) searchClear.classList.remove('hidden');
+                            else searchClear.classList.add('hidden');
+                        }
+
+                        cards.forEach(card => {
+                            const name = (card.dataset.companyName || '').toLowerCase();
+                            const about = (card.dataset.about || '').toLowerCase();
+                            const email = (card.dataset.email || '').toLowerCase();
+
+                            if (!query || name.includes(query) || about.includes(query) || email.includes(query)) {
+                                card.classList.remove('hidden');
+                                visibleCount++;
+                            } else {
+                                card.classList.add('hidden');
+                            }
+                        });
+
+                        if (noResults) {
+                            if (visibleCount === 0 && query) noResults.classList.remove('hidden');
+                            else noResults.classList.add('hidden');
+                        }
+
+                        if (searchStatus) {
+                            if (query) {
+                                searchStatus.textContent = `Found ${visibleCount} partner agent(s)`;
+                                searchStatus.classList.remove('hidden');
+                            } else {
+                                searchStatus.classList.add('hidden');
+                            }
+                        }
+
+                        if (container) container.scrollTo({ left: 0, behavior: 'smooth' });
+                    });
+                }
+
+                if (searchClear && searchInput) {
+                    searchClear.addEventListener('click', function() {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                        searchInput.focus();
+                    });
+                }
+            })();
+        </script>
         {% else %}
         <div class="py-8 text-center text-slate-400 text-xs">
             No active partner agencies registered yet.
@@ -646,74 +774,146 @@
             </p>
         </div>
 
-        <!-- Grid of Achievements -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {% for achievement in achievements %}
-            <div class="group bg-white rounded-3xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
-                
-                <!-- Photo/Image Area -->
-                <div class="relative h-48 bg-slate-950 overflow-hidden shrink-0">
-                    {% if achievement.photo_url %}
-                        <img src="{{ achievement.photo_url }}" alt="{{ achievement.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                    {% else %}
-                        <div class="w-full h-full bg-slate-900 flex items-center justify-center text-slate-700">
-                            <i class="fa-solid fa-trophy text-3xl text-amber-500"></i>
-                        </div>
-                    {% endif %}
-                    
-                    <!-- Gradient overlay cover -->
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-                    
-                    <!-- Video Play Icon overlay -->
-                    {% if achievement.category == 'video' and achievement.video_url %}
-                    <a href="{{ achievement.video_url }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/40 transition-colors">
-                        <span class="h-12 w-12 rounded-full bg-brand-orange text-white flex items-center justify-center text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <i class="fa-solid fa-play ml-0.5"></i>
-                        </span>
-                    </a>
-                    {% endif %}
+        <!-- Single-Row Automatic Slider Container for Achievements -->
+        <div class="relative group">
+            <!-- Left Slider Navigation Button -->
+            <button onclick="slideMilestones('prev')" aria-label="Previous Milestone"
+                    class="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-brand-orange text-white flex items-center justify-center border border-white/20 shadow-xl transition-all z-20 focus:outline-none opacity-80 hover:opacity-100 hover:scale-105">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
 
-                    <!-- Date Tag -->
-                    {% if achievement.date %}
-                    <span class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-1 rounded-lg border border-white/10 uppercase tracking-widest">
-                        {{ achievement.date|date:"M Y" }}
-                    </span>
-                    {% endif %}
-                </div>
+            <!-- Right Slider Navigation Button -->
+            <button onclick="slideMilestones('next')" aria-label="Next Milestone"
+                    class="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-brand-orange text-white flex items-center justify-center border border-white/20 shadow-xl transition-all z-20 focus:outline-none opacity-80 hover:opacity-100 hover:scale-105">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
 
-                <!-- Card Body content -->
-                <div class="p-6 flex-grow flex flex-col justify-between space-y-4">
-                    <div class="space-y-2">
-                        <!-- Category Tag -->
-                        <span class="inline-block text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md border
-                            {% if achievement.category == 'milestone' %}bg-purple-50 text-purple-700 border-purple-200
-                            {% elif achievement.category == 'meeting' %}bg-blue-50 text-blue-700 border-blue-200
-                            {% elif achievement.category == 'review' %}bg-emerald-50 text-emerald-700 border-emerald-200
-                            {% else %}bg-orange-50 text-orange-700 border-orange-200{% endif %}">
-                            {{ achievement.get_category_display }}
+            <!-- Single Row Cards Track -->
+            <div id="milestones-cards-container" class="flex gap-6 overflow-x-auto scrollbar-none scroll-smooth snap-x snap-mandatory py-4 px-1">
+                {% for achievement in achievements %}
+                <div class="group flex-none w-[280px] sm:w-[320px] snap-start bg-white rounded-3xl overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+                    
+                    <!-- Photo/Image Area -->
+                    <div class="relative h-48 bg-slate-950 overflow-hidden shrink-0">
+                        {% if achievement.photo_url %}
+                            <img src="{{ achievement.photo_url }}" alt="{{ achievement.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                        {% else %}
+                            <div class="w-full h-full bg-slate-900 flex items-center justify-center text-slate-700">
+                                <i class="fa-solid fa-trophy text-3xl text-amber-500"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Gradient overlay cover -->
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                        
+                        <!-- Video Play Icon overlay -->
+                        {% if achievement.category == 'video' and achievement.video_url %}
+                        <a href="{{ achievement.video_url }}" target="_blank" class="absolute inset-0 flex items-center justify-center bg-black/25 group-hover:bg-black/40 transition-colors">
+                            <span class="h-12 w-12 rounded-full bg-brand-orange text-white flex items-center justify-center text-lg shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <i class="fa-solid fa-play ml-0.5"></i>
+                            </span>
+                        </a>
+                        {% endif %}
+
+                        <!-- Date Tag -->
+                        {% if achievement.date %}
+                        <span class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur-md text-white text-[9px] font-bold px-2.5 py-1 rounded-lg border border-white/10 uppercase tracking-widest">
+                            {{ achievement.date|date:"M Y" }}
                         </span>
-                        
-                        <h3 class="text-sm font-bold text-slate-800 leading-snug line-clamp-2">{{ achievement.title }}</h3>
-                        
-                        {% if achievement.description %}
-                        <p class="text-xs text-slate-500 leading-relaxed line-clamp-3">{{ achievement.description }}</p>
                         {% endif %}
                     </div>
 
-                    {% if achievement.category == 'video' and achievement.video_url %}
-                    <a href="{{ achievement.video_url }}" target="_blank" class="text-xs font-bold text-brand-orange hover:underline inline-flex items-center gap-1.5 self-start">
-                        <i class="fa-solid fa-circle-play"></i> Watch Video Highlights
-                    </a>
-                    {% endif %}
+                    <!-- Card Body content -->
+                    <div class="p-6 flex-grow flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <!-- Category Tag -->
+                            <span class="inline-block text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md border
+                                {% if achievement.category == 'milestone' %}bg-purple-50 text-purple-700 border-purple-200
+                                {% elif achievement.category == 'meeting' %}bg-blue-50 text-blue-700 border-blue-200
+                                {% elif achievement.category == 'review' %}bg-emerald-50 text-emerald-700 border-emerald-200
+                                {% else %}bg-orange-50 text-orange-700 border-orange-200{% endif %}">
+                                {{ achievement.get_category_display }}
+                            </span>
+                            
+                            <h3 class="text-sm font-bold text-slate-800 leading-snug line-clamp-2">{{ achievement.title }}</h3>
+                            
+                            {% if achievement.description %}
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-3">{{ achievement.description }}</p>
+                            {% endif %}
+                        </div>
+
+                        {% if achievement.category == 'video' and achievement.video_url %}
+                        <a href="{{ achievement.video_url }}" target="_blank" class="text-xs font-bold text-brand-orange hover:underline inline-flex items-center gap-1.5 self-start">
+                            <i class="fa-solid fa-circle-play"></i> Watch Video Highlights
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
+                {% empty %}
+                <div class="w-full text-center py-12 text-slate-400 text-xs">
+                    <i class="fa-solid fa-folder-open text-2xl text-slate-300 block mb-2 mx-auto"></i>
+                    No achievements posted yet.
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="col-span-full text-center py-12 text-slate-400 text-xs">
-                <i class="fa-solid fa-folder-open text-2xl text-slate-300 block mb-2 mx-auto"></i>
-                No achievements posted yet.
-            </div>
-            {% endfor %}
         </div>
+
+        <!-- Automatic Milestones Slider Script -->
+        <script>
+            (function() {
+                const container = document.getElementById('milestones-cards-container');
+                let autoTimer = null;
+
+                function stepSlide(dir) {
+                    if (!container) return;
+                    const step = 340;
+                    if (dir === 'next') {
+                        const maxScroll = container.scrollWidth - container.clientWidth;
+                        if (container.scrollLeft >= maxScroll - 10) {
+                            container.scrollTo({ left: 0, behavior: 'smooth' });
+                        } else {
+                            container.scrollBy({ left: step, behavior: 'smooth' });
+                        }
+                    } else {
+                        if (container.scrollLeft <= 10) {
+                            const maxScroll = container.scrollWidth - container.clientWidth;
+                            container.scrollTo({ left: maxScroll, behavior: 'smooth' });
+                        } else {
+                            container.scrollBy({ left: -step, behavior: 'smooth' });
+                        }
+                    }
+                }
+
+                window.slideMilestones = function(dir) {
+                    stepSlide(dir);
+                    restartAutoSlide();
+                };
+
+                function startAutoSlide() {
+                    if (!autoTimer && container) {
+                        autoTimer = setInterval(() => stepSlide('next'), 4000);
+                    }
+                }
+
+                function stopAutoSlide() {
+                    if (autoTimer) {
+                        clearInterval(autoTimer);
+                        autoTimer = null;
+                    }
+                }
+
+                function restartAutoSlide() {
+                    stopAutoSlide();
+                    startAutoSlide();
+                }
+
+                if (container) {
+                    container.addEventListener('mouseenter', stopAutoSlide);
+                    container.addEventListener('mouseleave', startAutoSlide);
+                    startAutoSlide();
+                }
+            })();
+        </script>
 
     </div>
 </section>
@@ -748,11 +948,23 @@
             </p>
         </div>
 
-        <!-- Top: Reviews Grid -->
-        <div class="relative w-full mb-12">
-            <div id="reviews-feed-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4">
+        <!-- Top: Reviews Single-Row Slider -->
+        <div class="relative group mb-12">
+            <!-- Left Slider Navigation Button -->
+            <button onclick="slideReviews('prev')" aria-label="Previous Review"
+                    class="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-brand-orange text-white flex items-center justify-center border border-white/20 shadow-xl transition-all z-20 focus:outline-none opacity-80 hover:opacity-100 hover:scale-105">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
+
+            <!-- Right Slider Navigation Button -->
+            <button onclick="slideReviews('next')" aria-label="Next Review"
+                    class="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-brand-orange text-white flex items-center justify-center border border-white/20 shadow-xl transition-all z-20 focus:outline-none opacity-80 hover:opacity-100 hover:scale-105">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
+
+            <div id="reviews-feed-container" class="flex gap-6 overflow-x-auto scrollbar-none scroll-smooth snap-x snap-mandatory py-4 px-1">
                 <!-- Review cards loaded dynamically -->
-                <div id="reviews-feed-empty" class="py-12 text-center text-slate-400 text-xs col-span-full">
+                <div id="reviews-feed-empty" class="py-12 text-center text-slate-400 text-xs w-full">
                     <i class="fa-solid fa-comments text-2xl text-slate-300 block mb-2 mx-auto animate-pulse"></i>
                     No reviews submitted yet. Be the first to share your experience!
                 </div>
@@ -1217,7 +1429,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const card = document.createElement('div');
-                card.className = 'w-full bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm flex gap-4 hover:shadow-md transition-all duration-300';
+                card.className = 'flex-none w-[300px] sm:w-[340px] snap-start bg-white border border-slate-200/60 p-5 rounded-2xl shadow-sm flex gap-4 hover:shadow-md transition-all duration-300';
                 card.innerHTML = `
                     <div class="h-10 w-10 rounded-full bg-brand-orange/10 text-brand-orange font-extrabold flex items-center justify-center text-xs shrink-0 select-none">
                         ${initials}
@@ -1263,10 +1475,65 @@ document.addEventListener('DOMContentLoaded', () => {
                 avgStarsContainer.innerHTML = avgStarsHtml;
             }
 
-            feedContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 py-4';
+            feedContainer.className = 'flex gap-6 overflow-x-auto scrollbar-none scroll-smooth snap-x snap-mandatory py-4 px-1';
             cardElements.forEach(card => {
                 feedContainer.appendChild(card);
             });
+
+            // Initialize/Restart Reviews Auto-Slider
+            initReviewsAutoSlider();
+        }
+
+        let reviewsAutoTimer = null;
+        function initReviewsAutoSlider() {
+            if (!feedContainer) return;
+
+            function stepSlide(dir) {
+                const step = 350;
+                if (dir === 'next') {
+                    const maxScroll = feedContainer.scrollWidth - feedContainer.clientWidth;
+                    if (feedContainer.scrollLeft >= maxScroll - 10) {
+                        feedContainer.scrollTo({ left: 0, behavior: 'smooth' });
+                    } else {
+                        feedContainer.scrollBy({ left: step, behavior: 'smooth' });
+                    }
+                } else {
+                    if (feedContainer.scrollLeft <= 10) {
+                        const maxScroll = feedContainer.scrollWidth - feedContainer.clientWidth;
+                        feedContainer.scrollTo({ left: maxScroll, behavior: 'smooth' });
+                    } else {
+                        feedContainer.scrollBy({ left: -step, behavior: 'smooth' });
+                    }
+                }
+            }
+
+            window.slideReviews = function(dir) {
+                stepSlide(dir);
+                if (reviewsAutoTimer) {
+                    clearInterval(reviewsAutoTimer);
+                    reviewsAutoTimer = setInterval(() => stepSlide('next'), 3800);
+                }
+            };
+
+            if (reviewsAutoTimer) clearInterval(reviewsAutoTimer);
+            reviewsAutoTimer = setInterval(() => stepSlide('next'), 3800);
+
+            feedContainer.removeEventListener('mouseenter', stopReviewsTimer);
+            feedContainer.removeEventListener('mouseleave', startReviewsTimer);
+            feedContainer.addEventListener('mouseenter', stopReviewsTimer);
+            feedContainer.addEventListener('mouseleave', startReviewsTimer);
+
+            function stopReviewsTimer() {
+                if (reviewsAutoTimer) {
+                    clearInterval(reviewsAutoTimer);
+                    reviewsAutoTimer = null;
+                }
+            }
+            function startReviewsTimer() {
+                if (!reviewsAutoTimer) {
+                    reviewsAutoTimer = setInterval(() => stepSlide('next'), 3800);
+                }
+            }
         }
 
         // Modal triggers

@@ -64,6 +64,29 @@ class FlightQuoteRequest(models.Model):
         return f"{self.user.username} - {self.departure_city} to {self.destination_city} ({self.status})"
 
 
+class FlightSector(models.Model):
+    flight_ticket = models.ForeignKey(
+        'flights.FlightTicketOffer',
+        on_delete=models.CASCADE,
+        related_name='sectors'
+    )
+    order = models.PositiveIntegerField()  # sequence: 1, 2, 3, 4
+    airline_name = models.CharField(max_length=100)
+    flight_number = models.CharField(max_length=50, blank=True)
+    departure_city = models.CharField(max_length=100)
+    departure_airport_code = models.CharField(max_length=10, blank=True)
+    arrival_city = models.CharField(max_length=100)
+    arrival_airport_code = models.CharField(max_length=10, blank=True)
+    departure_datetime = models.DateTimeField()
+    arrival_datetime = models.DateTimeField()
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Sector {self.order}: {self.departure_city} ({self.departure_airport_code}) -> {self.arrival_city} ({self.arrival_airport_code})"
+
+
 class FlightTicketOffer(models.Model):
     CLASS_CHOICES = (
         ('economy', 'Economy Class'),
@@ -84,7 +107,15 @@ class FlightTicketOffer(models.Model):
         ('round_trip_via', 'Round Trip (Via Flight — 4 Sectors)'),
         ('multi_city_via', 'Multi City (Via Flight — 4 Sectors)'),
     )
+    TRIP_TYPE_CHOICES = (
+        ('direct_oneway', 'Direct One-Way'),
+        ('direct_roundtrip', 'Direct Round-Trip'),
+        ('oneway_via', 'One-Way Via'),
+        ('roundtrip_via', 'Round-Trip Via'),
+        ('multicity', 'Multi-City'),
+    )
     
+    trip_type = models.CharField(max_length=20, choices=TRIP_TYPE_CHOICES, default='direct_oneway', blank=True, null=True)
     flight_route_type = models.CharField(max_length=35, default='round_trip_direct', choices=ROUTE_TYPE_CHOICES, blank=True, null=True)
     sectors_data = models.JSONField(default=list, blank=True, null=True)
     
@@ -137,6 +168,106 @@ class FlightTicketOffer(models.Model):
 
     def __str__(self):
         return f"{self.airline_name} {self.flight_number}: {self.departure_city} -> {self.destination_city} (PKR {self.price})"
+
+    def get_effective_sectors(self):
+        """
+        Returns structured list of sector objects or dicts for rendering itineraries.
+        If FlightSector relational records exist, returns them ordered.
+        Otherwise (for pre-existing/legacy tickets), synthesizes fallback sectors.
+        """
+        db_sectors = list(self.sectors.all().order_by('order'))
+        if db_sectors:
+            return db_sectors
+        
+        # Backward compatibility fallback synthesis for legacy tickets
+        tt = self.trip_type or 'direct_oneway'
+        dep_c = self.departure_city or 'Karachi (KHI)'
+        dep_code = self.departure_airport_code or 'KHI'
+        arr_c = self.destination_city or 'Jeddah (JED)'
+        arr_code = self.destination_airport_code or 'JED'
+        air_name = self.airline_name or 'Airline'
+        fl_no = self.flight_number or 'FL-101'
+
+        fallback_sectors = []
+        if tt == 'direct_oneway':
+            fallback_sectors.append({
+                'order': 1,
+                'airline_name': air_name,
+                'flight_number': fl_no,
+                'departure_city': dep_c,
+                'departure_airport_code': dep_code,
+                'arrival_city': arr_c,
+                'arrival_airport_code': arr_code,
+                'departure_time_str': self.departure_time_str,
+                'arrival_time_str': self.arrival_time_str,
+                'label': 'Direct Outbound'
+            })
+        elif tt == 'direct_roundtrip':
+            fallback_sectors.append({
+                'order': 1,
+                'airline_name': air_name,
+                'flight_number': fl_no,
+                'departure_city': dep_c,
+                'departure_airport_code': dep_code,
+                'arrival_city': arr_c,
+                'arrival_airport_code': arr_code,
+                'departure_time_str': self.departure_time_str,
+                'arrival_time_str': self.arrival_time_str,
+                'label': 'Outbound'
+            })
+            fallback_sectors.append({
+                'order': 2,
+                'airline_name': air_name,
+                'flight_number': fl_no,
+                'departure_city': arr_c,
+                'departure_airport_code': arr_code,
+                'arrival_city': dep_c,
+                'arrival_airport_code': dep_code,
+                'departure_time_str': self.departure_time_str,
+                'arrival_time_str': self.arrival_time_str,
+                'label': 'Return'
+            })
+        elif tt == 'oneway_via':
+            transit = (self.via_routes or 'Dubai (DXB)').split('→')[0].strip() or 'DXB'
+            transit_code = transit[:3].upper()
+            fallback_sectors.append({
+                'order': 1,
+                'airline_name': air_name,
+                'flight_number': fl_no,
+                'departure_city': dep_c,
+                'departure_airport_code': dep_code,
+                'arrival_city': transit,
+                'arrival_airport_code': transit_code,
+                'departure_time_str': self.departure_time_str,
+                'arrival_time_str': self.arrival_time_str,
+                'label': 'Leg 1'
+            })
+            fallback_sectors.append({
+                'order': 2,
+                'airline_name': air_name,
+                'flight_number': fl_no,
+                'departure_city': transit,
+                'departure_airport_code': transit_code,
+                'arrival_city': arr_c,
+                'arrival_airport_code': arr_code,
+                'departure_time_str': self.departure_time_str,
+                'arrival_time_str': self.arrival_time_str,
+                'label': 'Leg 2'
+            })
+        else: # roundtrip_via or multicity
+            fallback_sectors.append({
+                'order': 1,
+                'airline_name': air_name,
+                'flight_number': fl_no,
+                'departure_city': dep_c,
+                'departure_airport_code': dep_code,
+                'arrival_city': arr_c,
+                'arrival_airport_code': arr_code,
+                'departure_time_str': self.departure_time_str,
+                'arrival_time_str': self.arrival_time_str,
+                'label': 'Sector 1'
+            })
+        return fallback_sectors
 
     def get_all_baggage_options(self):
         """

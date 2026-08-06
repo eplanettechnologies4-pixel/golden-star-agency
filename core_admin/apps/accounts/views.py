@@ -1596,13 +1596,33 @@ def admin_flight_status_api(request, pk):
 @csrf_exempt
 @admin_required_api
 def admin_flight_tickets_api(request):
-    from apps.flights.models import FlightTicketOffer
+    from apps.flights.models import FlightTicketOffer, FlightSector
+    from django.utils.dateparse import parse_datetime
+    from django.utils import timezone
+
     if request.method == 'GET':
         tickets = FlightTicketOffer.objects.all().order_by('-created_at')
         t_data = []
         for ft in tickets:
+            sectors_payload = []
+            for s in ft.sectors.all().order_by('order'):
+                sectors_payload.append({
+                    'id': s.id,
+                    'order': s.order,
+                    'airline_name': s.airline_name,
+                    'flight_number': s.flight_number,
+                    'departure_city': s.departure_city,
+                    'departure_airport_code': s.departure_airport_code,
+                    'arrival_city': s.arrival_city,
+                    'arrival_airport_code': s.arrival_airport_code,
+                    'departure_datetime': s.departure_datetime.strftime('%Y-%m-%dT%H:%M') if s.departure_datetime else '',
+                    'arrival_datetime': s.arrival_datetime.strftime('%Y-%m-%dT%H:%M') if s.arrival_datetime else '',
+                })
+
             t_data.append({
                 'id': ft.id,
+                'trip_type': ft.trip_type or 'direct_oneway',
+                'sectors': sectors_payload,
                 'airline_name': ft.airline_name,
                 'airline_code': ft.airline_code or '',
                 'airline_logo': ft.airline_logo or '',
@@ -1660,6 +1680,7 @@ def admin_flight_tickets_api(request):
                 cleaned = re.sub(r'[^A-Za-z]', '', city_str)
                 return cleaned[:3].upper() if len(cleaned) >= 3 else fallback
 
+            trip_type = str(body.get('trip_type') or 'direct_oneway').strip()
             airline_name = str(body.get('airline_name') or 'PIA').strip()
             airline_code = str(body.get('airline_code') or '').strip()
             if not airline_code and airline_name:
@@ -1685,20 +1706,8 @@ def admin_flight_tickets_api(request):
             duration_str = str(body.get('duration_str') or '4h 15m').strip()
             flight_type = str(body.get('flight_type') or 'direct').strip()
             flight_route_type = str(body.get('flight_route_type') or 'round_trip_direct').strip()
-
-            sectors_data = []
-            for s in sectors_raw:
-                if isinstance(s, dict):
-                    sectors_data.append({
-                        "route": str(s.get('route', '')).strip().upper(),
-                        "flight_no": str(s.get('flight_no', '')).strip().upper(),
-                        "dep_time": str(s.get('dep_time', '')).strip(),
-                        "arr_time": str(s.get('arr_time', '')).strip(),
-                    })
-                elif str(s).strip():
-                    sectors_data.append(str(s).strip().upper())
             
-            # Extract up to 4 via route segments if transit
+            # Extract via routes
             via_route1 = str(body.get('via_route1') or '').strip()
             via_route2 = str(body.get('via_route2') or '').strip()
             via_route3 = str(body.get('via_route3') or '').strip()
@@ -1737,7 +1746,26 @@ def admin_flight_tickets_api(request):
             is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
             description = str(body.get('description') or '').strip()
 
+            raw_sectors_list = body.get('sectors') or body.get('sectors_list')
+            if isinstance(raw_sectors_list, str):
+                try: raw_sectors_list = json.loads(raw_sectors_list)
+                except Exception: raw_sectors_list = []
+
+            # If sectors were provided, sync top-level departure and arrival from first & last sector
+            if isinstance(raw_sectors_list, list) and len(raw_sectors_list) > 0:
+                first_sec = raw_sectors_list[0]
+                last_sec = raw_sectors_list[-1]
+                if isinstance(first_sec, dict):
+                    if first_sec.get('departure_city'): departure_city = first_sec.get('departure_city')
+                    if first_sec.get('departure_airport_code'): departure_airport_code = first_sec.get('departure_airport_code').upper()
+                    if first_sec.get('airline_name'): airline_name = first_sec.get('airline_name')
+                    if first_sec.get('flight_number'): flight_number = first_sec.get('flight_number')
+                if isinstance(last_sec, dict):
+                    if last_sec.get('arrival_city'): destination_city = last_sec.get('arrival_city')
+                    if last_sec.get('arrival_airport_code'): destination_airport_code = last_sec.get('arrival_airport_code').upper()
+
             ft = FlightTicketOffer.objects.create(
+                trip_type=trip_type,
                 airline_name=airline_name,
                 airline_code=airline_code,
                 airline_logo=airline_logo,
@@ -1751,7 +1779,6 @@ def admin_flight_tickets_api(request):
                 duration_str=duration_str,
                 flight_type=flight_type,
                 flight_route_type=flight_route_type,
-                sectors_data=sectors_data,
                 via_routes=via_routes,
                 ticket_class=ticket_class,
                 price=price,
@@ -1776,6 +1803,31 @@ def admin_flight_tickets_api(request):
                 is_popular=is_popular,
                 description=description
             )
+
+            # Create FlightSector records
+            if isinstance(raw_sectors_list, list) and len(raw_sectors_list) > 0:
+                for idx, s in enumerate(raw_sectors_list):
+                    if not isinstance(s, dict): continue
+                    dep_dt_str = s.get('departure_datetime') or ''
+                    arr_dt_str = s.get('arrival_datetime') or ''
+                    dep_dt = parse_datetime(dep_dt_str) if dep_dt_str else timezone.now()
+                    arr_dt = parse_datetime(arr_dt_str) if arr_dt_str else timezone.now()
+                    if not dep_dt: dep_dt = timezone.now()
+                    if not arr_dt: arr_dt = timezone.now()
+
+                    FlightSector.objects.create(
+                        flight_ticket=ft,
+                        order=idx + 1,
+                        airline_name=str(s.get('airline_name') or ft.airline_name).strip(),
+                        flight_number=str(s.get('flight_number') or ft.flight_number).strip(),
+                        departure_city=str(s.get('departure_city') or ft.departure_city).strip(),
+                        departure_airport_code=str(s.get('departure_airport_code') or ft.departure_airport_code).strip().upper(),
+                        arrival_city=str(s.get('arrival_city') or ft.destination_city).strip(),
+                        arrival_airport_code=str(s.get('arrival_airport_code') or ft.destination_airport_code).strip().upper(),
+                        departure_datetime=dep_dt,
+                        arrival_datetime=arr_dt
+                    )
+
             return JsonResponse({'success': True, 'flight_ticket_id': ft.id})
         except Exception as e:
             return JsonResponse({'success': False, 'message': str(e)}, status=400)
@@ -1786,7 +1838,9 @@ def admin_flight_tickets_api(request):
 @admin_required_api
 def admin_flight_ticket_detail_api(request, pk):
     import re
-    from apps.flights.models import FlightTicketOffer
+    from apps.flights.models import FlightTicketOffer, FlightSector
+    from django.utils.dateparse import parse_datetime
+    from django.utils import timezone
     ft = get_object_or_404(FlightTicketOffer, pk=pk)
     if request.method == 'POST':
         try:
@@ -1803,6 +1857,8 @@ def admin_flight_ticket_detail_api(request, pk):
             cleaned = re.sub(r'[^A-Za-z]', '', city_str)
             return cleaned[:3].upper() if len(cleaned) >= 3 else fallback
 
+        if 'trip_type' in body:
+            ft.trip_type = body.get('trip_type')
         ft.airline_name = body.get('airline_name', ft.airline_name)
         ft.airline_code = body.get('airline_code', ft.airline_code)
         if 'airline_logo' in body:
@@ -1820,12 +1876,23 @@ def admin_flight_ticket_detail_api(request, pk):
         ft.flight_type = body.get('flight_type', ft.flight_type)
         if 'flight_route_type' in body:
             ft.flight_route_type = body.get('flight_route_type')
-        if 'sectors_data' in body:
-            s_raw = body.get('sectors_data')
-            if isinstance(s_raw, str):
-                try: s_raw = json.loads(s_raw)
-                except Exception: s_raw = []
-            ft.sectors_data = [str(s).strip().upper() for s in s_raw if str(s).strip()]
+
+        raw_sectors_list = body.get('sectors') or body.get('sectors_list')
+        if isinstance(raw_sectors_list, str):
+            try: raw_sectors_list = json.loads(raw_sectors_list)
+            except Exception: raw_sectors_list = None
+
+        if isinstance(raw_sectors_list, list) and len(raw_sectors_list) > 0:
+            first_sec = raw_sectors_list[0]
+            last_sec = raw_sectors_list[-1]
+            if isinstance(first_sec, dict):
+                if first_sec.get('departure_city'): ft.departure_city = first_sec.get('departure_city')
+                if first_sec.get('departure_airport_code'): ft.departure_airport_code = first_sec.get('departure_airport_code').upper()
+                if first_sec.get('airline_name'): ft.airline_name = first_sec.get('airline_name')
+                if first_sec.get('flight_number'): ft.flight_number = first_sec.get('flight_number')
+            if isinstance(last_sec, dict):
+                if last_sec.get('arrival_city'): ft.destination_city = last_sec.get('arrival_city')
+                if last_sec.get('arrival_airport_code'): ft.destination_airport_code = last_sec.get('arrival_airport_code').upper()
 
         ft.ticket_class = body.get('ticket_class', ft.ticket_class)
         ft.price = body.get('price', ft.price)
@@ -1858,10 +1925,8 @@ def admin_flight_ticket_detail_api(request, pk):
             ft.is_refundable = str(body.get('is_refundable', 'true')).lower() in ('true', '1', 'on')
         if body.get('cancellation_fee'):
             ft.cancellation_fee = body.get('cancellation_fee')
-        if body.get('total_seats'):
-            ft.total_seats = int(body.get('total_seats'))
-        if body.get('available_seats'):
-            ft.available_seats = int(body.get('available_seats'))
+        ft.total_seats = int(body.get('total_seats', ft.total_seats))
+        ft.available_seats = int(body.get('available_seats', ft.available_seats))
         if 'is_popular' in body:
             ft.is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
         if 'description' in body:
@@ -4022,64 +4087,6 @@ def live_search_api(request):
     return JsonResponse({'results': results, 'count': len(results)})
 
 
-@csrf_exempt
-@admin_required_api
-def admin_flight_tickets_api(request):
-    from apps.flights.models import FlightTicketOffer
-    if request.method == 'GET':
-        tickets = FlightTicketOffer.objects.all().order_by('-created_at')
-        data = []
-        for t in tickets:
-            data.append({
-                'id': t.id,
-                'airline_name': t.airline_name,
-                'airline_code': t.airline_code or '',
-                'flight_number': t.flight_number,
-                'departure_city': t.departure_city,
-                'departure_airport_code': t.departure_airport_code,
-                'destination_city': t.destination_city,
-                'destination_airport_code': t.destination_airport_code,
-                'departure_time_str': t.departure_time_str,
-                'arrival_time_str': t.arrival_time_str,
-                'duration_str': t.duration_str,
-                'flight_type': t.flight_type,
-                'ticket_class': t.ticket_class,
-                'price': float(t.price),
-                'original_price': float(t.original_price) if t.original_price else None,
-                'baggage_checkin': t.baggage_checkin,
-                'baggage_hand': t.baggage_hand,
-                'total_seats': t.total_seats,
-                'available_seats': t.available_seats,
-            })
-        return JsonResponse({'tickets': data})
-        
-    elif request.method == 'POST':
-        try:
-            body = json.loads(request.body)
-        except Exception:
-            body = request.POST
-
-        ticket = FlightTicketOffer.objects.create(
-            airline_name=body.get('airline_name', '').strip(),
-            airline_code=body.get('airline_code', '').strip().upper(),
-            flight_number=body.get('flight_number', '').strip(),
-            departure_city=body.get('departure_city', '').strip(),
-            departure_airport_code=body.get('departure_airport_code', 'KHI').strip().upper(),
-            destination_city=body.get('destination_city', '').strip(),
-            destination_airport_code=body.get('destination_airport_code', 'JED').strip().upper(),
-            departure_time_str=body.get('departure_time_str', '03:30 AM').strip(),
-            arrival_time_str=body.get('arrival_time_str', '06:45 AM').strip(),
-            duration_str=body.get('duration_str', '4h 15m').strip(),
-            flight_type=body.get('flight_type', 'direct').strip(),
-            ticket_class=body.get('ticket_class', 'economy').strip(),
-            price=float(body.get('price', 0)),
-            original_price=float(body.get('original_price')) if body.get('original_price') else None,
-            baggage_checkin=body.get('baggage_checkin', '30 kg').strip(),
-            baggage_hand=body.get('baggage_hand', '7 kg').strip(),
-            total_seats=int(body.get('total_seats', 50)),
-            available_seats=int(body.get('available_seats', 50))
-        )
-        return JsonResponse({'success': True, 'ticket_id': ticket.id})
 
 @csrf_exempt
 @admin_required_api

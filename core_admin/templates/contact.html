@@ -83,6 +83,8 @@
             class="banner-dot w-2 h-2 rounded-full bg-white opacity-100 transition-all"></button>
         <button onclick="setBanner(1)"
             class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
+        <button onclick="setBanner(2)"
+            class="banner-dot w-2 h-2 rounded-full bg-white opacity-40 hover:opacity-80 transition-all"></button>
     </div>
 </section>
 
@@ -356,13 +358,17 @@
             if (idx === currentBannerIdx) {
                 slide.classList.remove('opacity-0');
                 slide.classList.add('opacity-100');
-                bannerDots[idx].classList.remove('opacity-40');
-                bannerDots[idx].classList.add('opacity-100');
+                if (bannerDots[idx]) {
+                    bannerDots[idx].classList.remove('opacity-40');
+                    bannerDots[idx].classList.add('opacity-100');
+                }
             } else {
                 slide.classList.remove('opacity-100');
                 slide.classList.add('opacity-0');
-                bannerDots[idx].classList.remove('opacity-100');
-                bannerDots[idx].classList.add('opacity-40');
+                if (bannerDots[idx]) {
+                    bannerDots[idx].classList.remove('opacity-100');
+                    bannerDots[idx].classList.add('opacity-40');
+                }
             }
         });
     }

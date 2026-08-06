@@ -1515,6 +1515,7 @@ def admin_group_fare_policies_api(request):
                 'route_sectors':            p.route_sectors or [],
                 'is_active':                p.is_active,
                 'route_display':            f"{air_name} — {dep} → {dest}",
+                'sectors_data':             p.sectors_data or (fi.sectors_data if fi else {}),
             })
         return JsonResponse({'success': True, 'policies': data})
 
@@ -1546,8 +1547,8 @@ def admin_group_fare_policies_api(request):
                 return_baggage_weight_kg=int(payload.get('return_baggage_weight_kg', 30)),
                 base_fare=Decimal(str(payload.get('base_fare', 0))),
                 group_fare_override=Decimal(str(payload.get('group_fare_override'))) if payload.get('group_fare_override') not in [None, ''] else None,
-                route_sectors=payload.get('route_sectors', []),
-                is_active=bool(payload.get('is_active', True))
+                is_active=bool(payload.get('is_active', True)),
+                sectors_data=payload.get('sectors_data', {})
             )
             return JsonResponse({'success': True, 'policy_id': p.id, 'message': 'Group ticket created successfully!'})
         except Exception as e:
@@ -1592,6 +1593,7 @@ def admin_group_fare_policy_detail_api(request, pk):
                 'base_fare':                float(policy.base_fare or (fi.base_fare if fi else 0)),
                 'group_fare_override':      float(policy.group_fare_override) if policy.group_fare_override is not None else None,
                 'is_active':                policy.is_active,
+                'sectors_data':             policy.sectors_data or (fi.sectors_data if fi else {}),
             }
         })
 
@@ -1623,6 +1625,7 @@ def admin_group_fare_policy_detail_api(request, pk):
             if 'group_fare_override' in payload:
                 policy.group_fare_override = Decimal(str(payload['group_fare_override'])) if payload['group_fare_override'] not in [None, ''] else None
             if 'is_active' in payload: policy.is_active = bool(payload['is_active'])
+            if 'sectors_data' in payload: policy.sectors_data = payload['sectors_data']
 
             policy.save()
             return JsonResponse({'success': True, 'message': 'Group ticket updated successfully!'})
@@ -1723,13 +1726,13 @@ def agent_packages_api(request):
             'total_seats':              p.total_seats,
             'booked_seats':             p.booked_seats,
             'available_seats':          p.available_seats,
-            'makkah_hotel_name':        p.makkah_hotel_name,
-            'makkah_hotel_distance':    p.makkah_hotel_distance,
+            'makkah_hotel_name':        p.makkah_hotel_name or '',
+            'makkah_hotel_distance':    p.makkah_hotel_distance or '',
             'makkah_nights':            p.makkah_nights,
-            'madinah_hotel_name':       p.madinah_hotel_name,
-            'madinah_hotel_distance':   p.madinah_hotel_distance,
+            'madinah_hotel_name':       p.madinah_hotel_name or '',
+            'madinah_hotel_distance':   p.madinah_hotel_distance or '',
             'madinah_nights':           p.madinah_nights,
-            'airline_name':             p.airline.name if p.airline else (p.flight_name or ''),
+            'airline_name':             (p.airline.name if p.airline else None) or p.flight_name or '',
             'airline_logo_url':         p.airline.logo.url if (p.airline and p.airline.logo) else None,
             'images':                   p.images or [],
             'cover_photo':              p.cover_photo.url if p.cover_photo else '',
@@ -1909,6 +1912,7 @@ def agent_group_fare_policies_api(request):
             'route_sectors':            p.route_sectors or [],
             'is_active':                p.is_active,
             'route_display':            f"{air_name} — {dep} ➔ {dest}",
+            'sectors_data':             p.sectors_data or (fi.sectors_data if fi else {}),
         })
     return JsonResponse({'success': True, 'policies': data})
 
@@ -1958,19 +1962,17 @@ def calculate_order_total_fare(order_type, flight_inventory, agent_package,
         if order_type == 'group':
             policy = GroupFarePolicy.objects.filter(
                 flight_inventory=flight_inventory,
-                is_active=True,
-                min_group_size__lte=passenger_count
+                is_active=True
             )
             if baggage_weight_kg:
                 policy = policy.filter(baggage_weight_kg=baggage_weight_kg)
             
-            p = policy.order_by('-min_group_size').first()
+            p = policy.first()
             if not p:
                 p = GroupFarePolicy.objects.filter(
                     flight_inventory=flight_inventory,
-                    is_active=True,
-                    min_group_size__lte=passenger_count
-                ).order_by('-min_group_size').first()
+                    is_active=True
+                ).first()
 
             if p:
                 if p.discount_type == 'percentage':
@@ -2274,11 +2276,6 @@ def agent_create_ticket_order_api(request):
                     ).first()
                     if not standalone_policy:
                         return JsonResponse({'success': False, 'error': 'Standalone group ticket not found or inactive.'}, status=404)
-                    if total_seats_requested < standalone_policy.min_group_size:
-                        return JsonResponse({
-                            'success': False,
-                            'error': f'Minimum group size for this ticket is {standalone_policy.min_group_size} seats.'
-                        }, status=400)
                     if total_seats_requested > standalone_policy.available_seats:
                         return JsonResponse({
                             'success': False,
@@ -2291,21 +2288,6 @@ def agent_create_ticket_order_api(request):
                     inv_id = route_id or item_id
                     # LOCK the row so no other agent can overbook these seats
                     inventory = AirlineFlightInventory.objects.select_for_update().get(id=inv_id)
-
-                    if booking_type == 'group':
-                        matching_policy_exists = GroupFarePolicy.objects.filter(
-                            flight_inventory=inventory,
-                            is_active=True,
-                            min_group_size__lte=total_seats_requested
-                        ).exists()
-                        if not matching_policy_exists:
-                            min_required = GroupFarePolicy.objects.filter(
-                                flight_inventory=inventory, is_active=True
-                            ).order_by('min_group_size').values_list('min_group_size', flat=True).first()
-                            return JsonResponse({
-                                'success': False,
-                                'error': f'Group bookings require at least {min_required or "the minimum"} passengers for this route. Please book as an individual ticket instead.'
-                            }, status=400)
 
                     available = inventory.total_seats - inventory.booked_seats
                     if total_seats_requested > available:

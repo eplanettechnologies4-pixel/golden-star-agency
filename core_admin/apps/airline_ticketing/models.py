@@ -78,6 +78,7 @@ class AirlineFlightInventory(models.Model):
     return_arrival_time = models.CharField(max_length=50, blank=True, null=True)
     return_route_type = models.CharField(max_length=10, choices=ROUTE_TYPE_CHOICES, blank=True, null=True)
     return_via_city = models.CharField(max_length=100, blank=True, null=True)
+    sectors_data = models.JSONField(default=dict, blank=True, null=True, help_text='Detailed 4 going and 4 coming sectors breakdown')
 
     is_active = models.BooleanField(default=True)
     sectors_data = models.JSONField(
@@ -166,9 +167,7 @@ class GroupFarePolicy(models.Model):
     discount_value = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Discount percentage (0-100) or flat amount in PKR')
     baggage_weight_kg = models.PositiveIntegerField(default=30, help_text='Outbound Baggage allowance in KG')
     return_baggage_weight_kg = models.PositiveIntegerField(default=30, help_text='Return Baggage allowance in KG')
-    base_fare = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    group_fare_override = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text='Override calculated net group fare directly')
-    route_sectors = models.JSONField(default=list, blank=True, null=True, help_text='Structured leg/sector details: flight_no, dep/arr city, date, time')
+    sectors_data = models.JSONField(default=dict, blank=True, null=True, help_text='Detailed 4 going and 4 coming sectors breakdown')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

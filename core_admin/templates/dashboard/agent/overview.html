@@ -230,138 +230,108 @@
 
     <!-- Sidebar Menu (Desktop) / Top Menu (Mobile) -->
     <aside
-        class="w-full md:w-64 md:h-screen md:sticky md:top-0 bg-[#2D4424] border-b md:border-b-0 md:border-r border-[#3D5B31] flex flex-col shrink-0 overflow-y-auto">
+        class="w-full md:w-64 md:h-screen md:sticky md:top-0 bg-[#122612] border-b md:border-b-0 md:border-r border-[#224020] flex flex-col shrink-0 overflow-y-auto shadow-2xl">
         <!-- Logo & Branding -->
-        <div class="px-6 py-4 md:py-6 border-b border-[#3D5B31] flex items-center justify-between shrink-0">
-            <div class="flex items-center space-x-3">
-                <div class="bg-white p-2 rounded-xl shadow-md">
-                    <img src="{% static 'images/logo.png' %}" alt="REI GOLDEN STAR" class="h-8 w-auto object-contain">
+        <div class="px-4 py-4 border-b border-[#224020] flex items-center justify-between shrink-0 bg-[#0E1F0E]">
+            <div class="flex items-center space-x-3 w-full">
+                <div class="bg-white px-3 py-2 rounded-xl shadow-md w-full flex items-center justify-center border border-white/20">
+                    <img src="{% static 'images/logo.png' %}" alt="REI GOLDEN STAR" class="h-10 w-full object-contain">
                 </div>
             </div>
             <!-- Mobile Logout -->
-            <div class="flex items-center space-x-2 md:hidden">
+            <div class="flex items-center space-x-2 md:hidden ml-2">
                 <a href="{% url 'logout' %}"
-                    class="h-8 w-8 text-white hover:bg-white/15 rounded-lg flex items-center justify-center transition-all">
+                    class="h-8 w-8 text-white hover:bg-rose-600 rounded-lg flex items-center justify-center transition-all shrink-0">
                     <i class="fa-solid fa-right-from-bracket"></i>
                 </a>
             </div>
         </div>
 
-        <!-- Navigation Links ($10,000 Modern Luxury Sidebar Nav) -->
-        <nav class="px-4 py-4 flex flex-row overflow-x-auto whitespace-nowrap gap-2 md:flex-col md:space-y-2 md:flex-1 md:overflow-y-auto shrink-0">
+        <!-- Navigation Links -->
+        <nav class="px-3 py-4 flex flex-row overflow-x-auto whitespace-nowrap gap-2 md:flex-col md:space-y-1.5 md:flex-1 md:overflow-y-auto shrink-0 min-w-0">
             <button onclick="switchTab('overview')" id="tab-btn-overview"
-                class="tab-btn active-pill flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-black transition-all duration-300 bg-white text-[#2D4424] shrink-0 shadow-lg ring-2 ring-white/30 group">
-                <div class="h-7 w-7 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center text-xs shadow-xs group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-border-all"></i>
+                class="tab-btn active-pill flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 bg-[#E06A26] text-white shrink-0 shadow-lg shadow-orange-950/40 group border border-orange-400/20 w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-white/20 text-white flex items-center justify-center text-xs shadow-xs shrink-0">
+                    <i class="fa-solid fa-grip"></i>
                 </div>
-                <span>Dashboard</span>
+                <span class="truncate">Dashboard</span>
             </button>
 
             <button onclick="switchTab('business-analytics')" id="tab-btn-business-analytics"
-                class="tab-btn flex items-center justify-between space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="flex items-center space-x-3">
-                    <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
-                        <i class="fa-solid fa-chart-line"></i>
+                class="tab-btn flex items-center justify-between space-x-2 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left min-w-0">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
+                        <i class="fa-solid fa-chart-pie"></i>
                     </div>
-                    <span>Live Business Analytics</span>
+                    <span class="text-[12px] font-bold leading-tight truncate">Live Business Analytics</span>
                 </div>
-                <span class="text-[9px] font-black uppercase bg-[#E06A26] text-white px-2 py-0.5 rounded-full shadow-xs tracking-wider">LIVE</span>
+                <span class="text-[8px] font-black uppercase bg-[#E06A26] text-white px-1.5 py-0.5 rounded-md shadow-xs tracking-wider shrink-0 ml-1">LIVE</span>
             </button>
 
             <button type="button" onclick="openOrderTrackerModal()"
-                class="flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-black transition-all duration-300 bg-gradient-to-r from-[#E06A26] via-[#D45917] to-[#B3450B] hover:from-[#B3450B] hover:to-[#E06A26] text-white shrink-0 shadow-lg shadow-orange-950/40 border border-orange-400/30 group hover:scale-[1.02]">
-                <div class="h-7 w-7 rounded-xl bg-white/20 text-white flex items-center justify-center text-xs backdrop-blur-md group-hover:rotate-12 transition-transform">
-                    <i class="fa-solid fa-location-crosshairs"></i>
+                class="flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-black transition-all duration-200 bg-gradient-to-r from-[#E06A26] via-[#D45917] to-[#B3450B] hover:from-[#C45517] hover:to-[#E06A26] text-white shrink-0 shadow-md shadow-orange-950/40 border border-orange-400/30 group w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-white/20 text-white flex items-center justify-center text-xs group-hover:rotate-12 transition-transform shrink-0">
+                    <i class="fa-solid fa-radar"></i>
                 </div>
-                <span>🔍 Track Order Live</span>
+                <span class="truncate">Track Order Live</span>
             </button>
 
             <button onclick="switchTab('tickets-booking')" id="tab-btn-tickets-booking"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
-                    <i class="fa-solid fa-ticket"></i>
+                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
+                    <i class="fa-solid fa-plane-departure"></i>
                 </div>
-                <span>My Tickets Booking</span>
+                <span class="truncate">My Tickets Booking</span>
             </button>
 
             <button onclick="switchTab('umrah-booking')" id="tab-btn-umrah-booking"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
+                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
                     <i class="fa-solid fa-kaaba"></i>
                 </div>
-                <span>My Umrah Booking</span>
+                <span class="truncate">My Umrah Booking</span>
             </button>
 
             <button onclick="switchTab('bank-accounts')" id="tab-btn-bank-accounts" type="button"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
+                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
                     <i class="fa-solid fa-building-columns"></i>
                 </div>
-                <span>Bank Accounts</span>
+                <span class="truncate">Bank Accounts</span>
             </button>
 
             <button onclick="switchTab('accounts-ledger')" id="tab-btn-accounts-ledger"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
+                    <i class="fa-solid fa-wallet"></i>
                 </div>
-                <span>Accounts Ledger</span>
+                <span class="truncate">Accounts Ledger</span>
             </button>
 
             <button onclick="switchTab('feedback')" id="tab-btn-feedback"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
-                    <i class="fa-solid fa-comment-dots"></i>
+                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
+                    <i class="fa-solid fa-comments"></i>
                 </div>
-                <span>Feedback</span>
+                <span class="truncate">Feedback</span>
             </button>
 
             <button onclick="switchTab('profile')" id="tab-btn-profile"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
-                    <i class="fa-solid fa-gear"></i>
+                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
+                    <i class="fa-solid fa-sliders"></i>
                 </div>
-                <span>Settings</span>
+                <span class="truncate">Settings</span>
             </button>
 
             <button onclick="switchTab('contact-us')" id="tab-btn-contact-us"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-white/90 hover:bg-white/10 hover:text-white shrink-0 group border border-transparent hover:border-white/10">
-                <div class="h-7 w-7 rounded-xl bg-white/10 text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all">
+                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#203C1E] hover:text-white shrink-0 group border border-transparent hover:border-[#2C4E2A] w-full text-left">
+                <div class="h-7 w-7 rounded-xl bg-[#1C361A] text-[#90B576] flex items-center justify-center text-xs group-hover:bg-[#E06A26] group-hover:text-white transition-all shrink-0">
                     <i class="fa-solid fa-headset"></i>
                 </div>
-                <span>Contact Us</span>
+                <span class="truncate">Contact Us</span>
             </button>
-
-            <a href="{% url 'logout' %}"
-                class="tab-btn flex items-center space-x-3 px-4 py-3 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 text-rose-300 hover:bg-rose-500/20 hover:text-white shrink-0 group border border-transparent hover:border-rose-400/30">
-                <div class="h-7 w-7 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center text-xs group-hover:bg-rose-600 group-hover:text-white transition-all">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </div>
-                <span>Logout</span>
-            </a>
         </nav>
-
-        <!-- Sidebar User Footer Card -->
-        <div class="hidden md:block p-4 border-t border-[#3D5B31] bg-[#1F2E1A]/60 mt-auto">
-            <div class="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
-                <div class="flex items-center space-x-3">
-                    <div class="h-10 w-10 rounded-2xl bg-gradient-to-tr from-[#E06A26] to-amber-500 text-white flex items-center justify-center font-black uppercase text-sm shadow-md ring-2 ring-white/20">
-                        {{ user.username|slice:":2" }}
-                    </div>
-                    <div>
-                        <p class="text-xs font-black text-white leading-tight tracking-tight">REI GOLDEN STAR</p>
-                        <p class="text-[10px] text-[#90B576] font-bold truncate max-w-[120px] flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Partner Agent
-                        </p>
-                    </div>
-                </div>
-                <a href="{% url 'logout' %}"
-                    class="h-8 w-8 text-white/70 hover:text-white hover:bg-white/15 rounded-xl flex items-center justify-center transition-all"
-                    title="Logout">
-                    <i class="fa-solid fa-right-from-bracket text-xs"></i>
-                </a>
-            </div>
-        </div>
     </aside>
 
     <!-- Main Workspace Container -->
@@ -379,7 +349,7 @@
                 </h1>
             </div>
 
-            <!-- Header Right: Notifications, Live Date/Time Badge & User Pill -->
+            <!-- Header Right: Notifications, Live Date/Time Badge, User Pill & Logout Button -->
             <div class="flex items-center space-x-3">
                 <!-- Date Pill Badge -->
                 <div
@@ -445,6 +415,14 @@
                         <span class="text-[9px] text-[#567946] font-semibold uppercase">Agent</span>
                     </div>
                 </div>
+
+                <!-- Top Right Header Logout Button -->
+                <a href="{% url 'logout' %}"
+                    class="flex items-center space-x-2 bg-gradient-to-r from-rose-500 via-rose-600 to-rose-700 hover:from-rose-600 hover:to-rose-800 text-white px-3.5 py-2 rounded-xl text-xs font-extrabold shadow-md shadow-rose-900/10 hover:shadow-lg transition-all duration-200 cursor-pointer border border-rose-400/30 group"
+                    title="Logout of Agent Portal">
+                    <i class="fa-solid fa-right-from-bracket text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                    <span class="hidden sm:inline font-extrabold">Logout</span>
+                </a>
             </div>
         </header>
 
@@ -1061,15 +1039,31 @@
                     <div id="b2b-subpane-tickets" class="b2b-subpane space-y-6">
                         <div>
                             <div class="flex justify-between items-center mb-3">
-                                <h4 class="text-xs font-bold text-[#567946] uppercase tracking-wider">Select Partner
-                                    Airline</h4>
-                                <button onclick="filterAirlineInventory(null)" id="b2b-airline-all-btn"
-                                    class="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-[#E06A26] text-white transition-all shadow-sm">All
-                                    Airlines</button>
+                                <h4 class="text-xs font-extrabold text-[#567946] uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fa-solid fa-plane text-[#E06A26]"></i> Select Partner Airline
+                                </h4>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="scrollB2BAirlines('left')"
+                                        class="w-8 h-8 rounded-xl bg-white border border-[#D9CBAC] text-[#2D4424] hover:bg-[#E06A26] hover:text-white hover:border-[#E06A26] transition-all flex items-center justify-center text-xs shadow-xs cursor-pointer"
+                                        title="Previous Airline">
+                                        <i class="fa-solid fa-chevron-left"></i>
+                                    </button>
+                                    <button onclick="scrollB2BAirlines('right')"
+                                        class="w-8 h-8 rounded-xl bg-white border border-[#D9CBAC] text-[#2D4424] hover:bg-[#E06A26] hover:text-white hover:border-[#E06A26] transition-all flex items-center justify-center text-xs shadow-xs cursor-pointer"
+                                        title="Next Airline">
+                                        <i class="fa-solid fa-chevron-right"></i>
+                                    </button>
+                                    <button onclick="filterAirlineInventory(null)" id="b2b-airline-all-btn"
+                                        class="px-3 py-1.5 text-[10px] font-extrabold rounded-xl bg-[#E06A26] text-white transition-all shadow-xs hover:bg-[#C45517] cursor-pointer">
+                                        All Airlines
+                                    </button>
+                                </div>
                             </div>
-                            <div id="b2b-airlines-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-3">
-                                <div class="col-span-full py-4 text-center text-[#567946] text-xs">Loading active
-                                    airlines...</div>
+                            <div id="b2b-airlines-grid"
+                                onmouseenter="stopB2BAirlineAutoSlide()"
+                                onmouseleave="startB2BAirlineAutoSlide()"
+                                class="flex flex-nowrap overflow-x-auto no-scrollbar scroll-smooth gap-3 py-2 min-w-0">
+                                <div class="w-full py-4 text-center text-[#567946] text-xs font-semibold">Loading active airlines...</div>
                             </div>
                         </div>
 
@@ -3094,22 +3088,22 @@
 
             // Switch navigation highlighting
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-white', 'text-[#2D4424]', 'active-pill', 'shadow-md');
-                btn.classList.add('text-white', 'hover:bg-white/15');
-                const icon = btn.querySelector('i');
-                if (icon) {
-                    icon.classList.remove('text-[#E06A26]');
-                    icon.classList.add('text-white');
+                btn.classList.remove('bg-[#E06A26]', 'bg-white', 'text-white', 'text-[#2D4424]', 'active-pill', 'shadow-lg', 'shadow-orange-950/40', 'border-orange-400/20');
+                btn.classList.add('text-emerald-100/80', 'hover:bg-[#203C1E]', 'hover:text-white', 'border-transparent');
+                const iconBox = btn.querySelector('div');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-white/20', 'text-white');
+                    iconBox.classList.add('bg-[#1C361A]', 'text-[#90B576]');
                 }
             });
             const activeBtn = document.getElementById(`tab-btn-${tabId}`);
             if (activeBtn) {
-                activeBtn.classList.remove('hover:bg-white/15');
-                activeBtn.classList.add('bg-white', 'text-[#2D4424]', 'active-pill', 'shadow-md');
-                const icon = activeBtn.querySelector('i');
-                if (icon) {
-                    icon.classList.remove('text-white');
-                    icon.classList.add('text-[#E06A26]');
+                activeBtn.classList.remove('hover:bg-[#203C1E]', 'text-emerald-100/80', 'border-transparent');
+                activeBtn.classList.add('bg-[#E06A26]', 'text-white', 'active-pill', 'shadow-lg', 'shadow-orange-950/40', 'border-orange-400/20');
+                const iconBox = activeBtn.querySelector('div');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-[#1C361A]', 'text-[#90B576]');
+                    iconBox.classList.add('bg-white/20', 'text-white');
                 }
             }
 
@@ -5514,7 +5508,7 @@
         }
 
         function selectB2BGroupFare(policyId, inventoryId, airlineName, depCity, destCity, fare, availableSeats, minSeats, isStandalone) {
-            const title = `${airlineName} Group Fare (${depCity} ➔ ${destCity}) — Min ${minSeats || 10} Seats`;
+            const title = `${airlineName} Group Fare (${depCity} ➔ ${destCity})`;
             const maxSeats = (availableSeats !== undefined && availableSeats !== null && availableSeats > 0) ? availableSeats : 30;
 
             if (isStandalone) {
@@ -5531,6 +5525,19 @@
                 if (window.currentB2BBookingState) {
                     window.currentB2BBookingState.group_policy_id = null;
                 }
+            }
+            if (window.currentB2BBookingState) {
+                const initialSeats = Math.min(1, maxSeats);
+                window.currentB2BBookingState.adults = initialSeats;
+                window.currentB2BBookingState.children = 0;
+                window.currentB2BBookingState.infants = 0;
+                window.currentB2BBookingState.totalPassengers = initialSeats;
+                window.currentB2BBookingState.totalFare = initialSeats * fare;
+                const cAdults = document.getElementById('count-adults-display'); if (cAdults) cAdults.textContent = initialSeats;
+                const cChildren = document.getElementById('count-children-display'); if (cChildren) cChildren.textContent = 0;
+                const cInfants = document.getElementById('count-infants-display'); if (cInfants) cInfants.textContent = 0;
+                updateCounterButtonsUI();
+                updateStep1Summary();
             }
         }
 
@@ -5677,6 +5684,56 @@
                 ? `<span class="text-xs text-[#567946] line-through mr-1 font-mono">PKR ${Number(p.base_fare).toLocaleString()}</span>`
                 : '';
 
+            let multiSectorsHtml = '';
+            if (p.sectors_data && (p.sectors_data.going?.length || p.sectors_data.coming?.length)) {
+                const goingLegs = p.sectors_data.going || [];
+                const comingLegs = p.sectors_data.coming || [];
+
+                const goingSectorsCards = goingLegs.map((leg, idx) => `
+                    <div class="bg-white p-2.5 rounded-xl border border-[#E7DCB9] flex flex-wrap items-center justify-between text-xs gap-2 shadow-2xs">
+                        <span class="font-extrabold text-[#E06A26] bg-[#FDF2EA] px-2 py-0.5 rounded text-[10px]">Going Leg ${idx+1}</span>
+                        <div class="font-black text-[#2D4424] flex items-center gap-1.5">
+                            <span>${escapeHTML(leg.from || '')}</span>
+                            <i class="fa-solid fa-arrow-right text-[#E06A26] text-[10px]"></i>
+                            <span>${escapeHTML(leg.to || '')}</span>
+                            ${leg.flight_no ? `<span class="text-[10px] text-gray-500 font-mono">(${escapeHTML(leg.flight_no)})</span>` : ''}
+                        </div>
+                        <div class="text-[10px] text-[#567946] font-bold">
+                            ${leg.dep_time ? `Dep: <strong class="text-[#2D4424]">${escapeHTML(leg.dep_time)}</strong>` : ''} 
+                            ${leg.arr_time ? `• Arr: <strong class="text-[#2D4424]">${escapeHTML(leg.arr_time)}</strong>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                const comingSectorsCards = comingLegs.map((leg, idx) => `
+                    <div class="bg-white p-2.5 rounded-xl border border-[#C6DCB4] flex flex-wrap items-center justify-between text-xs gap-2 shadow-2xs">
+                        <span class="font-extrabold text-[#38522D] bg-[#F0F6EC] px-2 py-0.5 rounded text-[10px]">Return Leg ${idx+1}</span>
+                        <div class="font-black text-[#2D4424] flex items-center gap-1.5">
+                            <span>${escapeHTML(leg.from || '')}</span>
+                            <i class="fa-solid fa-arrow-right text-[#E06A26] text-[10px]"></i>
+                            <span>${escapeHTML(leg.to || '')}</span>
+                            ${leg.flight_no ? `<span class="text-[10px] text-gray-500 font-mono">(${escapeHTML(leg.flight_no)})</span>` : ''}
+                        </div>
+                        <div class="text-[10px] text-[#567946] font-bold">
+                            ${leg.dep_time ? `Dep: <strong class="text-[#2D4424]">${escapeHTML(leg.dep_time)}</strong>` : ''} 
+                            ${leg.arr_time ? `• Arr: <strong class="text-[#2D4424]">${escapeHTML(leg.arr_time)}</strong>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                if (goingSectorsCards || comingSectorsCards) {
+                    multiSectorsHtml = `
+                        <div class="mt-3 p-3.5 bg-[#FDF2EA]/80 rounded-2xl border border-[#FCE2D2] space-y-2.5">
+                            <div class="text-[10px] font-black uppercase tracking-wider text-[#E06A26] flex items-center gap-1.5 border-b border-[#FCE2D2] pb-1.5">
+                                <i class="fa-solid fa-route text-sm"></i> Detailed Sector Breakdown (${goingLegs.length} Outbound Leg / ${comingLegs.length} Return Leg)
+                            </div>
+                            ${goingSectorsCards ? `<div class="space-y-1.5"><div class="text-[10px] font-black uppercase text-[#2D4424]">🛫 Outbound Going Sectors:</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${goingSectorsCards}</div></div>` : ''}
+                            ${comingSectorsCards ? `<div class="space-y-1.5 pt-2 border-t border-[#FCE2D2]"><div class="text-[10px] font-black uppercase text-[#38522D]">🛬 Inbound Return Sectors:</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${comingSectorsCards}</div></div>` : ''}
+                        </div>
+                    `;
+                }
+            }
+
             return `
                 <div class="bg-white border-2 border-[#E7DCB9] hover:border-[#E06A26] rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 space-y-4 group">
                     <!-- Top Bar Header: Airline & Group Status -->
@@ -5726,6 +5783,9 @@
                     <!-- Return Segment (If Roundtrip / Return Leg) -->
                     ${returnSegmentHtml}
 
+                    <!-- Multi-Sector Detailed Breakdown (4 Going & 4 Coming Legs) -->
+                    ${multiSectorsHtml}
+
                     <!-- Bottom Bar: Pricing & Action Buttons -->
                     <div class="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-[#E7DCB9]">
                         <div class="flex items-center gap-4">
@@ -5768,6 +5828,38 @@
             }
         }
 
+        // B2B Partner Airlines Auto-Slider Controls
+        let b2bAirlineAutoSlideTimer = null;
+
+        function scrollB2BAirlines(direction) {
+            const container = document.getElementById('b2b-airlines-grid');
+            if (!container) return;
+            const scrollAmount = 220;
+            if (direction === 'left') {
+                container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+            } else {
+                if (container.scrollLeft + container.clientWidth >= container.scrollWidth - 15) {
+                    container.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+            }
+        }
+
+        function startB2BAirlineAutoSlide() {
+            stopB2BAirlineAutoSlide();
+            b2bAirlineAutoSlideTimer = setInterval(() => {
+                scrollB2BAirlines('right');
+            }, 3500);
+        }
+
+        function stopB2BAirlineAutoSlide() {
+            if (b2bAirlineAutoSlideTimer) {
+                clearInterval(b2bAirlineAutoSlideTimer);
+                b2bAirlineAutoSlideTimer = null;
+            }
+        }
+
         async function syncB2BDealsData() {
             const sub = window._currentB2BSubTab || 'tickets';
 
@@ -5779,13 +5871,13 @@
                     grid.innerHTML = "";
 
                     if (!airlinesData.airlines || airlinesData.airlines.length === 0) {
-                        grid.innerHTML = `<div class="col-span-full py-4 text-center text-[#567946] text-xs font-semibold">No active airlines found.</div>`;
+                        grid.innerHTML = `<div class="w-full py-4 text-center text-[#567946] text-xs font-semibold">No active airlines found.</div>`;
                     } else {
                         // Render "All Airlines" button first
                         const isAllSelected = !window._selectedAirlineFilter;
                         const allBtn = document.createElement("button");
                         allBtn.onclick = () => filterAirlineInventory(null);
-                        allBtn.className = `relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-300 shadow-md group cursor-pointer border-2 ${
+                        allBtn.className = `relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-300 shadow-md group cursor-pointer border-2 shrink-0 w-[150px] ${
                             isAllSelected 
                                 ? "border-[#E06A26] ring-4 ring-[#E06A26]/30 scale-[1.02]" 
                                 : "border-[#E7DCB9] hover:border-[#E06A26] hover:scale-[1.02]"
@@ -5807,7 +5899,7 @@
                             const isSelected = window._selectedAirlineFilter === a.id;
                             const btn = document.createElement("button");
                             btn.onclick = () => filterAirlineInventory(a.id);
-                            btn.className = `relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-300 shadow-md group cursor-pointer border-2 ${
+                            btn.className = `relative overflow-hidden rounded-2xl p-3 text-center transition-all duration-300 shadow-md group cursor-pointer border-2 shrink-0 w-[150px] ${
                                 isSelected 
                                     ? "border-[#E06A26] ring-4 ring-[#E06A26]/40 scale-[1.02]" 
                                     : "border-[#E7DCB9] hover:border-[#E06A26] hover:scale-[1.02]"
@@ -5836,6 +5928,8 @@
                             `;
                             grid.appendChild(btn);
                         });
+
+                        startB2BAirlineAutoSlide();
                     }
                 }
 
