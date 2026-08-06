@@ -4059,6 +4059,40 @@
             `;
         }
 
+        async function submitAdminAddAgentPackage(event) {
+            event.preventDefault();
+            const form = event.target;
+            const pkgId = document.getElementById('input-pkg-id').value;
+
+            const formData = new FormData(form);
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken') || '';
+
+            try {
+                const url = pkgId 
+                    ? `/dashboard/admin/api/agent-packages/${pkgId}/`
+                    : '/dashboard/admin/api/agent-packages/';
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success || data.id) {
+                    alert(pkgId ? 'Wholesale Package updated successfully!' : 'Wholesale Package created successfully!');
+                    closeAdminAddAgentPackageModal();
+                    fetchAdminAgentPackages();
+                } else {
+                    alert(data.message || data.error || 'Failed to save package.');
+                }
+            } catch (err) {
+                console.error('Error saving agent package:', err);
+                alert('Server error saving wholesale package.');
+            }
+        }
+
         async function fetchAdminAgentPackages() {
             try {
                 const res = await fetch("/dashboard/admin/api/agent-packages/");
@@ -9636,15 +9670,30 @@
                     <input type="text" name="title" id="input-pkg-title" placeholder="e.g. Executive 15-Day Star Umrah Wholesale" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                 </div>
 
-                <!-- Package Cover Photo Upload -->
-                <div>
-                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1"><i class="fa-solid fa-image text-[#E06A26] mr-1"></i>Package Cover Photo / Image</label>
-                    <div class="flex items-center gap-3 bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC]">
-                        <input type="file" name="cover_photo" id="input-pkg-cover-photo" accept="image/*" class="w-full text-xs text-[#567946] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#E06A26] file:text-white hover:file:bg-[#C45517]">
-                        <div id="preview-pkg-cover-container" class="hidden shrink-0 items-center gap-1.5">
-                            <img id="preview-pkg-cover" src="" alt="Cover Preview" class="h-10 w-14 object-cover rounded-lg border border-[#D9CBAC] shadow-sm">
-                            <span class="text-[10px] font-bold text-[#567946]">Current Cover</span>
+                <!-- Package Cover Photo, Airline Logo & Gallery Images Upload -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1"><i class="fa-solid fa-image text-[#E06A26] mr-1"></i>Package Cover Photo / Image</label>
+                        <div class="flex items-center gap-3 bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC]">
+                            <input type="file" name="cover_photo" id="input-pkg-cover-photo" accept="image/*" class="w-full text-xs text-[#567946] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#E06A26] file:text-white hover:file:bg-[#C45517]">
+                            <div id="preview-pkg-cover-container" class="hidden shrink-0 items-center gap-1.5">
+                                <img id="preview-pkg-cover" src="" alt="Cover Preview" class="h-10 w-14 object-cover rounded-lg border border-[#D9CBAC] shadow-sm">
+                                <span class="text-[10px] font-bold text-[#567946]">Cover</span>
+                            </div>
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1"><i class="fa-solid fa-plane text-[#E06A26] mr-1"></i>Airline Logo Upload</label>
+                        <div class="flex items-center gap-3 bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC]">
+                            <input type="file" name="airline_logo" id="input-pkg-airline-logo" accept="image/*" class="w-full text-xs text-[#567946] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#2D4424] file:text-white hover:file:bg-[#1F2E1A]">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-extrabold text-[#2D4424] mb-1"><i class="fa-solid fa-images text-[#E06A26] mr-1"></i>Package & Hotel Gallery Photos (Multiple Files)</label>
+                    <div class="bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC]">
+                        <input type="file" name="gallery_images" id="input-pkg-gallery-images" multiple accept="image/*" class="w-full text-xs text-[#567946] file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#E06A26] file:text-white hover:file:bg-[#C45517]">
                     </div>
                 </div>
 
