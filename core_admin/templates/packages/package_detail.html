@@ -500,18 +500,13 @@
                     bookingForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
 
-                        let guestName = "";
-                        let guestPhone = "";
-                        let guestEmail = "";
+                        const guestName = document.getElementById('booking-guest-name')?.value.trim() || "";
+                        const guestPhone = document.getElementById('booking-guest-phone')?.value.trim() || "";
+                        const guestEmail = document.getElementById('booking-guest-email')?.value.trim() || "";
 
-                        if (!IS_USER_LOGGED_IN) {
-                            guestName = document.getElementById('booking-guest-name')?.value.trim();
-                            guestPhone = document.getElementById('booking-guest-phone')?.value.trim();
-                            guestEmail = document.getElementById('booking-guest-email')?.value.trim();
-                            if (!guestName || !guestPhone || !guestEmail) {
-                                alert("Please enter your Full Name, Phone / WhatsApp, and Email address to confirm booking.");
-                                return;
-                            }
+                        if (!guestName || !guestPhone || !guestEmail) {
+                            alert("Please enter your Full Name, Phone / WhatsApp, and Email address to confirm booking.");
+                            return;
                         }
 
                         const btn = document.getElementById('btn-book-package');

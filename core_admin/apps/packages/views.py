@@ -1013,6 +1013,14 @@ def book_package_api(request):
         tracking_id = f"GSA-PKG-{uuid.uuid4().hex[:8].upper()}"
         user = request.user if (hasattr(request, 'user') and request.user.is_authenticated) else None
 
+        if user:
+            if not full_name:
+                full_name = user.get_full_name() or user.username
+            if not email:
+                email = getattr(user, 'email', '') or ''
+            if not phone_number and hasattr(user, 'phone_number'):
+                phone_number = getattr(user, 'phone_number', '') or ''
+
         from apps.bookings.models import Booking
         booking = Booking.objects.create(
             user=user,
