@@ -1,5 +1,18 @@
 from django.db import models
 
+def _clean_img_url(url_val):
+    if not url_val:
+        return None
+    url = str(url_val).strip()
+    if not url:
+        return None
+    if url.startswith('http://') or url.startswith('https://'):
+        return url
+    if not url.startswith('/'):
+        url = '/' + url
+    return url
+
+
 class Package(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -77,9 +90,14 @@ class Package(models.Model):
     @property
     def cover_url(self):
         if self.cover_image and hasattr(self.cover_image, 'url'):
-            return self.cover_image.url
-        if isinstance(self.images, list) and len(self.images) > 0 and self.images[0]:
-            return self.images[0]
+            c_url = _clean_img_url(self.cover_image.url)
+            if c_url:
+                return c_url
+        if isinstance(self.images, list):
+            for img in self.images:
+                c_url = _clean_img_url(img)
+                if c_url:
+                    return c_url
         if self.category == 'hajj':
             return "/static/images/hajj_card.png"
         return "/static/images/umrah_card.png"
@@ -87,39 +105,47 @@ class Package(models.Model):
     def get_images_list(self):
         imgs = []
         if self.cover_image and hasattr(self.cover_image, 'url'):
-            imgs.append(self.cover_image.url)
+            c_url = _clean_img_url(self.cover_image.url)
+            if c_url:
+                imgs.append(c_url)
         if isinstance(self.images, list):
             for img in self.images:
-                if img and isinstance(img, str) and img.strip() and img.strip() not in imgs:
-                    imgs.append(img.strip())
+                c_url = _clean_img_url(img)
+                if c_url and c_url not in imgs:
+                    imgs.append(c_url)
         return imgs if imgs else [self.cover_url]
 
     def get_all_hotel_and_package_images(self):
         imgs = []
         if self.cover_image and hasattr(self.cover_image, 'url'):
-            imgs.append(self.cover_image.url)
+            c_url = _clean_img_url(self.cover_image.url)
+            if c_url:
+                imgs.append(c_url)
         if isinstance(self.makkah_hotel_images, list):
-            imgs.extend(self.makkah_hotel_images)
+            for img in self.makkah_hotel_images:
+                c_url = _clean_img_url(img)
+                if c_url and c_url not in imgs:
+                    imgs.append(c_url)
         if isinstance(self.madinah_hotel_images, list):
-            imgs.extend(self.madinah_hotel_images)
+            for img in self.madinah_hotel_images:
+                c_url = _clean_img_url(img)
+                if c_url and c_url not in imgs:
+                    imgs.append(c_url)
         if isinstance(self.images, list):
-            imgs.extend(self.images)
+            for img in self.images:
+                c_url = _clean_img_url(img)
+                if c_url and c_url not in imgs:
+                    imgs.append(c_url)
 
-        # Deduplicate preserving order
-        unique_imgs = []
-        for img in imgs:
-            if img and isinstance(img, str) and img.strip() and img.strip() not in unique_imgs:
-                unique_imgs.append(img.strip())
-        return unique_imgs if unique_imgs else [self.cover_url]
+        return imgs if imgs else [self.cover_url]
 
     def get_airline_info(self):
         name = self.airline or "Saudi Airlines"
         logo = self.airline_logo
         name_lower = name.lower()
         if logo:
-            logo_url = logo.url if hasattr(logo, 'url') else str(logo)
-            if logo_url and not logo_url.startswith('/') and not logo_url.startswith('http://') and not logo_url.startswith('https://'):
-                logo_url = '/' + logo_url
+            raw_url = logo.url if hasattr(logo, 'url') else str(logo)
+            logo_url = _clean_img_url(raw_url)
             return {'name': name, 'logo_url': logo_url, 'icon_class': 'fa-plane'}
         elif 'pia' in name_lower or 'pakistan' in name_lower:
             return {'name': 'PIA (Pak International)', 'icon_class': 'fa-plane-departure', 'badge_color': 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'}

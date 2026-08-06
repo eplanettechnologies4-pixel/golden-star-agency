@@ -9815,7 +9815,7 @@
                     </label>
 
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-2">
+                        <div class="space-y-2 bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC]">
                             <span class="text-[10px] font-bold text-[#2D4424] block">🕋 Makkah Hotel & Nights</span>
                             <input type="text" name="makkah_hotel_name" id="input-pkg-makkah-name" list="datalist-makkah-hotels" placeholder="e.g. Anjum Hotel Makkah" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                             <datalist id="datalist-makkah-hotels"></datalist>
@@ -9824,9 +9824,13 @@
                                 <label class="block text-[9px] font-bold text-[#567946] uppercase">Makkah Nights</label>
                                 <input type="number" name="makkah_nights" id="input-pkg-makkah-nights" min="1" value="7" placeholder="e.g. 7" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
                             </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mt-1"><i class="fa-solid fa-camera mr-1 text-[#E06A26]"></i> Makkah Hotel Photos Upload</label>
+                                <input type="file" name="makkah_hotel_images" multiple accept="image/*" class="w-full text-xs text-[#567946] file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#E06A26] file:text-white">
+                            </div>
                         </div>
 
-                        <div class="space-y-2">
+                        <div class="space-y-2 bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC]">
                             <span class="text-[10px] font-bold text-[#2D4424] block">🕌 Madinah Hotel & Nights</span>
                             <input type="text" name="madinah_hotel_name" id="input-pkg-madinah-name" list="datalist-madinah-hotels" placeholder="e.g. Pullman Zamzam Madinah" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                             <datalist id="datalist-madinah-hotels"></datalist>
@@ -9834,6 +9838,10 @@
                             <div>
                                 <label class="block text-[9px] font-bold text-[#567946] uppercase">Madinah Nights</label>
                                 <input type="number" name="madinah_nights" id="input-pkg-madinah-nights" min="1" value="7" placeholder="e.g. 7" class="w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-[#567946] uppercase mt-1"><i class="fa-solid fa-camera mr-1 text-[#E06A26]"></i> Madinah Hotel Photos Upload</label>
+                                <input type="file" name="madinah_hotel_images" multiple accept="image/*" class="w-full text-xs text-[#567946] file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#E06A26] file:text-white">
                             </div>
                         </div>
                     </div>
