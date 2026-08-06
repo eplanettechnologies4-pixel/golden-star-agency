@@ -41,7 +41,7 @@ services:
     volumes:
       - .:/app
       - static_volume:/app/core_admin/staticfiles
-      - media_volume:/app/core_admin/media
+      - ./core_admin/media:/app/core_admin/media
     ports:
       - "8000:8000"
     env_file:
@@ -89,4 +89,3 @@ volumes:
   redis_data:
   n8n_data:
   static_volume:
-  media_volume:
