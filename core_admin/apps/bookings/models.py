@@ -35,5 +35,7 @@ class Booking(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Booking #{self.id} - {self.user.username} ({self.status})"
+        user_label = self.user.username if self.user else (self.full_name or self.email or 'Guest')
+        return f"Booking #{self.id} - {user_label} ({self.status})"
+
 

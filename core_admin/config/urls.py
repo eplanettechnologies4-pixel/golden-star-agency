@@ -93,7 +93,6 @@ urlpatterns = [
     path('dashboard/admin/agents/<str:agent_id>/view/', accounts_views.admin_agent_detail_view, name='admin_agent_detail_view'),
     path('agents/<str:agent_id>/profile/', accounts_views.public_agent_profile_view, name='public_agent_profile'),
     path('api/track/<str:tracking_id>/', accounts_views.track_status_api, name='track_status_api'),
-    path('api/packages/book/', accounts_views.submit_package_booking_api, name='submit_package_booking_api'),
     path('api/visa/submit/', accounts_views.submit_visa_application_api, name='submit_visa_application_api'),
     path('api/flights/quote/submit/', accounts_views.submit_flight_quote_api, name='submit_flight_quote_api'),
     path('api/flights/book/', accounts_views.submit_flight_ticket_booking_api, name='submit_flight_ticket_booking_api'),

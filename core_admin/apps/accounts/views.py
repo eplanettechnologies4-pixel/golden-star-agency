@@ -204,9 +204,9 @@ def _dispatch_email(subject, plain_msg, from_email, to_list, html_message=None):
                 html_message=html_message,
                 fail_silently=False,
             )
-            print(f"[Email ✓] Delivered to {to_list} | Subject: {subject[:50]}")
+            print(f"[Email OK] Delivered to {to_list} | Subject: {subject[:50]}")
         except Exception as e:
-            print(f"[Email ✗] Failed to {to_list}: {e}")
+            print(f"[Email ERROR] Failed to {to_list}: {e}")
     _email_pool.submit(_send)
 
 def _send_verification_email_sync(user):
@@ -3423,8 +3423,8 @@ def process_b2b_agent_commission_and_email(user, tracking_id, item_title, seats_
         except Exception as e:
             print(f"[Agent Commission Error] {e}")
 
-def send_package_booking_confirmation_email(user, tracking_id, package, booking, guest_email=None, guest_name=None):
-    """Auto-dispatches a professional email confirmation with tracking reference ID to client/pilgrim."""
+def send_package_booking_confirmation_email(user, tracking_id, package, booking, guest_email=None, guest_name=None, guest_phone=None):
+    """Auto-dispatches a professional email confirmation with tracking reference ID to client/pilgrim and notification to admin."""
     try:
         from django.conf import settings
         recipient_email = (user.email if (user and hasattr(user, 'email') and user.email) else guest_email or '').strip()
@@ -3497,8 +3497,28 @@ def send_package_booking_confirmation_email(user, tracking_id, package, booking,
         plain_body = f"Hello {recipient_name},\n\nYour pilgrimage booking for {package.title} has been confirmed.\n\nTracking ID: {tracking_id}\nTotal Fare: PKR {float(booking.total_price):,.0f}\n\nREI GOLDEN STAR TRAVEL & TOURS"
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'goldenstartraveltours@gmail.com')
 
-        _dispatch_email(subject, plain_body, from_email, [recipient_email], html_message=html_message)
-        print(f"[Booking Email ✓] Automated email dispatched to {recipient_email} for tracking ID {tracking_id}")
+        if recipient_email:
+            _dispatch_email(subject, plain_body, from_email, [recipient_email], html_message=html_message)
+            print(f"[Booking Email OK] Automated email dispatched to {recipient_email} for tracking ID {tracking_id}")
+
+        # Send admin alert email for new package booking
+        subject_admin = f"[NEW BOOKING] {tracking_id} - {package.title} ({recipient_name})"
+        body_admin_html = f"""
+        <p>A new pilgrimage package booking has been registered on the website portal.</p>
+        <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 18px; margin: 20px 0;">
+            <h4 style="margin: 0 0 10px 0; color: #c45517; font-size: 14px;">Booking Summary</h4>
+            <p style="margin: 0 0 4px 0;"><strong>Tracking Reference ID:</strong> {tracking_id}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Pilgrim Name:</strong> {recipient_name}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Contact Email:</strong> {recipient_email or 'N/A'}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Contact Phone:</strong> {guest_phone or 'N/A'}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Package Title:</strong> {package.title}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Room Sharing:</strong> {booking.sharing_category} Sharing</p>
+            <p style="margin: 0 0 4px 0;"><strong>Passengers:</strong> {pax_summary}</p>
+            <p style="margin: 0;"><strong>Total Fare:</strong> PKR {float(booking.total_price):,.0f}</p>
+        </div>
+        """
+        html_admin = build_professional_email_html("New Package Booking Alert", "Operations Admin", body_admin_html, "Manage Bookings in Admin Panel", "http://127.0.0.1:8000/dashboard/admin/")
+        _dispatch_email(subject_admin, f"New booking {tracking_id} by {recipient_name}", from_email, [from_email], html_message=html_admin)
     except Exception as e:
         print(f"[Booking Email Error] {e}")
 
@@ -4100,44 +4120,44 @@ def admin_flight_ticket_detail_api(request, pk):
 @csrf_exempt
 def submit_custom_inquiry_api(request):
     """
-    POST: Submit a custom package inquiry/customizer options. (Authenticated users only)
+    POST: Submit a custom package inquiry or Contact Us message.
+    Accepts requests from both authenticated and guest users.
     """
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'message': 'Authentication required. Please log in or create an account to request custom packages.'}, status=401)
-        
     if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'POST method only.'}, status=405)
+        return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
         
     from apps.packages.models import CustomPackageInquiry
     try:
         try:
-            body = json.loads(request.body)
+            body = json.loads(request.body.decode('utf-8'))
         except Exception:
             body = request.POST
 
-        name = body.get('name', '').strip()
-        email = body.get('email', '').strip()
-        phone = body.get('phone', '').strip()
-        package_type = body.get('package_type', '').strip().lower()
-        days = body.get('days')
-        makkah_distance = body.get('makkah_distance')
-        madinah_distance = body.get('madinah_distance')
-        airline = body.get('airline', '').strip()
-        additional_notes = body.get('additional_notes', '').strip()
+        name = (body.get('name') or '').strip()
+        email = (body.get('email') or '').strip()
+        phone = (body.get('phone') or body.get('phone_number') or '').strip()
+        package_type = (body.get('package_type') or 'umrah').strip().lower()
+        
+        days_raw = body.get('days')
+        days = int(days_raw) if (days_raw and str(days_raw).isdigit()) else 15
+        
+        makkah_raw = body.get('makkah_distance')
+        makkah_distance = int(makkah_raw) if (makkah_raw and str(makkah_raw).isdigit()) else 350
+        
+        madinah_raw = body.get('madinah_distance')
+        madinah_distance = int(madinah_raw) if (madinah_raw and str(madinah_raw).isdigit()) else 150
+        
+        airline = (body.get('airline') or 'Saudi Airlines').strip()
+        additional_notes = (body.get('additional_notes') or body.get('message') or '').strip()
 
-        if not name or not email or not phone or not package_type or not days or not makkah_distance or not madinah_distance or not airline:
-            return JsonResponse({'success': False, 'message': 'All customization fields (name, email, phone, package type, days, hotel distances, airline) are required.'}, status=400)
+        if not name or not phone:
+            return JsonResponse({'success': False, 'message': 'Name and phone number are required.'}, status=400)
 
-        try:
-            days = int(days)
-            makkah_distance = int(makkah_distance)
-            madinah_distance = int(madinah_distance)
-        except ValueError:
-            return JsonResponse({'success': False, 'message': 'Days and hotel distances must be numeric.'}, status=400)
+        user = request.user if (hasattr(request, 'user') and request.user.is_authenticated) else None
 
         # Create inquiry
         inquiry = CustomPackageInquiry.objects.create(
-            user=request.user if request.user.is_authenticated else None,
+            user=user,
             name=name,
             email=email,
             phone=phone,
@@ -4146,72 +4166,124 @@ def submit_custom_inquiry_api(request):
             makkah_distance=makkah_distance,
             madinah_distance=madinah_distance,
             airline=airline,
-            additional_notes=additional_notes
+            additional_notes=additional_notes,
+            is_contacted=False
         )
 
-        # Trigger async emails
+        # Trigger async emails (User confirmation & Admin notification)
         send_custom_inquiry_emails(inquiry)
 
         return JsonResponse({
             'success': True,
+            'id': inquiry.id,
             'inquiry_id': inquiry.id,
-            'message': 'Custom pilgrimage inquiry submitted successfully!'
+            'message': 'Your message/inquiry has been submitted successfully! Our representative will contact you shortly.'
         })
     except Exception as e:
-        return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=400)
+        logger.exception(f"Custom inquiry error: {e}")
+        return JsonResponse({'success': False, 'message': f'Error submitting inquiry: {str(e)}'}, status=400)
 
 
 def _send_custom_inquiry_emails_sync(inquiry):
-    subject_user = "Custom Pilgrimage Inquiry Received | REI GOLDEN STAR TRAVEL & TOURS"
-    body_user_html = f"""
-    <p>Assalamu Alaikum <strong>{inquiry.name}</strong>,</p>
-    <p>Thank you for contacting <strong>REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</strong> We have received your custom package request with the following choices:</p>
-    
-    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 20px 0;">
-        <h4 style="margin: 0 0 12px 0; color: #ea580c; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Selected Package Specifications</h4>
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-            <tr><td style="padding: 4px 0; color: #64748b;">Package Category:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.package_type.upper()}</td></tr>
-            <tr><td style="padding: 4px 0; color: #64748b;">Duration:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.days} Days</td></tr>
-            <tr><td style="padding: 4px 0; color: #64748b;">Makkah Hotel Distance:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">Within {inquiry.makkah_distance} meters</td></tr>
-            <tr><td style="padding: 4px 0; color: #64748b;">Madinah Hotel Distance:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">Within {inquiry.madinah_distance} meters</td></tr>
-            <tr><td style="padding: 4px 0; color: #64748b;">Preferred Airline:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.airline}</td></tr>
-            <tr><td style="padding: 4px 0; color: #64748b;">Additional Notes:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.additional_notes or 'None'}</td></tr>
-        </table>
-    </div>
-    
-    <p>Our dedicated travel consultants will review your specifications and reach out to you shortly at <strong>{inquiry.phone}</strong> with customized pricing and itinerary options.</p>
-    """
-    
-    html_user = build_professional_email_html("Custom Pilgrimage Inquiry Confirmation", inquiry.name, body_user_html, "View Our Services", "http://127.0.0.1:8000/packages/umrah/")
     from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'goldenstartraveltours@gmail.com')
-    
-    # Send user email
-    try:
-        _dispatch_email(subject_user, f"Assalamu Alaikum {inquiry.name}, thank you for your inquiry.", from_email, [inquiry.email], html_message=html_user)
-    except Exception as e:
-        print(f"[Email Service Error] User custom inquiry confirmation failed: {e}")
 
-    # Send admin notification email
-    subject_admin = f"[NEW INQUIRY] Custom {inquiry.package_type.upper()} - {inquiry.name}"
-    body_admin_html = f"""
-    <p>A new custom pilgrimage package customization inquiry has been received on the website portal.</p>
-    <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 18px; margin: 20px 0;">
-        <h4 style="margin: 0 0 10px 0; color: #c45517; font-size: 14px;">Client Details</h4>
-        <p style="margin: 0 0 4px 0;"><strong>Name:</strong> {inquiry.name}</p>
-        <p style="margin: 0 0 4px 0;"><strong>Email:</strong> {inquiry.email}</p>
-        <p style="margin: 0;"><strong>Phone:</strong> {inquiry.phone}</p>
-    </div>
-    """
-    html_admin = build_professional_email_html("New Custom Package Inquiry Notification", "Operations Admin", body_admin_html, "Manage in Admin Portal", "http://127.0.0.1:8000/dashboard/admin/")
-    try:
-        _dispatch_email(subject_admin, f"New custom inquiry from {inquiry.name}", from_email, [from_email], html_message=html_admin)
-    except Exception as e:
-        print(f"[Email Service Error] Admin custom inquiry notification failed: {e}")
+    if inquiry.package_type == 'contact':
+        # 1. Contact Us Inquiry Email for Pilgrim / Client
+        subject_user = "Thank You for Contacting Golden Star Travel & Tours"
+        body_user_html = f"""
+        <p>Assalamu Alaikum <strong>{inquiry.name}</strong>,</p>
+        <p>Thank you for reaching out to <strong>REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</strong> We have received your direct inquiry with the following details:</p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 20px 0;">
+            <h4 style="margin: 0 0 12px 0; color: #ea580c; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Contact Inquiry Summary</h4>
+            <p style="margin: 0 0 6px 0; color: #475569;"><strong>Full Name:</strong> {inquiry.name}</p>
+            <p style="margin: 0 0 6px 0; color: #475569;"><strong>Email Address:</strong> {inquiry.email or 'N/A'}</p>
+            <p style="margin: 0 0 6px 0; color: #475569;"><strong>Phone / WhatsApp:</strong> {inquiry.phone}</p>
+            <p style="margin: 0; color: #475569;"><strong>Message / Notes:</strong> {inquiry.additional_notes or 'General Contact Request'}</p>
+        </div>
+        
+        <p>Our dedicated travel support desk will review your message and contact you at <strong>{inquiry.phone}</strong> or <strong>{inquiry.email}</strong> within 2 hours.</p>
+        """
+        html_user = build_professional_email_html("Contact Inquiry Received", inquiry.name, body_user_html, "Explore Packages", "http://127.0.0.1:8000/packages/umrah/")
+
+        if inquiry.email:
+            try:
+                _dispatch_email(subject_user, f"Assalamu Alaikum {inquiry.name}, thank you for contacting us.", from_email, [inquiry.email], html_message=html_user)
+            except Exception as e:
+                print(f"[Email Error] Contact form confirmation to user failed: {e}")
+
+        # 2. Contact Us Admin Notification Email
+        subject_admin = f"[CONTACT FORM SUBMISSION] Message from {inquiry.name}"
+        body_admin_html = f"""
+        <p>A new direct Contact Us message has been submitted on the website portal.</p>
+        <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 18px; margin: 20px 0;">
+            <h4 style="margin: 0 0 10px 0; color: #c45517; font-size: 14px;">Contact Inquiry Details</h4>
+            <p style="margin: 0 0 4px 0;"><strong>Name:</strong> {inquiry.name}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Email:</strong> {inquiry.email or 'N/A'}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Phone:</strong> {inquiry.phone}</p>
+            <p style="margin: 0;"><strong>Message:</strong> {inquiry.additional_notes or 'N/A'}</p>
+        </div>
+        """
+        html_admin = build_professional_email_html("New Contact Form Submission Alert", "Operations Admin", body_admin_html, "Manage in Admin Portal", "http://127.0.0.1:8000/dashboard/admin/")
+        try:
+            _dispatch_email(subject_admin, f"New contact query from {inquiry.name}", from_email, [from_email], html_message=html_admin)
+        except Exception as e:
+            print(f"[Email Error] Contact form admin alert failed: {e}")
+
+    else:
+        # Custom Package Inquiry (Umrah / Hajj)
+        subject_user = f"Custom {inquiry.package_type.upper()} Pilgrimage Inquiry Received | REI GOLDEN STAR TRAVEL & TOURS"
+        body_user_html = f"""
+        <p>Assalamu Alaikum <strong>{inquiry.name}</strong>,</p>
+        <p>Thank you for contacting <strong>REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</strong> We have received your custom package request with the following choices:</p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 20px 0;">
+            <h4 style="margin: 0 0 12px 0; color: #ea580c; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Selected Package Specifications</h4>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr><td style="padding: 4px 0; color: #64748b;">Package Category:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.package_type.upper()}</td></tr>
+                <tr><td style="padding: 4px 0; color: #64748b;">Duration:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.days} Days</td></tr>
+                <tr><td style="padding: 4px 0; color: #64748b;">Makkah Hotel Distance:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">Within {inquiry.makkah_distance} meters</td></tr>
+                <tr><td style="padding: 4px 0; color: #64748b;">Madinah Hotel Distance:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">Within {inquiry.madinah_distance} meters</td></tr>
+                <tr><td style="padding: 4px 0; color: #64748b;">Preferred Airline:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.airline}</td></tr>
+                <tr><td style="padding: 4px 0; color: #64748b;">Additional Notes:</td><td style="padding: 4px 0; font-weight: bold; color: #0f172a; text-align: right;">{inquiry.additional_notes or 'None'}</td></tr>
+            </table>
+        </div>
+        
+        <p>Our dedicated travel consultants will review your specifications and reach out to you shortly at <strong>{inquiry.phone}</strong> with customized pricing and itinerary options.</p>
+        """
+        
+        html_user = build_professional_email_html("Custom Pilgrimage Inquiry Confirmation", inquiry.name, body_user_html, "View Our Services", "http://127.0.0.1:8000/packages/umrah/")
+        
+        if inquiry.email:
+            try:
+                _dispatch_email(subject_user, f"Assalamu Alaikum {inquiry.name}, thank you for your inquiry.", from_email, [inquiry.email], html_message=html_user)
+            except Exception as e:
+                print(f"[Email Error] User custom inquiry confirmation failed: {e}")
+
+        # Send admin notification email
+        subject_admin = f"[NEW INQUIRY] Custom {inquiry.package_type.upper()} - {inquiry.name}"
+        body_admin_html = f"""
+        <p>A new custom pilgrimage package customization inquiry has been received on the website portal.</p>
+        <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 18px; margin: 20px 0;">
+            <h4 style="margin: 0 0 10px 0; color: #c45517; font-size: 14px;">Client Details</h4>
+            <p style="margin: 0 0 4px 0;"><strong>Name:</strong> {inquiry.name}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Email:</strong> {inquiry.email or 'N/A'}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Phone:</strong> {inquiry.phone}</p>
+            <p style="margin: 0 0 4px 0;"><strong>Package Type:</strong> {inquiry.package_type.upper()}</p>
+            <p style="margin: 0;"><strong>Notes:</strong> {inquiry.additional_notes or 'N/A'}</p>
+        </div>
+        """
+        html_admin = build_professional_email_html("New Custom Package Inquiry Notification", "Operations Admin", body_admin_html, "Manage in Admin Portal", "http://127.0.0.1:8000/dashboard/admin/")
+        try:
+            _dispatch_email(subject_admin, f"New custom inquiry from {inquiry.name}", from_email, [from_email], html_message=html_admin)
+        except Exception as e:
+            print(f"[Email Error] Admin custom inquiry notification failed: {e}")
 
 
 def send_custom_inquiry_emails(inquiry):
     """Async inquiry email dispatch via thread pool (no threading module needed)."""
     _email_pool.submit(_send_custom_inquiry_emails_sync, inquiry)
+
 
 
 @csrf_exempt
@@ -6088,62 +6160,7 @@ def agent_department_contacts_api(request):
     return JsonResponse({'success': True, 'contacts': data})
 
 
-@csrf_exempt
-def submit_custom_inquiry_api(request):
-    """
-    POST /api/packages/custom-inquiry/
-    Accepts Custom Hajj & Custom Umrah Package Planner inquiries as well as Contact Us queries.
-    Stores inquiry in CustomPackageInquiry database model.
-    """
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
 
-    try:
-        try:
-            data = json.loads(request.body.decode('utf-8'))
-        except Exception:
-            data = request.POST
-
-        name = (data.get('name') or '').strip()
-        email = (data.get('email') or '').strip()
-        phone = (data.get('phone') or '').strip()
-        
-        if not name or not phone:
-            return JsonResponse({'success': False, 'message': 'Name and phone number are required.'}, status=400)
-
-        package_type = (data.get('package_type') or 'umrah').strip().lower()
-        days = int(data.get('days') or 15)
-        airline = (data.get('airline') or 'Saudi Airlines').strip()
-        makkah_distance = int(data.get('makkah_distance') or 350)
-        madinah_distance = int(data.get('madinah_distance') or 150)
-        notes = (data.get('additional_notes') or data.get('message') or '').strip()
-
-        user = getattr(request, 'user', None)
-        if user and not getattr(user, 'is_authenticated', False):
-            user = None
-
-        inquiry = CustomPackageInquiry.objects.create(
-            user=user,
-            name=name,
-            email=email,
-            phone=phone,
-            package_type=package_type,
-            days=days,
-            makkah_distance=makkah_distance,
-            madinah_distance=madinah_distance,
-            airline=airline,
-            additional_notes=notes,
-            is_contacted=False
-        )
-
-        return JsonResponse({
-            'success': True,
-            'message': 'Your custom inquiry has been submitted successfully! Our representative will contact you shortly.',
-            'id': inquiry.id
-        })
-    except Exception as err:
-        logger.exception(f"Custom inquiry error: {err}")
-        return JsonResponse({'success': False, 'message': str(err)}, status=500)
 
 
 @csrf_exempt

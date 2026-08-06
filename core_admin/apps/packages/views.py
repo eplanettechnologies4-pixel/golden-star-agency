@@ -1044,6 +1044,13 @@ def book_package_api(request):
             package.available_seats = max(0, package.available_seats - total_pax)
             package.save()
 
+        # Dispatch automated confirmation emails (User & Admin)
+        try:
+            from apps.accounts.views import send_package_booking_confirmation_email
+            send_package_booking_confirmation_email(user, tracking_id, package, booking, guest_email=email, guest_name=full_name, guest_phone=phone_number)
+        except Exception as email_err:
+            print(f"[Booking Email Dispatch Error] {email_err}")
+
         return JsonResponse({
             'success': True,
             'message': 'Package booking submitted successfully!',
