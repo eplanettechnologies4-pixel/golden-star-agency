@@ -12,11 +12,14 @@ class Booking(models.Model):
         ('package', 'Package Booking'),
         ('custom', 'Custom Booking'),
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bookings')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings')
     booking_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='package')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     pnr = models.CharField(max_length=50, blank=True, null=True, default='')
+    full_name = models.CharField(max_length=200, blank=True, null=True, default='')
+    email = models.EmailField(blank=True, null=True, default='')
+    phone_number = models.CharField(max_length=50, blank=True, null=True, default='')
     
     # Room sharing & breakdown
     sharing_category = models.CharField(max_length=50, default='Quad', blank=True, null=True)

@@ -47,6 +47,7 @@ urlpatterns = [
     path('packages/hajj/<int:pk>/', packages_views.hajj_detail_view, name='hajj_detail'),
     path('packages/umrah/', packages_views.umrah_list_view, name='umrah_list'),
     path('packages/<int:pk>/', packages_views.package_detail_view, name='package_detail'),
+    path('api/packages/book/', packages_views.book_package_api, name='book_package_api'),
     
     # Visa (Dynamic catalog & application form)
     path('visa/', visa_views.visa_countries_view, name='visa_countries'),

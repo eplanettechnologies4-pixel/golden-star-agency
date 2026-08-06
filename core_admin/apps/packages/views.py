@@ -959,3 +959,94 @@ def admin_hajj_package_detail_api(request, pk):
     return JsonResponse({'success': False, 'message': 'Method not allowed.'}, status=405)
 
 
+@csrf_exempt
+def book_package_api(request):
+    """
+    POST /api/packages/book/
+    Creates a new Package Booking record for public/retail website users.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
+
+    try:
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except Exception:
+            data = request.POST
+
+        package_id = data.get('package_id')
+        if not package_id:
+            return JsonResponse({'success': False, 'message': 'Package ID is required.'}, status=400)
+
+        package = get_object_or_404(Package, pk=package_id)
+
+        full_name = (data.get('full_name') or '').strip()
+        phone_number = (data.get('phone_number') or '').strip()
+        email = (data.get('email') or '').strip()
+        sharing_category = (data.get('sharing_category') or 'quad').strip().lower()
+
+        adults_count = int(data.get('adults_count') or 1)
+        children_count = int(data.get('children_count') or 0)
+        children_with_bed_count = int(data.get('children_with_bed_count') or 0)
+        children_no_bed_count = int(data.get('children_no_bed_count') or 0)
+        infants_count = int(data.get('infants_count') or 0)
+        selected_addons = data.get('selected_addons') or []
+
+        # Calculate pricing dynamically based on room type & passenger counts
+        rate_per_adult = float(getattr(package, f'price_{sharing_category}', None) or package.price or 210000)
+        rate_child = float(package.price_child_with_bed or package.price_child or (rate_per_adult * 0.85))
+        rate_child_no_bed = float(package.price_child_no_bed or (rate_per_adult * 0.60))
+        rate_infant = float(package.price_infant or 65000)
+
+        total_price = (
+            (adults_count * rate_per_adult) +
+            (children_with_bed_count * rate_child) +
+            (children_no_bed_count * rate_child_no_bed) +
+            (infants_count * rate_infant)
+        )
+
+        if isinstance(selected_addons, list):
+            for add in selected_addons:
+                if isinstance(add, dict):
+                    total_price += float(add.get('price', 0))
+
+        tracking_id = f"GSA-PKG-{uuid.uuid4().hex[:8].upper()}"
+        user = request.user if (hasattr(request, 'user') and request.user.is_authenticated) else None
+
+        from apps.bookings.models import Booking
+        booking = Booking.objects.create(
+            user=user,
+            package=package,
+            booking_type='package',
+            status='pending',
+            sharing_category=sharing_category.capitalize(),
+            full_name=full_name,
+            email=email,
+            phone_number=phone_number,
+            adults_count=adults_count,
+            children_count=children_count,
+            infants_count=infants_count,
+            selected_addons=selected_addons,
+            total_price=total_price,
+            pnr=tracking_id
+        )
+
+        if package.available_seats and package.available_seats > 0:
+            total_pax = adults_count + children_count
+            package.available_seats = max(0, package.available_seats - total_pax)
+            package.save()
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Package booking submitted successfully!',
+            'tracking_id': tracking_id,
+            'package_title': package.title,
+            'sharing_category': sharing_category.upper(),
+            'adults_count': adults_count,
+            'children_count': children_count,
+            'total_price': str(total_price)
+        })
+    except Exception as err:
+        return JsonResponse({'success': False, 'message': f'Failed to register booking: {str(err)}'}, status=500)
+
+
