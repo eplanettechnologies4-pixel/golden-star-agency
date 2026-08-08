@@ -6,9 +6,9 @@
 <section class="relative min-h-[48vh] flex items-center justify-center overflow-hidden bg-slate-950 text-center py-24">
     <!-- Sliding Backgrounds -->
     <div class="absolute inset-0 z-0">
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url('{% static "images/visa_banner.png" %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static "images/turkey_visa.png" %}');"></div>
-        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url('{% static "images/malaysia_visa.png" %}');"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-100" style="background-image: url({% static 'images/visa_banner.png' %});"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url({% static 'images/turkey_visa.png' %});"></div>
+        <div class="banner-slide absolute inset-0 bg-cover bg-center transition-opacity duration-1000 opacity-0" style="background-image: url({% static 'images/malaysia_visa.png' %});"></div>
         <div class="absolute inset-0 bg-slate-950/80"></div>
     </div>
 
@@ -50,66 +50,89 @@
             <form id="visa-apply-form" class="space-y-4">
                 {% csrf_token %}
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Select Country</label>
-                    <select id="visa-country" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange">
-                        <option>Saudi Arabia Tourist eVisa (PKR 45,000)</option>
-                        <option>Turkey Visit Sticker Visa (PKR 35,000)</option>
-                        <option>Malaysia Visit eVisa (PKR 15,000)</option>
-                        <option>Dubai / UAE Tourist eVisa (PKR 35,000)</option>
-                        <option>UK Standard Visitor Visa (PKR 65,000)</option>
-                        <option>Thailand Tourist Sticker Visa (PKR 25,000)</option>
-                    </select>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Destination Country & Visa Service</label>
+                    <input id="visa-country" type="text" placeholder="e.g. Saudi Arabia Tourist eVisa" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 font-bold focus:outline-none focus:border-brand-orange">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Applicant Full Name (Passport match)</label>
-                    <input id="visa-name" type="text" placeholder="Muhammad Danish" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Email Address <span class="text-rose-500">*</span></label>
-                    <input id="visa-email" type="email" placeholder="applicant@example.com" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Applicant Full Name (Passport match) <span class="text-rose-500">*</span></label>
+                    <input id="visa-name" type="text" placeholder="Muhammad Danish" required value="{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:border-brand-orange">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">CNIC Number</label>
-                        <input id="visa-cnic" type="text" placeholder="35201-1234567-9" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Email Address <span class="text-rose-500">*</span></label>
+                        <input id="visa-email" type="email" placeholder="applicant@example.com" required value="{% if user.is_authenticated %}{{ user.email }}{% endif %}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:border-brand-orange">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Passport Number</label>
-                        <input id="visa-passport" type="text" placeholder="AB1234567" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Phone / Mobile Number <span class="text-rose-500">*</span></label>
+                        <input id="visa-phone" type="tel" placeholder="0300 1234567" required value="{% if user.is_authenticated %}{{ user.phone|default:'' }}{% endif %}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:border-brand-orange">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Passport Expiry Date</label>
-                    <input id="visa-expiry" type="date" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Full Residential Address <span class="text-rose-500">*</span></label>
+                    <input id="visa-address" type="text" placeholder="House / Street Address, City, Pakistan" required value="{% if user.is_authenticated %}{{ user.address|default:'' }}{% endif %}" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:border-brand-orange">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Passport Number (Optional)</label>
+                        <input id="visa-passport" type="text" placeholder="AB1234567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 font-semibold focus:outline-none focus:border-brand-orange">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Estimated Visa Fee (PKR)</label>
+                        <input id="visa-price" type="text" placeholder="Auto-filled fee" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 font-extrabold font-mono focus:outline-none">
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Attach Passport Front Page Scan (Optional)</label>
-                    <input type="file" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Additional Notes / Special Instructions</label>
+                    <textarea id="visa-notes" rows="2" placeholder="Mention travel month, family members, or specific document questions..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-brand-orange"></textarea>
                 </div>
 
-                <button type="submit" id="btn-submit-visa" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/15">
-                    Submit Application
+                <button type="submit" id="btn-submit-visa" class="w-full bg-brand-orange hover:bg-brand-orange-dark text-white font-extrabold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-brand-orange/15 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Visa Application
                 </button>
             </form>
 
             <script>
-            const IS_USER_LOGGED_IN = {{ user.is_authenticated|yesno:"true,false" }};
-
             document.addEventListener('DOMContentLoaded', () => {
+                // Auto-fetch & pre-fill country, title and price from URL parameters if passed
+                const urlParams = new URLSearchParams(window.location.search);
+                const countryParam = urlParams.get('country') || '';
+                const titleParam = urlParams.get('title') || '';
+                const priceParam = urlParams.get('price') || '';
+
+                const countryInput = document.getElementById('visa-country');
+                const priceInput = document.getElementById('visa-price');
+
+                if (countryInput) {
+                    if (titleParam) {
+                        countryInput.value = `${countryParam} - ${titleParam}`;
+                    } else if (countryParam) {
+                        countryInput.value = countryParam;
+                    } else {
+                        countryInput.value = 'Saudi Arabia Tourist eVisa';
+                    }
+                }
+
+                if (priceInput && priceParam) {
+                    priceInput.value = `PKR ${Number(priceParam).toLocaleString('en-PK')}`;
+                }
+
                 const visaForm = document.getElementById('visa-apply-form');
                 if (visaForm) {
                     visaForm.addEventListener('submit', async (e) => {
                         e.preventDefault();
                         const btn = document.getElementById('btn-submit-visa');
-                        const country = document.getElementById('visa-country').value;
+                        const country = countryInput.value;
                         const name = document.getElementById('visa-name').value;
-                        const email = document.getElementById('visa-email') ? document.getElementById('visa-email').value : '';
+                        const email = document.getElementById('visa-email').value;
+                        const phone = document.getElementById('visa-phone').value;
+                        const address = document.getElementById('visa-address').value;
                         const passport = document.getElementById('visa-passport').value;
+                        const notes = document.getElementById('visa-notes').value;
                         
                         btn.disabled = true;
                         btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-1"></i> Submitting...';
@@ -121,19 +144,28 @@
                                     'Content-Type': 'application/json',
                                     'X-CSRFToken': '{{ csrf_token }}'
                                 },
-                                body: JSON.stringify({ country, passport_number: passport, name, email })
+                                body: JSON.stringify({
+                                    country: country,
+                                    full_name: name,
+                                    email: email,
+                                    phone: phone,
+                                    address: address,
+                                    passport_number: passport,
+                                    price: priceParam || null,
+                                    notes: notes
+                                })
                             });
                             const data = await res.json();
                             if (res.ok && data.success) {
-                                const fullName = "{{ user.get_full_name|default:user.username }}";
                                 const modalOpts = {
-                                    userName: fullName || 'Valued Applicant',
+                                    userName: name || 'Valued Applicant',
                                     title: 'Visa Application Submitted Successfully!',
-                                    message: 'Your visa application has been recorded in our system. Our visa department is now processing your documents.',
+                                    message: `Your visa application for ${country} has been recorded in our system. Our visa officers will contact you shortly.`,
                                     trackingId: data.tracking_id,
                                     details: [
                                         { label: 'Destination Country', value: country },
-                                        { label: 'Passport Number', value: passport }
+                                        { label: 'Phone Number', value: phone },
+                                        { label: 'Address', value: address }
                                     ]
                                 };
                                 if (typeof window.showSubmissionSuccessModal === 'function') {
@@ -142,18 +174,15 @@
                                     alert(`✨ Visa Application Submitted Successfully!\n\nTracking ID: ${data.tracking_id}`);
                                 }
                                 visaForm.reset();
-                            } else if (res.status === 401) {
-                                alert("🔒 Account Login Required!\n\n" + (data.message || "Please log in to submit your visa application."));
-                                window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
                             } else {
                                 alert(data.message || 'Submission failed.');
                             }
                         } catch (err) {
                             console.error(err);
-                            alert('Submission failed. Please make sure all details are filled and try again.');
+                            alert('Submission failed. Please make sure all required details are filled.');
                         } finally {
                             btn.disabled = false;
-                            btn.textContent = 'Submit Application';
+                            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Visa Application';
                         }
                     });
                 }

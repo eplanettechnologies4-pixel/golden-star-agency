@@ -1406,21 +1406,28 @@ def admin_package_detail_api(request, pk):
 
 @admin_required_api
 def admin_visas_api(request):
-    visas = VisaApplication.objects.all().order_by('-created_at')
+    visas = VisaApplication.objects.select_related('user', 'visa_package').all().order_by('-created_at')
     visas_data = []
     for v in visas:
+        username = (v.user.username if v.user else None) or v.get_applicant_name()
+        email = v.get_applicant_email()
+        phone = v.phone or (v.user.phone if (v.user and hasattr(v.user, 'phone')) else '') or 'N/A'
+        address = getattr(v, 'address', '') or 'N/A'
+        price = str(v.price) if v.price is not None else (str(v.visa_package.price) if (v.visa_package and v.visa_package.price) else 'N/A')
         visas_data.append({
             'id': v.id,
-            'username': v.user.username,
+            'username': username,
             'applicant_name': v.get_applicant_name(),
-            'email': v.get_applicant_email(),
-            'phone': v.phone or getattr(v.user, 'phone', '') or 'N/A',
+            'email': email,
+            'phone': phone,
+            'address': address,
+            'price': price,
             'country': v.country,
             'visa_type': v.visa_type or 'Tourist / Visitor Visa',
-            'passport_number': v.passport_number,
+            'passport_number': v.passport_number or '',
             'status': v.status,
             'additional_notes': v.additional_notes or '',
-            'created_at': v.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'created_at': v.created_at.strftime('%Y-%m-%d %H:%M:%S') if v.created_at else '',
         })
     return JsonResponse({'visas': visas_data})
 
@@ -1481,6 +1488,7 @@ def admin_visa_packages_api(request):
                 'docs_list': vp.get_docs_list(),
                 'description': vp.description or '',
                 'banner_image': vp.banner_image or '',
+                'cover_url': vp.cover_url,
                 'is_popular': vp.is_popular,
                 'created_at': vp.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             })
@@ -1505,6 +1513,7 @@ def admin_visa_packages_api(request):
         description = body.get('description') or ''
         banner_image = body.get('banner_image') or ''
         is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
+        cover_image = request.FILES.get('cover_image')
 
         vp = VisaPackage.objects.create(
             country=country,
@@ -1519,6 +1528,7 @@ def admin_visa_packages_api(request):
             required_documents=required_documents,
             description=description,
             banner_image=banner_image,
+            cover_image=cover_image if cover_image else None,
             is_popular=is_popular
         )
         return JsonResponse({'success': True, 'visa_package_id': vp.id})
@@ -1550,6 +1560,8 @@ def admin_visa_package_detail_api(request, pk):
         vp.description = body.get('description', vp.description)
         if 'banner_image' in body:
             vp.banner_image = body.get('banner_image')
+        if 'cover_image' in request.FILES:
+            vp.cover_image = request.FILES.get('cover_image')
         if 'is_popular' in body:
             vp.is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
         vp.save()
@@ -1941,23 +1953,37 @@ def admin_flight_ticket_detail_api(request, pk):
 
 @admin_required_api
 def admin_bookings_api(request):
-    bookings = Booking.objects.all().order_by('-created_at')
+    bookings = Booking.objects.select_related('user', 'package').all().order_by('-created_at')
     bookings_data = []
     for b in bookings:
+        username = (b.user.username if b.user else None) or b.full_name or 'Guest User'
+        email = (b.user.email if b.user else None) or b.email or 'N/A'
+        full_name = b.full_name or (b.user.get_full_name() if (b.user and b.user.get_full_name()) else username)
+        phone = getattr(b, 'phone_number', '') or (b.user.phone if (b.user and hasattr(b.user, 'phone')) else '') or 'N/A'
+        is_registered = b.user is not None
+        user_role = b.user.get_role_display() if (b.user and hasattr(b.user, 'get_role_display')) else ('Registered User' if b.user else 'Guest Pilgrim')
+
         bookings_data.append({
             'id': b.id,
-            'username': b.user.username,
-            'email': b.user.email,
+            'pnr': b.pnr or '',
+            'full_name': full_name,
+            'username': username,
+            'email': email,
+            'phone': phone,
+            'is_registered': is_registered,
+            'user_role': user_role,
             'package_title': b.package.title if b.package else 'Custom Booking',
-            'booking_type': b.booking_type,
+            'booking_type': getattr(b, 'booking_type', 'package') or 'package',
             'sharing_category': getattr(b, 'sharing_category', 'Quad') or 'Quad',
             'adults_count': getattr(b, 'adults_count', 1) or 1,
             'children_count': getattr(b, 'children_count', 0) or 0,
+            'infants_count': getattr(b, 'infants_count', 0) or 0,
+            'selected_addons': getattr(b, 'selected_addons', []) or [],
             'discount_applied': str(getattr(b, 'discount_applied', 0.0) or 0.0),
             'notes': getattr(b, 'notes', '') or '',
             'status': b.status,
-            'total_price': str(b.total_price),
-            'created_at': b.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'total_price': str(b.total_price) if b.total_price is not None else '0.00',
+            'created_at': b.created_at.strftime('%Y-%m-%d %H:%M:%S') if b.created_at else '',
         })
     return JsonResponse({'bookings': bookings_data})
 
@@ -3763,7 +3789,7 @@ def submit_package_booking_api(request):
 
 @csrf_exempt
 def submit_visa_application_api(request):
-    from apps.visa.models import VisaApplication
+    from apps.visa.models import VisaApplication, VisaPackage
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
@@ -3776,37 +3802,55 @@ def submit_visa_application_api(request):
         except Exception:
             body = request.POST
             
-        country_with_price = body.get('country', '').strip()
-        passport_number = body.get('passport_number', '').strip()
-        name = body.get('name', '').strip()
+        country_input = body.get('country', '').strip()
+        name = (body.get('full_name') or body.get('name') or '').strip()
         email = body.get('email', '').strip()
+        phone = body.get('phone', '').strip()
+        address = body.get('address', '').strip()
+        passport_number = body.get('passport_number', '').strip()
+        price = body.get('price') or None
+        package_id = body.get('visa_package_id') or body.get('package_id')
+        notes = body.get('notes') or body.get('additional_notes') or ''
         
-        if not country_with_price or not passport_number:
-            return JsonResponse({'success': False, 'message': 'Country and Passport Number are required.'}, status=400)
+        if not country_input and not package_id:
+            return JsonResponse({'success': False, 'message': 'Destination country or visa package is required.'}, status=400)
             
-        user = request.user
-        if not user.is_authenticated:
-            if email:
-                user = User.objects.filter(email__iexact=email).first()
-                if not user:
-                    import time
-                    username = email.split('@')[0] + '_' + str(int(time.time()))[-4:]
-                    user = User.objects.create_user(username=username, email=email, first_name=name or 'Applicant')
-            else:
-                return JsonResponse({'success': False, 'message': 'Authentication required. Please login to submit a visa application.'}, status=401)
+        visa_package = None
+        if package_id:
+            visa_package = VisaPackage.objects.filter(id=package_id).first()
+            if visa_package and not country_input:
+                country_input = visa_package.country
 
-        country = country_with_price.split('(')[0].split('Tourist')[0].split('Visit')[0].strip()
+        country = country_input.split('(')[0].split('Tourist')[0].split('Visit')[0].strip() if country_input else 'General Visit Visa'
         
+        if visa_package and not price:
+            price = visa_package.price
+
+        user = request.user if (request.user and request.user.is_authenticated) else None
+        if not user and email:
+            user = User.objects.filter(email__iexact=email).first()
+            if not user:
+                import time
+                username = email.split('@')[0] + '_' + str(int(time.time()))[-4:]
+                user = User.objects.create_user(username=username, email=email, first_name=name or 'Applicant')
+
         visa = VisaApplication.objects.create(
             user=user,
+            visa_package=visa_package,
             country=country,
+            full_name=name,
+            email=email,
+            phone=phone,
+            address=address,
             passport_number=passport_number,
+            price=price if price else None,
+            additional_notes=notes,
             status='pending'
         )
         return JsonResponse({
             'success': True,
             'visa_id': visa.id,
-            'tracking_id': f"GSA-V-{visa.id}",
+            'tracking_id': f"GSA-V-{visa.id:06d}",
             'message': 'Visa application submitted successfully!'
         })
     except Exception as e:
@@ -3885,14 +3929,16 @@ def submit_flight_ticket_booking_api(request):
             
         ticket_id = body.get('ticket_id')
         passenger_name = body.get('passenger_name', '').strip()
+        email = body.get('email', '').strip()
         phone = body.get('phone', '').strip()
         passport_number = body.get('passport_number', '').strip()
+        address = body.get('address', '').strip()
         travel_date = body.get('travel_date', '').strip()
         seats_count = int(body.get('seats_count', 1))
         baggage_tier = body.get('baggage_tier', '30 kg').strip()
-        unit_price = float(body.get('selected_price') or ticket_offer.price if 'ticket_offer' in locals() else body.get('selected_price', 0))
         
         ticket_offer = FlightTicketOffer.objects.get(id=ticket_id)
+        unit_price = float(body.get('selected_price') or ticket_offer.price)
         
         if ticket_offer.available_seats < seats_count:
             return JsonResponse({'success': False, 'message': f'Only {ticket_offer.available_seats} seat(s) available on this flight.'}, status=400)
@@ -3902,12 +3948,23 @@ def submit_flight_ticket_booking_api(request):
             
         total_fare = unit_price * seats_count
         
+        booking_user = request.user if request.user.is_authenticated else None
+        user_email = (request.user.email if request.user.is_authenticated and request.user.email else email) or email
+        
+        if not booking_user and email:
+            existing_user = User.objects.filter(email__iexact=email).first()
+            if existing_user:
+                booking_user = existing_user
+        
         booking = Booking.objects.create(
-            user=request.user,
+            user=booking_user,
+            full_name=passenger_name or (request.user.get_full_name() if request.user.is_authenticated else 'Guest Passenger'),
+            email=user_email,
+            phone_number=phone,
             booking_type='flight',
             status='pending',
             adults_count=seats_count,
-            notes=f"Airline: {ticket_offer.airline_name} ({ticket_offer.flight_number}) | Baggage Tier: {baggage_tier} | Passenger: {passenger_name} | Passport: {passport_number} | Travel Date: {travel_date} | Phone: {phone}",
+            notes=f"Airline: {ticket_offer.airline_name} ({ticket_offer.flight_number}) | Baggage Tier: {baggage_tier} | Passenger: {passenger_name} | Email: {user_email} | Phone: {phone} | Address: {address} | Passport: {passport_number} | Travel Date: {travel_date}",
             total_price=total_fare
         )
         
@@ -3917,8 +3974,9 @@ def submit_flight_ticket_booking_api(request):
         
         tracking_id = f"GSA-FLT-{booking.id}"
         
-        # B2B Agent Commission & Email Notification
-        process_b2b_agent_commission_and_email(request.user, tracking_id, f"Flight Ticket ({ticket_offer.airline_name})", seats_count, total_fare)
+        # B2B Agent Commission & Email Notification (if logged in as agent)
+        if request.user.is_authenticated:
+            process_b2b_agent_commission_and_email(request.user, tracking_id, f"Flight Ticket ({ticket_offer.airline_name})", seats_count, total_fare)
         
         # Email Notification
         try:
@@ -3927,7 +3985,7 @@ def submit_flight_ticket_booking_api(request):
 
             subject_user = f"✈️ Flight Ticket Reservation - {ticket_offer.airline_name} [{tracking_id}]"
             message_user = (
-                f"Assalamu Alaikum {passenger_name or request.user.username},\n\n"
+                f"Assalamu Alaikum {passenger_name or 'Valued Customer'},\n\n"
                 f"Your flight seat reservation request has been submitted successfully!\n\n"
                 f"--- FLIGHT RESERVATION SUMMARY ---\n"
                 f"Tracking Reference: {tracking_id}\n"
@@ -3939,15 +3997,15 @@ def submit_flight_ticket_booking_api(request):
                 f"Passenger Name: {passenger_name}\n"
                 f"Passport Number: {passport_number}\n\n"
                 f"Our ticketing agent will contact you shortly on {phone} to issue your official e-ticket.\n\n"
-                f"Warm regards,\nGlobal Travel Agency"
+                f"Warm regards,\nGolden Star Travel Agency"
             )
             
-            if request.user.email:
+            if user_email:
                 send_mail(
                     subject_user,
                     message_user,
                     getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@travelagency.com'),
-                    [request.user.email],
+                    [user_email],
                     fail_silently=True
                 )
         except Exception as mail_err:

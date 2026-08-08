@@ -1,15 +1,22 @@
 from django.shortcuts import render, get_object_or_404
+from django.apps import apps
 from .models import Flight, FlightTicket, AirlinePartner, FlightTicketOffer
-from apps.airline_ticketing.models import Sector, Airline
 
 def flight_list_view(request):
+    try:
+        Sector = apps.get_model('airline_ticketing', 'Sector')
+        Airline = apps.get_model('airline_ticketing', 'Airline')
+    except Exception:
+        Sector, Airline = None, None
+
     flights = Flight.objects.filter(is_active=True).prefetch_related('tickets')
     partners = AirlinePartner.objects.filter(is_active=True)
     flight_tickets = list(FlightTicketOffer.objects.all().order_by('-is_popular', 'price'))
-    master_airlines = list(Airline.objects.filter(is_active=True))
+    
+    master_airlines = list(Airline.objects.filter(is_active=True)) if Airline else []
     
     # Map logo to tickets if ticket.airline_logo is missing
-    airline_logo_map = {a.name.lower(): a.logo.url for a in master_airlines if a.logo}
+    airline_logo_map = {a.name.lower(): a.logo.url for a in master_airlines if getattr(a, 'logo', None)}
     for ticket in flight_tickets:
         if not ticket.airline_logo and ticket.airline_name.lower() in airline_logo_map:
             ticket.airline_logo = airline_logo_map[ticket.airline_name.lower()]
@@ -23,7 +30,7 @@ def flight_list_view(request):
     destination_cities = list(FlightTicketOffer.objects.values_list('destination_city', flat=True).distinct())
     
     # Active sectors from sector master table
-    sectors = list(Sector.objects.filter(is_active=True))
+    sectors = list(Sector.objects.filter(is_active=True)) if Sector else []
     
     # Also form sector routes from flight tickets
     sector_routes = set()

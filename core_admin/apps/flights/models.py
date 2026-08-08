@@ -86,6 +86,24 @@ class FlightSector(models.Model):
     def __str__(self):
         return f"Sector {self.order}: {self.departure_city} ({self.departure_airport_code}) -> {self.arrival_city} ({self.arrival_airport_code})"
 
+    @property
+    def dep_time_str(self):
+        if self.departure_datetime:
+            return self.departure_datetime.strftime('%I:%M %p')
+        return '00:00'
+
+    @property
+    def arr_time_str(self):
+        if self.arrival_datetime:
+            return self.arrival_datetime.strftime('%I:%M %p')
+        return '00:00'
+
+    @property
+    def dep_date_str(self):
+        if self.departure_datetime:
+            return self.departure_datetime.strftime('%d %b %Y')
+        return ''
+
 
 class FlightTicketOffer(models.Model):
     CLASS_CHOICES = (

@@ -252,48 +252,74 @@
                     </div>
                 </div>
 
-                <!-- Middle: High-Contrast Itinerary Route Box -->
-                <div class="lg:w-2/5 bg-slate-950 text-white rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-inner border border-white/10 flex flex-col justify-between">
-                    <div class="flex items-center justify-between relative z-10">
-                        <!-- Departure Origin -->
-                        <div class="text-left">
-                            <span class="text-2xl font-black text-white tracking-tight block">{{ ticket.departure_airport_code }}</span>
-                            <span class="text-xs font-semibold text-slate-300 block max-w-[110px] truncate"><i class="fa-solid fa-location-dot text-brand-orange text-[10px] mr-1"></i>{{ ticket.departure_city }}</span>
-                            <span class="text-[11px] text-amber-400 font-bold block mt-1.5 flex items-center gap-1"><i class="fa-solid fa-clock text-[10px]"></i> {{ ticket.departure_time_str }}</span>
-                        </div>
+                <!-- Middle: High-Contrast Itinerary Sectors Box -->
+                <div class="lg:w-2/5 bg-slate-950 text-white rounded-2xl p-4 sm:p-5 relative overflow-hidden shadow-inner border border-white/10 flex flex-col justify-between space-y-3">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-1">
+                        <span class="text-[10px] font-black text-brand-orange uppercase tracking-widest flex items-center gap-1.5">
+                            <i class="fa-solid fa-route"></i> Flight Itinerary &amp; Sectors ({{ ticket.get_effective_sectors|length }} Sector{% if ticket.get_effective_sectors|length > 1 %}s{% endif %})
+                        </span>
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-white/10 text-slate-300 uppercase">
+                            {{ ticket.get_flight_route_type_display|default:ticket.get_trip_type_display }}
+                        </span>
+                    </div>
 
-                        <!-- Route Flight Path Vector -->
-                        <div class="flex-1 text-center px-4 flex flex-col items-center justify-between min-h-[70px]">
-                            <!-- Duration Header Text -->
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">
-                                <i class="fa-solid fa-hourglass-half text-[9px] mr-1 text-brand-orange"></i>{{ ticket.duration_str }}
-                            </span>
-                            
-                            <!-- Justified Center Vector Line with Airplane Badge -->
-                            <div class="w-full relative flex items-center justify-center my-2 py-1">
-                                <div class="w-full h-0.5 bg-gradient-to-r from-brand-orange/40 via-amber-400/60 to-emerald-400/40 rounded-full"></div>
-                                <div class="w-7 h-7 rounded-full bg-slate-900 border border-brand-orange/60 flex items-center justify-center absolute shadow-lg z-10">
-                                    <i class="fa-solid fa-plane text-brand-orange text-xs"></i>
-                                </div>
+                    <!-- Loop through all sectors submitted by Admin -->
+                    <div class="space-y-3.5 max-h-[240px] overflow-y-auto pr-1">
+                        {% for sec in ticket.get_effective_sectors %}
+                        <div class="bg-white/5 border border-white/10 rounded-xl p-3 hover:border-brand-orange/40 transition-colors">
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 font-extrabold mb-1.5 border-b border-white/5 pb-1">
+                                <span class="text-amber-400 flex items-center gap-1">
+                                    <i class="fa-solid fa-plane-up text-brand-orange"></i> Sector #{{ forloop.counter }}
+                                    {% if sec.label %}<span class="text-slate-300 font-semibold">• {{ sec.label }}</span>{% endif %}
+                                </span>
+                                <span class="font-mono text-slate-300 font-bold bg-white/10 px-1.5 py-0.5 rounded">
+                                    {{ sec.airline_name|default:ticket.airline_name }} {{ sec.flight_number|default:ticket.flight_number }}
+                                </span>
                             </div>
 
-                            <!-- Flight Type Subtitle Text -->
-                            <span class="text-[9px] font-bold text-emerald-400 block mt-1 uppercase tracking-widest">
-                                {% if ticket.flight_type == 'direct' %}Non-Stop Flight{% else %}Transit Via Route{% endif %}
-                            </span>
-                        </div>
+                            <div class="flex items-center justify-between">
+                                <!-- Departure Origin -->
+                                <div class="text-left">
+                                    <span class="text-xl font-black text-white tracking-tight block">{{ sec.departure_airport_code|default:ticket.departure_airport_code }}</span>
+                                    <span class="text-[11px] font-semibold text-slate-300 block max-w-[100px] truncate" title="{{ sec.departure_city }}">
+                                        <i class="fa-solid fa-location-dot text-brand-orange text-[9px] mr-1"></i>{{ sec.departure_city }}
+                                    </span>
+                                    <span class="text-[10px] text-amber-400 font-bold block mt-0.5 font-mono">
+                                        <i class="fa-solid fa-clock text-[9px] mr-0.5"></i> {{ sec.dep_time_str|default:ticket.departure_time_str }}
+                                    </span>
+                                </div>
 
-                        <!-- Arrival Destination -->
-                        <div class="text-right">
-                            <span class="text-2xl font-black text-white tracking-tight block">{{ ticket.destination_airport_code }}</span>
-                            <span class="text-xs font-semibold text-slate-300 block max-w-[110px] truncate"><i class="fa-solid fa-location-dot text-emerald-400 text-[10px] mr-1"></i>{{ ticket.destination_city }}</span>
-                            <span class="text-[11px] text-amber-400 font-bold block mt-1.5 flex items-center gap-1 justify-end"><i class="fa-solid fa-clock text-[10px]"></i> {{ ticket.arrival_time_str }}</span>
+                                <!-- Flight Path Vector -->
+                                <div class="flex-1 text-center px-3 flex flex-col items-center justify-center">
+                                    <div class="w-full relative flex items-center justify-center py-1">
+                                        <div class="w-full h-0.5 bg-gradient-to-r from-brand-orange/50 via-amber-400/70 to-emerald-400/50 rounded-full"></div>
+                                        <div class="w-6 h-6 rounded-full bg-slate-900 border border-brand-orange/60 flex items-center justify-center absolute shadow-md z-10">
+                                            <i class="fa-solid fa-plane text-brand-orange text-[10px]"></i>
+                                        </div>
+                                    </div>
+                                    {% if sec.dep_date_str %}
+                                        <span class="text-[9px] text-slate-400 font-mono block mt-0.5"><i class="fa-regular fa-calendar-days text-[8px] mr-0.5"></i>{{ sec.dep_date_str }}</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Arrival Destination -->
+                                <div class="text-right">
+                                    <span class="text-xl font-black text-white tracking-tight block">{{ sec.arrival_airport_code|default:ticket.destination_airport_code }}</span>
+                                    <span class="text-[11px] font-semibold text-slate-300 block max-w-[100px] truncate" title="{{ sec.arrival_city }}">
+                                        <i class="fa-solid fa-location-dot text-emerald-400 text-[9px] mr-1"></i>{{ sec.arrival_city }}
+                                    </span>
+                                    <span class="text-[10px] text-amber-400 font-bold block mt-0.5 font-mono">
+                                        <i class="fa-solid fa-clock text-[9px] mr-0.5"></i> {{ sec.arr_time_str|default:ticket.arrival_time_str }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
 
                     {% if ticket.via_routes %}
-                        <div class="mt-3 pt-2 border-t border-white/10 text-[10px] text-slate-300 font-mono flex items-center gap-1.5">
-                            <i class="fa-solid fa-route text-brand-orange"></i> <span class="text-amber-400 font-bold uppercase">Via Routes:</span> {{ ticket.via_routes }}
+                        <div class="pt-1.5 border-t border-white/10 text-[10px] text-slate-300 font-mono flex items-center gap-1.5">
+                            <i class="fa-solid fa-route text-brand-orange"></i> <span class="text-amber-400 font-bold uppercase">Via Route:</span> {{ ticket.via_routes }}
                         </div>
                     {% endif %}
                 </div>
@@ -390,21 +416,30 @@
 
             <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Full Passenger Name *</label>
-                <input type="text" id="book-passenger-name" required placeholder="e.g. Muhammad Ali" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+                <input type="text" id="book-passenger-name" required placeholder="e.g. Muhammad Ali" value="{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Email Address *</label>
+                    <input type="email" id="book-email" required placeholder="passenger@email.com" value="{% if user.is_authenticated %}{{ user.email }}{% endif %}" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+                </div>
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Phone / WhatsApp *</label>
-                    <input type="text" id="book-phone" required placeholder="e.g. 0300-1234567" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+                    <input type="tel" id="book-phone" required placeholder="e.g. 0300-1234567" value="{% if user.is_authenticated %}{{ user.phone|default:'' }}{% endif %}" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
                 </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Full Residential Address</label>
+                <input type="text" id="book-address" placeholder="House / Street Address, City, Pakistan" value="{% if user.is_authenticated %}{{ user.address|default:'' }}{% endif %}" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Passport Number *</label>
                     <input type="text" id="book-passport" required placeholder="e.g. AA1234567" class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
                 </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Travel Date *</label>
                     <input type="date" id="book-travel-date" required class="w-full bg-slate-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-orange">
@@ -417,7 +452,9 @@
 
             <div class="border-t border-white/5 pt-4 flex justify-end gap-2">
                 <button type="button" onclick="closeBookingModal()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl text-xs transition-all border border-white/10">Cancel</button>
-                <button type="submit" class="px-5 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold rounded-xl text-xs transition-all shadow-lg">Confirm Ticket Booking</button>
+                <button type="submit" class="px-5 py-2 bg-brand-orange hover:bg-brand-orange-dark text-white font-bold rounded-xl text-xs transition-all shadow-lg flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> Confirm Ticket Booking
+                </button>
             </div>
         </form>
     </div>
@@ -503,8 +540,6 @@
         applyFlightFilters();
     }
 
-    const IS_USER_LOGGED_IN = {% if user.is_authenticated %}true{% else %}false{% endif %};
-
     function updateTicketCardBaggagePrice(ticketId, selectEl) {
         const val = parseFloat(selectEl.value || 0);
         const opt = selectEl.options[selectEl.selectedIndex];
@@ -520,11 +555,6 @@
     }
 
     function openBookingModal(id, airline, flightNum, dep, dest, defaultPrice) {
-        if (!IS_USER_LOGGED_IN) {
-            alert("🔒 Account Required!\n\nYou must log in or create an account before booking flight seats.\n\nClick OK to log in.");
-            window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
-            return;
-        }
         const baggageTier = selectedFlightBaggage[id] || '20 kg';
         const price = selectedFlightPrices[id] || defaultPrice;
 
@@ -542,15 +572,12 @@
 
     async function submitFlightTicketBooking(e) {
         e.preventDefault();
-        if (!IS_USER_LOGGED_IN) {
-            alert("🔒 Account Required! Please log in to complete your booking.");
-            window.location.href = "{% url 'login' %}?next=" + encodeURIComponent(window.location.pathname);
-            return;
-        }
 
         const ticket_id = document.getElementById('modal-ticket-id').value;
         const passenger_name = document.getElementById('book-passenger-name').value;
+        const email = document.getElementById('book-email') ? document.getElementById('book-email').value : '';
         const phone = document.getElementById('book-phone').value;
+        const address = document.getElementById('book-address') ? document.getElementById('book-address').value : '';
         const passport_number = document.getElementById('book-passport').value;
         const travel_date = document.getElementById('book-travel-date').value;
         const seats_count = parseInt(document.getElementById('book-seats-count').value) || 1;
@@ -567,7 +594,9 @@
                 body: JSON.stringify({
                     ticket_id,
                     passenger_name,
+                    email,
                     phone,
+                    address,
                     passport_number,
                     travel_date,
                     seats_count,
@@ -575,6 +604,8 @@
                     selected_price
                 })
             });
+
+            const data = await res.json();
 
             if (res.ok && data.success) {
                 closeBookingModal();

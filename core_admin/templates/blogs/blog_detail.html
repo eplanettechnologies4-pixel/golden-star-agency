@@ -2,14 +2,14 @@
 {% load static %}
 
 {% block title %}{{ post.title }} | Golden Star Agency Blog{% endblock %}
-{% block meta_description %}{% if post.excerpt %}{{ post.excerpt|strip_tags|truncatechars:155 }}{% else %}{{ post.body|strip_tags|truncatechars:155 }}{% endif %}{% endblock %}
+{% block meta_description %}{% if post.excerpt %}{{ post.excerpt|striptags|truncatechars:155 }}{% else %}{{ post.body|striptags|truncatechars:155 }}{% endif %}{% endblock %}
 
 {% block og_title %}{{ post.title }} | Golden Star Agency Blog{% endblock %}
-{% block og_description %}{% if post.excerpt %}{{ post.excerpt|strip_tags|truncatechars:155 }}{% else %}{{ post.body|strip_tags|truncatechars:155 }}{% endif %}{% endblock %}
+{% block og_description %}{% if post.excerpt %}{{ post.excerpt|striptags|truncatechars:155 }}{% else %}{{ post.body|striptags|truncatechars:155 }}{% endif %}{% endblock %}
 {% block og_image %}{% if post.cover_image %}{{ post.cover_image.url }}{% elif post.static_cover %}{% static 'images/' %}{{ post.static_cover }}{% else %}{% static 'images/blog_hajj.png' %}{% endif %}{% endblock %}
 
 {% block twitter_title %}{{ post.title }} | Golden Star Agency Blog{% endblock %}
-{% block twitter_description %}{% if post.excerpt %}{{ post.excerpt|strip_tags|truncatechars:155 }}{% else %}{{ post.body|strip_tags|truncatechars:155 }}{% endif %}{% endblock %}
+{% block twitter_description %}{% if post.excerpt %}{{ post.excerpt|striptags|truncatechars:155 }}{% else %}{{ post.body|striptags|truncatechars:155 }}{% endif %}{% endblock %}
 {% block twitter_image %}{% if post.cover_image %}{{ post.cover_image.url }}{% elif post.static_cover %}{% static 'images/' %}{{ post.static_cover }}{% else %}{% static 'images/blog_hajj.png' %}{% endif %}{% endblock %}
 
 {% block schema_markup %}
@@ -18,7 +18,7 @@
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": "{{ post.title|escapejs }}",
-  "description": "{% if post.excerpt %}{{ post.excerpt|strip_tags|truncatechars:150|escapejs }}{% else %}{{ post.body|strip_tags|truncatechars:150|escapejs }}{% endif %}",
+  "description": "{% if post.excerpt %}{{ post.excerpt|striptags|truncatechars:150|escapejs }}{% else %}{{ post.body|striptags|truncatechars:150|escapejs }}{% endif %}",
   "image": "{% if post.cover_image %}{{ request.scheme }}://{{ request.get_host }}{{ post.cover_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/blog_hajj.png' %}{% endif %}",
   "author": {
     "@type": "Person",
