@@ -1418,7 +1418,7 @@ def agent_group_fare_policies_api(request):
             'available_seats':          avail_seats,
             'min_group_size':           p.min_group_size,
             'discount_type':            p.discount_type,
-            'discount_type_display':     p.get_discount_type_display(),
+            'discount_type_display':    p.get_discount_type_display(),
             'discount_value':           float(p.discount_value),
             'baggage_weight_kg':        p.baggage_weight_kg,
             'return_baggage_weight_kg': p.return_baggage_weight_kg,
@@ -1456,10 +1456,8 @@ def admin_group_fare_policies_api(request):
                 a_seats = fi.available_seats
                 ret_d_time = fi.return_departure_time or ''
                 ret_a_time = fi.return_arrival_time or ''
-                # AirlineFlightInventory has no base_fare; use the policy's own base_fare
-                # or fall back to the linked baggage tier fare
                 tier = fi.baggage_tiers.filter(weight_kg=p.baggage_weight_kg).first() or fi.baggage_tiers.first()
-                b_fare = float(tier.fare) if tier else (float(p.base_fare) if p.base_fare else 0.0)
+                b_fare = float(tier.fare) if tier else float(getattr(p, 'base_fare', None) or 0.0)
             else:
                 air_name = p.airline.name if p.airline else (p.airline_name_custom or 'Group Ticket')
                 air_logo = p.airline.logo.url if (p.airline and p.airline.logo) else ''
@@ -1475,15 +1473,18 @@ def admin_group_fare_policies_api(request):
                 a_seats = p.available_seats
                 ret_d_time = p.return_departure_time or ''
                 ret_a_time = p.return_arrival_time or ''
-                b_fare = float(p.base_fare) if p.base_fare else 0.0
+                b_fare = float(getattr(p, 'base_fare', None) or 0.0)
 
-            if p.group_fare_override is not None and p.group_fare_override > 0:
-                g_fare = float(p.group_fare_override)
+            group_override = getattr(p, 'group_fare_override', None)
+            if group_override is not None and float(group_override) > 0:
+                g_fare = float(group_override)
             elif p.discount_type == 'percentage':
                 disc_amt = (b_fare * float(p.discount_value)) / 100.0
                 g_fare = max(0.0, b_fare - disc_amt)
             else:
                 g_fare = max(0.0, b_fare - float(p.discount_value))
+
+            route_sec = getattr(p, 'route_sectors', None) or p.sectors_data or []
 
             data.append({
                 'id':                       p.id,
@@ -1510,11 +1511,11 @@ def admin_group_fare_policies_api(request):
                 'baggage_weight_kg':        p.baggage_weight_kg,
                 'return_baggage_weight_kg': p.return_baggage_weight_kg,
                 'base_fare':                round(b_fare, 2),
-                'group_fare_override':      float(p.group_fare_override) if p.group_fare_override is not None else None,
+                'group_fare_override':      float(group_override) if group_override is not None else None,
                 'group_fare':               round(g_fare, 2),
-                'route_sectors':            p.route_sectors or [],
+                'route_sectors':            route_sec,
                 'is_active':                p.is_active,
-                'route_display':            f"{air_name} — {dep} → {dest}",
+                'route_display':            f"{air_name} — {dep} ➔ {dest}",
                 'sectors_data':             p.sectors_data or (fi.sectors_data if fi else {}),
             })
         return JsonResponse({'success': True, 'policies': data})
@@ -1875,13 +1876,16 @@ def agent_group_fare_policies_api(request):
         t_seats = p.total_seats if fi is None else fi.total_seats
         a_seats = p.available_seats if fi is None else max(0, fi.total_seats - fi.booked_seats)
 
-        b_fare = float(p.base_fare or (fi.base_fare if fi else 0))
-        if p.group_fare_override is not None and float(p.group_fare_override) > 0:
-            g_fare = float(p.group_fare_override)
+        b_fare = float(getattr(p, 'base_fare', None) or (fi.base_fare if (fi and hasattr(fi, 'base_fare')) else 0))
+        group_override = getattr(p, 'group_fare_override', None)
+        if group_override is not None and float(group_override) > 0:
+            g_fare = float(group_override)
         elif p.discount_type == 'percentage':
             g_fare = max(0.0, b_fare - (b_fare * float(p.discount_value) / 100.0))
         else:
             g_fare = max(0.0, b_fare - float(p.discount_value))
+
+        route_sec = getattr(p, 'route_sectors', None) or p.sectors_data or []
 
         data.append({
             'id':                       p.id,
@@ -1907,9 +1911,9 @@ def agent_group_fare_policies_api(request):
             'baggage_weight_kg':        p.baggage_weight_kg,
             'return_baggage_weight_kg': p.return_baggage_weight_kg,
             'base_fare':                round(b_fare, 2),
-            'group_fare_override':      float(p.group_fare_override) if p.group_fare_override is not None else None,
+            'group_fare_override':      float(group_override) if group_override is not None else None,
             'group_fare':               round(g_fare, 2),
-            'route_sectors':            p.route_sectors or [],
+            'route_sectors':            route_sec,
             'is_active':                p.is_active,
             'route_display':            f"{air_name} — {dep} ➔ {dest}",
             'sectors_data':             p.sectors_data or (fi.sectors_data if fi else {}),
