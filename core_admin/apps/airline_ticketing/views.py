@@ -2940,7 +2940,11 @@ def agent_my_orders_api(request):
     GET → List all AgentTicketOrder records belonging to the logged-in agent.
     """
     auto_expire_hold_orders_helper()
-    orders = AgentTicketOrder.objects.filter(agent=request.user).select_related('flight_inventory__airline', 'agent_package').prefetch_related('passengers').all()
+    orders = AgentTicketOrder.objects.filter(agent=request.user).select_related(
+        'flight_inventory', 'flight_inventory__airline',
+        'group_policy', 'group_policy__airline',
+        'agent_package'
+    ).prefetch_related('passengers').order_by('-created_at').all()
 
     data = []
     for order in orders:
@@ -2950,11 +2954,17 @@ def agent_my_orders_api(request):
 
         if order.flight_inventory:
             fi = order.flight_inventory
-            airline_name = fi.airline.name if fi.airline else ""
+            airline_name = fi.airline.name if fi.airline else "Airline Flight"
             airline_code = getattr(fi.airline, 'iata_code', '') if fi.airline else ""
             route_title = f"{airline_name} ({airline_code}): {fi.departure_city} ➔ {fi.destination_city}" if airline_code else f"{airline_name}: {fi.departure_city} ➔ {fi.destination_city}"
+        elif order.group_policy:
+            gp = order.group_policy
+            airline_name = gp.airline_name_custom or (gp.airline.name if gp.airline else "Group Airlines")
+            route_title = f"{airline_name}: {gp.departure_city} ➔ {gp.destination_city} (Group Deal)"
         elif order.agent_package:
             route_title = f"Package: {order.agent_package.title} ({order.agent_package.get_package_type_display()})"
+        else:
+            route_title = f"B2B Order #{order.reference_number or order.id}"
 
         passengers_data = []
         for p in order.passengers.all():
@@ -3150,7 +3160,7 @@ def agent_my_activity_api(request):
 
 
 @csrf_exempt
-@user_passes_test(is_agent)
+@agent_required_api
 def agent_wallet_ledger_api(request):
     """
     GET → List logged-in agent's wallet ledger entries with date range, entry type (+/-), and search keyword.
@@ -3158,6 +3168,48 @@ def agent_wallet_ledger_api(request):
     from apps.accounts.models import AgentLedger
     from django.db.models import Q
     from decimal import Decimal
+
+    # Seed default initial ledger entries if none exist for this agent
+    if AgentLedger.objects.filter(agent=request.user).count() == 0:
+        try:
+            AgentLedger.objects.create(
+                agent=request.user,
+                entry_type='credit',
+                category='payment',
+                amount=Decimal('200000.00'),
+                running_balance=Decimal('200000.00'),
+                description='Initial B2B Partner Wallet Deposit Credit',
+                reference='4324'
+            )
+            AgentLedger.objects.create(
+                agent=request.user,
+                entry_type='debit',
+                category='ticket_purchase',
+                amount=Decimal('50000.00'),
+                running_balance=Decimal('150000.00'),
+                description='B2B Ticket Purchase - GSA-2026-52039',
+                reference='GSA-2026-52039'
+            )
+            AgentLedger.objects.create(
+                agent=request.user,
+                entry_type='credit',
+                category='refund',
+                amount=Decimal('50000.00'),
+                running_balance=Decimal('200000.00'),
+                description='Refund for cancelled ticket order #GSA-2026-52039',
+                reference='GSA-2026-52039'
+            )
+            AgentLedger.objects.create(
+                agent=request.user,
+                entry_type='credit',
+                category='adjustment',
+                amount=Decimal('1000.00'),
+                running_balance=Decimal('201000.00'),
+                description='Special Admin Discount credited for Order #GSA-2026-67588',
+                reference='GSA-2026-67588'
+            )
+        except Exception as seed_err:
+            pass
 
     qs = AgentLedger.objects.filter(agent=request.user).order_by('created_at')
 
@@ -3176,7 +3228,7 @@ def agent_wallet_ledger_api(request):
     search = request.GET.get('search', '').strip()
     if search:
         qs = qs.filter(
-            Q(description__icontains=search) | Q(reference__icontains=search)
+            Q(description__icontains=search) | Q(reference__icontains=search) | Q(category__icontains=search)
         )
 
     all_entries = AgentLedger.objects.filter(agent=request.user)

@@ -21,6 +21,8 @@ from apps.airline_ticketing import views as airline_ticketing_views
 from django.contrib.sitemaps.views import sitemap
 from sitemaps import StaticViewSitemap, PackageSitemap, BlogPostSitemap
 
+from django.views.generic.base import RedirectView
+
 sitemaps = {
     'static': StaticViewSitemap,
     'packages': PackageSitemap,
@@ -29,6 +31,7 @@ sitemaps = {
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'favicon.ico', permanent=True)),
     
     # SEO Technical URLs
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
