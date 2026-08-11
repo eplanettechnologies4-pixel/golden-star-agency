@@ -3868,38 +3868,23 @@
             const container = document.getElementById('container-agent-hajj-accommodations');
             if (!container) return;
 
-            const selectedCity = stayData.city || 'makkah';
-            const selectedHotelId = stayData.hotel_id ? String(stayData.hotel_id) : '';
-            const manualHotelName = stayData.manual_hotel_name || '';
-            const manualHotelDistance = stayData.manual_hotel_distance || '';
+            const manualHotelName = stayData.manual_hotel_name || stayData.hotel_name || '';
+            const manualHotelDistance = stayData.manual_hotel_distance || stayData.hotel_distance || '';
             const nights = stayData.nights || 10;
 
             const rowDiv = document.createElement('div');
             rowDiv.className = 'agent-hajj-acc-row flex flex-wrap items-center gap-2 bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-sm';
 
             rowDiv.innerHTML = `
-                <div class="w-full sm:w-28">
-                    <label class="block text-[9px] font-bold text-[#567946] uppercase">City</label>
-                    <select onchange="onAgentHajjAccommodationCityChange(this)" class="acc-city-select w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-bold text-[#2D4424]">
-                        <option value="makkah" ${selectedCity === 'makkah' ? 'selected' : ''}>Makkah</option>
-                        <option value="madinah" ${selectedCity === 'madinah' ? 'selected' : ''}>Madinah</option>
-                    </select>
-                </div>
                 <div class="w-full sm:flex-1">
-                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Hotel (Master Catalog)</label>
-                    <select class="acc-hotel-select w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-semibold text-[#1F2E1A]">
-                        <option value="">-- Select Catalog Hotel --</option>
-                    </select>
+                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Hotel Name</label>
+                    <input type="text" value="${escapeHTML(manualHotelName)}" placeholder="e.g. Anjum Hotel Makkah / Azizia Building" class="acc-manual-hotel-name w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-bold text-[#2D4424]">
                 </div>
-                <div class="w-full sm:flex-1">
-                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Or Manual Hotel Name</label>
-                    <input type="text" value="${escapeHTML(manualHotelName)}" placeholder="e.g. Azizia Building / Custom" class="acc-manual-hotel-name w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
-                </div>
-                <div class="w-full sm:w-28">
-                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Manual Distance</label>
+                <div class="w-full sm:w-44">
+                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Distance from Haram</label>
                     <input type="text" value="${escapeHTML(manualHotelDistance)}" placeholder="e.g. 500m / Shifting" class="acc-manual-hotel-dist w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
                 </div>
-                <div class="w-full sm:w-20">
+                <div class="w-full sm:w-24">
                     <label class="block text-[9px] font-bold text-[#567946] uppercase">Nights</label>
                     <input type="number" min="1" value="${nights}" class="acc-nights-input w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
                 </div>
@@ -3911,32 +3896,6 @@
             `;
 
             container.appendChild(rowDiv);
-            const citySelect = rowDiv.querySelector('.acc-city-select');
-            populateHajjRowHotelDropdown(rowDiv, citySelect.value, selectedHotelId);
-        }
-
-        function populateHajjRowHotelDropdown(rowDiv, city, selectedHotelId = '') {
-            const hotelSelect = rowDiv.querySelector('.acc-hotel-select');
-            if (!hotelSelect) return;
-
-            const hotels = window.windowAllAdminHotelsMaster || [];
-            const filteredHotels = hotels.filter(h => h.city === city);
-
-            let html = '<option value="">-- Select Catalog Hotel --</option>';
-            filteredHotels.forEach(h => {
-                const isSel = String(h.id) === String(selectedHotelId) ? 'selected' : '';
-                const distText = h.distance_from_haram ? ` (${h.distance_from_haram})` : '';
-                html += `<option value="${h.id}" ${isSel}>${escapeHTML(h.name)}${distText}</option>`;
-            });
-
-            hotelSelect.innerHTML = html;
-        }
-
-        function onAgentHajjAccommodationCityChange(selectElem) {
-            const rowDiv = selectElem.closest('.agent-hajj-acc-row');
-            if (rowDiv) {
-                populateHajjRowHotelDropdown(rowDiv, selectElem.value);
-            }
         }
 
         function removeAgentHajjAccommodationRow(btnElem) {
@@ -3955,12 +3914,11 @@
             const accommodations = [];
             stayRows.forEach(row => {
                 const city = row.querySelector('.acc-city-select')?.value || 'makkah';
-                const hotel_id = row.querySelector('.acc-hotel-select')?.value;
-                const manual_hotel_name = row.querySelector('.acc-manual-hotel-name')?.value || '';
-                const manual_hotel_distance = row.querySelector('.acc-manual-hotel-dist')?.value || '';
+                const manual_hotel_name = row.querySelector('.acc-manual-hotel-name')?.value?.trim() || '';
+                const manual_hotel_distance = row.querySelector('.acc-manual-hotel-dist')?.value?.trim() || '';
                 const nights = parseInt(row.querySelector('.acc-nights-input')?.value || '1', 10);
-                if (hotel_id || manual_hotel_name) {
-                    accommodations.push({ city, hotel_id, manual_hotel_name, manual_hotel_distance, nights });
+                if (manual_hotel_name) {
+                    accommodations.push({ city, manual_hotel_name, manual_hotel_distance, nights });
                 }
             });
 
@@ -7432,27 +7390,41 @@
                 tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-[#567946]">No visa packages in catalog. Add via "Publish Visa Package" button above.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = _b2cVisaCatalogData.map(vp => `
-                <tr class="hover:bg-[#F6FAF3] transition-colors">
-                    <td class="p-3 font-mono font-bold text-[#2D4424]">#${vp.id}</td>
-                    <td class="p-3 font-bold text-[#2D4424]">${vp.country}</td>
-                    <td class="p-3 text-[11px] text-[#567946]">${vp.visa_type}</td>
-                    <td class="p-3 text-[11px] text-[#2D4424]">${vp.processing_time}</td>
-                    <td class="p-3 font-mono font-black text-[#2D4424]">PKR ${Number(vp.price).toLocaleString('en-PK')}</td>
-                    <td class="p-3 capitalize text-[11px] text-[#567946]">${vp.entry_type}</td>
-                    <td class="p-3">${vp.is_popular ? '<span class="px-2 py-0.5 rounded-full bg-[#FDF2EA] text-[#E06A26] text-[10px] font-black border border-[#FCE2D2]">Popular</span>' : '<span class="text-[#D9CBAC] text-[10px]">—</span>'}</td>
-                    <td class="p-3">
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="openEditB2CVisaModal(${vp.id})" class="px-2.5 py-1 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-[10px] font-extrabold rounded-lg border border-[#D9CBAC] transition-all flex items-center gap-1 shadow-xs">
-                                <i class="fa-solid fa-pen text-[#E06A26]"></i> Edit
-                            </button>
-                            <button onclick="deleteB2CVisaPackage(${vp.id})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold rounded-lg border border-rose-200 transition-all flex items-center gap-1 shadow-xs">
-                                <i class="fa-solid fa-trash-alt"></i> Delete
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = _b2cVisaCatalogData.map(vp => {
+                const typeBadge = vp.is_multi_country
+                    ? `<span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200 text-[10px] font-black">🗺️ Trio / Multi-Tour</span>`
+                    : `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-bold">Single Visa</span>`;
+                
+                const popularBadge = vp.is_popular
+                    ? `<span class="px-2 py-0.5 rounded-full bg-[#FDF2EA] text-[#E06A26] text-[10px] font-black border border-[#FCE2D2]">Popular</span>`
+                    : `<span class="text-[#D9CBAC] text-[10px]">—</span>`;
+
+                const countryDisplay = vp.is_multi_country && vp.countries_included
+                    ? `<div class="font-bold text-[#2D4424]">${escapeHTML(vp.country)}</div><div class="text-[10px] text-[#E06A26] font-semibold">Includes: ${escapeHTML(vp.countries_included)}</div>`
+                    : `<div class="font-bold text-[#2D4424]">${escapeHTML(vp.country)}</div>`;
+
+                return `
+                    <tr class="hover:bg-[#F6FAF3] transition-colors">
+                        <td class="p-3 font-mono font-bold text-[#2D4424]">#${vp.id}</td>
+                        <td class="p-3">${countryDisplay}</td>
+                        <td class="p-3 text-[11px] text-[#567946]">${escapeHTML(vp.visa_type)}</td>
+                        <td class="p-3 text-[11px] text-[#2D4424]">${escapeHTML(vp.processing_time)}</td>
+                        <td class="p-3 font-mono font-black text-[#2D4424]">PKR ${Number(vp.price).toLocaleString('en-PK')}</td>
+                        <td class="p-3">${typeBadge}</td>
+                        <td class="p-3">${popularBadge}</td>
+                        <td class="p-3">
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="openEditB2CVisaModal(${vp.id})" class="px-2.5 py-1 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-[10px] font-extrabold rounded-lg border border-[#D9CBAC] transition-all flex items-center gap-1 shadow-xs">
+                                    <i class="fa-solid fa-pen text-[#E06A26]"></i> Edit
+                                </button>
+                                <button onclick="deleteB2CVisaPackage(${vp.id})" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] font-extrabold rounded-lg border border-rose-200 transition-all flex items-center gap-1 shadow-xs">
+                                    <i class="fa-solid fa-trash-alt"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         async function deleteB2CVisaPackage(id) {
@@ -7470,6 +7442,50 @@
             } catch(err) { alert('Network error deleting visa package.'); }
         }
 
+        function toggleVisaPackageType(isMulti, containerIdPrefix) {
+            const multiSec = document.getElementById(`${containerIdPrefix}-multi-section`);
+            const singleSec = document.getElementById(`${containerIdPrefix}-single-section`);
+            if (isMulti) {
+                if (multiSec) multiSec.classList.remove('hidden');
+                if (singleSec) singleSec.classList.add('hidden');
+            } else {
+                if (multiSec) multiSec.classList.add('hidden');
+                if (singleSec) singleSec.classList.remove('hidden');
+            }
+        }
+
+        function addVisaDestinationRow(destData = {}, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const cName = destData.country || '';
+            const sDays = destData.stay_days || '';
+            const vType = destData.visa_type || '';
+
+            const row = document.createElement('div');
+            row.className = 'visa-dest-row grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-2xs';
+            row.innerHTML = `
+                <div class="sm:col-span-4">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Destination Country Name</label>
+                    <input type="text" value="${escapeHTML(cName)}" placeholder="e.g. Dubai (UAE)" class="dest-country-input w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-bold text-[#2D4424]">
+                </div>
+                <div class="sm:col-span-3">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Stay Duration</label>
+                    <input type="text" value="${escapeHTML(sDays)}" placeholder="e.g. 7 Days" class="dest-stay-input w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-semibold text-[#2D4424]">
+                </div>
+                <div class="sm:col-span-4">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Visa Type / Entry Details</label>
+                    <input type="text" value="${escapeHTML(vType)}" placeholder="e.g. 30-Day Tourist eVisa" class="dest-visa-input w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-semibold text-[#2D4424]">
+                </div>
+                <div class="sm:col-span-1 text-right pt-2 sm:pt-0">
+                    <button type="button" onclick="this.closest('.visa-dest-row').remove()" class="p-2 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs font-bold transition-all" title="Remove Destination">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
         function openAddB2CVisaModal() {
             let modal = document.getElementById('modal-add-b2c-visa');
             if (!modal) {
@@ -7480,53 +7496,90 @@
             }
 
             modal.innerHTML = `
-                <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 relative animate-fade-in max-h-[90vh] overflow-y-auto">
+                <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-4 relative animate-fade-in max-h-[90vh] overflow-y-auto">
                     <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
                         <h3 class="font-black text-[#2D4424] text-base flex items-center gap-2">
-                            <i class="fa-solid fa-plus-circle text-[#E06A26]"></i> Create New Visit Visa Package
+                            <i class="fa-solid fa-passport text-[#E06A26]"></i> Create Visit Visa / Trio Tour Package
                         </h3>
                         <button type="button" onclick="document.getElementById('modal-add-b2c-visa').style.display='none'" class="text-[#567946] hover:text-[#2D4424] text-lg font-bold">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
-                    <form onsubmit="submitAddB2CVisaPackage(event)" class="space-y-3 text-xs" enctype="multipart/form-data">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-extrabold text-[#2D4424] mb-1">Country Name *</label>
-                                <input type="text" name="country" placeholder="e.g. Saudi Arabia" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
-                            </div>
-                            <div>
-                                <label class="block font-extrabold text-[#2D4424] mb-1">Visa Package Title *</label>
-                                <input type="text" name="title" placeholder="e.g. Saudi 1-Year Tourist eVisa" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                    <form onsubmit="submitAddB2CVisaPackage(event)" class="space-y-4 text-xs" enctype="multipart/form-data">
+                        <!-- Package Format Selection Toggle -->
+                        <div class="bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC] space-y-2">
+                            <label class="block font-black text-[#2D4424] uppercase text-[10px] tracking-wider">Select Visa Package Category:</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 p-2.5 bg-white border border-[#D9CBAC] rounded-xl font-bold cursor-pointer hover:border-[#E06A26]">
+                                    <input type="radio" name="is_multi_country" value="false" checked onchange="toggleVisaPackageType(false, 'add-visa')" class="accent-[#E06A26]">
+                                    <span>🌐 Single Country Visa</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2.5 bg-white border border-[#D9CBAC] rounded-xl font-bold cursor-pointer hover:border-[#E06A26]">
+                                    <input type="radio" name="is_multi_country" value="true" onchange="toggleVisaPackageType(true, 'add-visa')" class="accent-[#E06A26]">
+                                    <span>🗺️ Multi-Country Trio Tour Plan</span>
+                                </label>
                             </div>
                         </div>
 
+                        <!-- Basic Information -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Primary Country / Plan Title *</label>
+                                <input type="text" name="country" placeholder="e.g. Dubai + Baku + Turkey Trio Tour" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-bold">
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Package Display Title *</label>
+                                <input type="text" name="title" placeholder="e.g. Euro-Asia 3-Country Combo Visa Special" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-bold">
+                            </div>
+                        </div>
+
+                        <!-- Multi-Country Specific Options -->
+                        <div id="add-visa-multi-section" class="hidden space-y-3 bg-[#F0F6EC] p-4 rounded-2xl border border-[#C6DCB4]">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Countries Included in Trio / Combo Tour *</label>
+                                <input type="text" name="countries_included" placeholder="e.g. UAE (Dubai), Azerbaijan (Baku), Turkey (Istanbul)" class="w-full p-2.5 rounded-xl border border-[#D9CBAC] bg-white font-bold text-[#E06A26]">
+                            </div>
+
+                            <div class="space-y-2 pt-2 border-t border-[#C6DCB4]">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-extrabold text-[#2D4424] text-xs">Destinations & Country Stay Itinerary:</span>
+                                    <button type="button" onclick="addVisaDestinationRow({}, 'add-visa-dest-container')" class="px-3 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[11px] font-bold rounded-lg transition-all flex items-center gap-1">
+                                        <i class="fa-solid fa-plus"></i> Add Country Stay
+                                    </button>
+                                </div>
+                                <div id="add-visa-dest-container" class="space-y-2">
+                                    <!-- Dynamic destination rows appended here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Standard Visa Options -->
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block font-extrabold text-[#2D4424] mb-1">Visa Type</label>
-                                <input type="text" name="visa_type" placeholder="Tourist / Visitor eVisa" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                                <input type="text" name="visa_type" placeholder="e.g. Trio Tour Combo eVisa" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
                             </div>
                             <div>
                                 <label class="block font-extrabold text-[#2D4424] mb-1">Processing Time</label>
-                                <input type="text" name="processing_time" placeholder="3 to 5 Working Days" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                                <input type="text" name="processing_time" placeholder="e.g. 5 to 7 Working Days" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block font-extrabold text-[#2D4424] mb-1">Stay Validity</label>
-                                <input type="text" name="stay_validity" placeholder="90 Days Stay" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Total Stay Duration</label>
+                                <input type="text" name="stay_validity" placeholder="e.g. 21 Days Total Stay" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
                             </div>
                             <div>
                                 <label class="block font-extrabold text-[#2D4424] mb-1">Visa Validity</label>
-                                <input type="text" name="visa_validity" placeholder="1 Year Validity" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                                <input type="text" name="visa_validity" placeholder="e.g. 90 Days Validity" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block font-extrabold text-[#2D4424] mb-1">Visa Fee (PKR) *</label>
-                                <input type="number" name="price" placeholder="45000" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Total Package Price (PKR) *</label>
+                                <input type="number" name="price" placeholder="125000" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-mono font-bold text-[#E06A26]">
                             </div>
                             <div>
                                 <label class="block font-extrabold text-[#2D4424] mb-1">Entry Type</label>
@@ -7538,35 +7591,43 @@
                         </div>
 
                         <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Upload Visa Cover Photo 📷</label>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Upload Cover Photo 📷</label>
                             <input type="file" name="cover_image" accept="image/*" class="w-full p-2 rounded-xl border border-[#D9CBAC] bg-white">
-                            <span class="text-[10px] text-[#567946] mt-0.5 block">High resolution banner/cover photo displayed on visa catalog page.</span>
                         </div>
 
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Required Documents</label>
-                            <textarea name="required_documents" rows="2" placeholder="Passport Copy (6 Months Validity), Passport Size Photo, CNIC Copy" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]"></textarea>
+                            <textarea name="required_documents" rows="2" placeholder="Passport Copy (6 Months Validity), White Background Photos, CNIC Copy" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]"></textarea>
                         </div>
 
                         <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Package Description & Features</label>
-                            <textarea name="description" rows="2" placeholder="Detailed visa features, embassy processing notes..." class="w-full p-2.5 rounded-xl border border-[#D9CBAC]"></textarea>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Package Description & Trio Tour Features</label>
+                            <textarea name="description" rows="2" placeholder="Detailed multi-country visa features, embassy processing notes..." class="w-full p-2.5 rounded-xl border border-[#D9CBAC]"></textarea>
                         </div>
 
                         <div class="flex items-center gap-2 pt-1">
                             <input type="checkbox" name="is_popular" id="add-vp-popular" class="h-4 w-4 rounded border-[#D9CBAC] text-[#E06A26]">
-                            <label for="add-vp-popular" class="font-bold text-[#2D4424]">Mark as Popular Visa Package</label>
+                            <label for="add-vp-popular" class="font-bold text-[#2D4424]">Mark as Popular Package</label>
                         </div>
 
                         <div class="flex justify-end gap-2 border-t border-[#E7DCB9] pt-3">
                             <button type="button" onclick="document.getElementById('modal-add-b2c-visa').style.display='none'" class="px-4 py-2 bg-slate-100 font-bold rounded-xl text-xs">Cancel</button>
                             <button type="submit" class="px-5 py-2 bg-[#E06A26] text-white font-extrabold rounded-xl text-xs shadow-md flex items-center gap-1.5">
-                                <i class="fa-solid fa-plus"></i> Publish Package
+                                <i class="fa-solid fa-paper-plane"></i> Publish Visa Package
                             </button>
                         </div>
                     </form>
                 </div>
             `;
+
+            // Default: add 2 empty destination rows
+            const destContainer = document.getElementById('add-visa-dest-container');
+            if (destContainer) {
+                destContainer.innerHTML = '';
+                addVisaDestinationRow({ country: 'Dubai (UAE)', stay_days: '7 Days', visa_type: '30-Day Tourist eVisa' }, 'add-visa-dest-container');
+                addVisaDestinationRow({ country: 'Azerbaijan (Baku)', stay_days: '5 Days', visa_type: 'Easy eVisa' }, 'add-visa-dest-container');
+            }
+
             modal.style.display = 'flex';
             modal.classList.remove('hidden');
         }
@@ -7575,6 +7636,23 @@
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
+
+            // Extract multi-country destination rows if multi-country selected
+            const isMultiVal = form.querySelector('input[name="is_multi_country"]:checked')?.value === 'true';
+            if (isMultiVal) {
+                const destRows = form.querySelectorAll('#add-visa-dest-container .visa-dest-row');
+                const destinations = [];
+                destRows.forEach(row => {
+                    const country = row.querySelector('.dest-country-input')?.value?.trim();
+                    const stay_days = row.querySelector('.dest-stay-input')?.value?.trim();
+                    const visa_type = row.querySelector('.dest-visa-input')?.value?.trim();
+                    if (country) {
+                        destinations.push({ country, stay_days, visa_type });
+                    }
+                });
+                formData.set('tour_destinations', JSON.stringify(destinations));
+            }
+
             try {
                 const res = await fetch('/dashboard/admin/api/visa-packages/', {
                     method: 'POST',
@@ -7603,8 +7681,10 @@
                 document.body.appendChild(modal);
             }
 
+            const isMulti = Boolean(vp.is_multi_country);
+
             modal.innerHTML = `
-                <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 relative animate-fade-in max-h-[90vh] overflow-y-auto">
+                <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 max-w-xl w-full shadow-2xl space-y-4 relative animate-fade-in max-h-[90vh] overflow-y-auto">
                     <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
                         <h3 class="font-black text-[#2D4424] text-base flex items-center gap-2">
                             <i class="fa-solid fa-pen text-[#E06A26]"></i> Edit Visa Package #${vp.id}
@@ -7613,18 +7693,55 @@
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
-                    <form onsubmit="submitEditB2CVisa(event, ${vp.id})" class="space-y-3 text-xs" enctype="multipart/form-data">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-extrabold text-[#2D4424] mb-1">Country *</label>
-                                <input type="text" name="country" value="${_escHtml(vp.country || '')}" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
-                            </div>
-                            <div>
-                                <label class="block font-extrabold text-[#2D4424] mb-1">Visa Title *</label>
-                                <input type="text" name="title" value="${_escHtml(vp.title || '')}" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                    <form onsubmit="submitEditB2CVisa(event, ${vp.id})" class="space-y-4 text-xs" enctype="multipart/form-data">
+                        <!-- Package Format Selection Toggle -->
+                        <div class="bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC] space-y-2">
+                            <label class="block font-black text-[#2D4424] uppercase text-[10px] tracking-wider">Select Visa Package Category:</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 p-2.5 bg-white border border-[#D9CBAC] rounded-xl font-bold cursor-pointer hover:border-[#E06A26]">
+                                    <input type="radio" name="is_multi_country" value="false" ${!isMulti ? 'checked' : ''} onchange="toggleVisaPackageType(false, 'edit-visa')" class="accent-[#E06A26]">
+                                    <span>🌐 Single Country Visa</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-2.5 bg-white border border-[#D9CBAC] rounded-xl font-bold cursor-pointer hover:border-[#E06A26]">
+                                    <input type="radio" name="is_multi_country" value="true" ${isMulti ? 'checked' : ''} onchange="toggleVisaPackageType(true, 'edit-visa')" class="accent-[#E06A26]">
+                                    <span>🗺️ Multi-Country Trio Tour Plan</span>
+                                </label>
                             </div>
                         </div>
 
+                        <!-- Basic Information -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Country / Plan Title *</label>
+                                <input type="text" name="country" value="${_escHtml(vp.country || '')}" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-bold">
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Package Display Title *</label>
+                                <input type="text" name="title" value="${_escHtml(vp.title || '')}" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-bold">
+                            </div>
+                        </div>
+
+                        <!-- Multi-Country Specific Options -->
+                        <div id="edit-visa-multi-section" class="${isMulti ? '' : 'hidden'} space-y-3 bg-[#F0F6EC] p-4 rounded-2xl border border-[#C6DCB4]">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Countries Included in Trio / Combo Tour *</label>
+                                <input type="text" name="countries_included" value="${_escHtml(vp.countries_included || '')}" placeholder="e.g. UAE (Dubai), Azerbaijan (Baku), Turkey (Istanbul)" class="w-full p-2.5 rounded-xl border border-[#D9CBAC] bg-white font-bold text-[#E06A26]">
+                            </div>
+
+                            <div class="space-y-2 pt-2 border-t border-[#C6DCB4]">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-extrabold text-[#2D4424] text-xs">Destinations & Country Stay Itinerary:</span>
+                                    <button type="button" onclick="addVisaDestinationRow({}, 'edit-visa-dest-container')" class="px-3 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[11px] font-bold rounded-lg transition-all flex items-center gap-1">
+                                        <i class="fa-solid fa-plus"></i> Add Country Stay
+                                    </button>
+                                </div>
+                                <div id="edit-visa-dest-container" class="space-y-2">
+                                    <!-- Dynamic destination rows appended here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Standard Visa Options -->
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block font-extrabold text-[#2D4424] mb-1">Visa Type</label>
@@ -7650,7 +7767,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block font-extrabold text-[#2D4424] mb-1">Price (PKR) *</label>
-                                <input type="number" name="price" value="${vp.price || ''}" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                                <input type="number" name="price" value="${vp.price || ''}" required class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-mono font-bold text-[#E06A26]">
                             </div>
                             <div>
                                 <label class="block font-extrabold text-[#2D4424] mb-1">Entry Type</label>
@@ -7673,13 +7790,13 @@
                         </div>
 
                         <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Package Description & Features</label>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Package Description & Trio Tour Features</label>
                             <textarea name="description" rows="2" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">${_escHtml(vp.description || '')}</textarea>
                         </div>
 
                         <div class="flex items-center gap-2 pt-1">
                             <input type="checkbox" name="is_popular" id="edit-vp-popular" ${vp.is_popular ? 'checked' : ''} class="h-4 w-4 rounded border-[#D9CBAC] text-[#E06A26]">
-                            <label for="edit-vp-popular" class="font-bold text-[#2D4424]">Mark as Popular Visa</label>
+                            <label for="edit-vp-popular" class="font-bold text-[#2D4424]">Mark as Popular Package</label>
                         </div>
 
                         <div class="flex justify-end gap-2 border-t border-[#E7DCB9] pt-3">
@@ -7691,6 +7808,18 @@
                     </form>
                 </div>
             `;
+
+            // Populate existing destination rows
+            const editDestContainer = document.getElementById('edit-visa-dest-container');
+            if (editDestContainer) {
+                editDestContainer.innerHTML = '';
+                if (vp.tour_destinations && Array.isArray(vp.tour_destinations) && vp.tour_destinations.length > 0) {
+                    vp.tour_destinations.forEach(d => addVisaDestinationRow(d, 'edit-visa-dest-container'));
+                } else {
+                    addVisaDestinationRow({ country: 'Dubai (UAE)', stay_days: '7 Days', visa_type: '30-Day Tourist eVisa' }, 'edit-visa-dest-container');
+                }
+            }
+
             modal.style.display = 'flex';
             modal.classList.remove('hidden');
         }
@@ -7699,6 +7828,23 @@
             e.preventDefault();
             const form = e.target;
             const formData = new FormData(form);
+
+            // Extract multi-country destination rows if multi-country selected
+            const isMultiVal = form.querySelector('input[name="is_multi_country"]:checked')?.value === 'true';
+            if (isMultiVal) {
+                const destRows = form.querySelectorAll('#edit-visa-dest-container .visa-dest-row');
+                const destinations = [];
+                destRows.forEach(row => {
+                    const country = row.querySelector('.dest-country-input')?.value?.trim();
+                    const stay_days = row.querySelector('.dest-stay-input')?.value?.trim();
+                    const visa_type = row.querySelector('.dest-visa-input')?.value?.trim();
+                    if (country) {
+                        destinations.push({ country, stay_days, visa_type });
+                    }
+                });
+                formData.set('tour_destinations', JSON.stringify(destinations));
+            }
+
             try {
                 const res = await fetch(`/dashboard/admin/api/visa-packages/${id}/`, {
                     method: 'POST',
@@ -13011,26 +13157,13 @@
             rowDiv.className = "b2c-hajj-stay-row grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-xs";
 
             rowDiv.innerHTML = `
-                <div class="sm:col-span-2">
-                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">City</label>
-                    <select class="b2c-hajj-acc-city w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]" onchange="onB2cAdminHajjCityChange(this)">
-                        <option value="makkah" ${selectedCity === 'makkah' ? 'selected' : ''}>Makkah</option>
-                        <option value="madinah" ${selectedCity === 'madinah' ? 'selected' : ''}>Madinah</option>
-                    </select>
-                </div>
-                <div class="sm:col-span-3">
-                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Hotel Name (Manual Input)</label>
-                    <input type="text" value="${escapeHTML(hotelNameManual)}" placeholder="e.g. Anjum Hotel Makkah" class="b2c-hajj-acc-hotel-name w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
+                <div class="sm:col-span-7">
+                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Hotel Name</label>
+                    <input type="text" value="${escapeHTML(hotelNameManual)}" placeholder="e.g. Anjum Hotel Makkah / Azizia Building" class="b2c-hajj-acc-hotel-name w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
                 </div>
                 <div class="sm:col-span-3">
                     <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Distance from Haram</label>
-                    <input type="text" value="${escapeHTML(distanceManual)}" placeholder="e.g. 350m from Haram" class="b2c-hajj-acc-distance w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Or Choose Catalog</label>
-                    <select class="b2c-hajj-acc-hotel-select w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]" onchange="onB2cAdminHajjHotelSelectChange(this)">
-                        <!-- Populated dynamically -->
-                    </select>
+                    <input type="text" value="${escapeHTML(distanceManual)}" placeholder="e.g. 350m from Haram / Shifting" class="b2c-hajj-acc-distance w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
                 </div>
                 <div class="sm:col-span-1">
                     <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Nights</label>
@@ -13044,8 +13177,6 @@
             `;
 
             container.appendChild(rowDiv);
-            const citySelect = rowDiv.querySelector(".b2c-hajj-acc-city");
-            populateB2cAdminHajjHotelSelect(rowDiv, citySelect.value, selectedHotelId);
         }
 
         function populateB2cAdminHajjHotelSelect(rowElement, city, selectedHotelId = null) {

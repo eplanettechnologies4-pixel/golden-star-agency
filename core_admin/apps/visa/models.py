@@ -21,6 +21,9 @@ class VisaPackage(models.Model):
     banner_image = models.CharField(max_length=255, blank=True, null=True)
     cover_image = models.ImageField(upload_to='visa_covers/', blank=True, null=True)
     is_popular = models.BooleanField(default=False)
+    is_multi_country = models.BooleanField(default=False)
+    countries_included = models.CharField(max_length=255, blank=True, null=True, default='')
+    tour_destinations = models.JSONField(default=list, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

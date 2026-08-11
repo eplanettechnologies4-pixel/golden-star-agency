@@ -2053,8 +2053,7 @@
                                     class="my-auto flex flex-col items-center text-center z-10 py-2 w-full space-y-2.5">
                                     <!-- Agent Name & Company -->
                                     <div>
-                                        <h2 class="text-lg font-black text-[#2D4424] tracking-tight leading-snug">{{
-                                            user.get_full_name|default:user.username }}</h2>
+                                        <h2 class="text-lg font-black text-[#2D4424] tracking-tight leading-snug">{{ user.get_full_name|default:user.username }}</h2>
                                         <p class="text-xs text-[#E06A26] font-extrabold uppercase tracking-wide mt-0.5">
                                             {{ user.company_name|default:user.username }}</p>
                                     </div>
@@ -2066,8 +2065,7 @@
                                             class="text-[8px] font-black text-[#567946] uppercase tracking-widest block">OFFICIAL
                                             AGENT LICENSE NO.</span>
                                         <span
-                                            class="text-base font-black font-mono text-[#2D4424] tracking-widest block agent-id-number-display">{{
-                                            user.agent_id_number|default:"GSA-AGT-PENDING" }}</span>
+                                            class="text-base font-black font-mono text-[#2D4424] tracking-widest block agent-id-number-display">{{ user.agent_id_number|default:"GSA-AGT-PENDING" }}</span>
                                     </div>
 
                                     <!-- Phone Number & Office Address Text Fields -->
@@ -2075,14 +2073,12 @@
                                         class="w-full text-left bg-white border border-[#E7DCB9] rounded-2xl p-2.5 space-y-1.5 text-xs shadow-2xs">
                                         <div class="flex items-center justify-between text-[10px]">
                                             <span class="font-bold text-[#567946] uppercase">Phone:</span>
-                                            <span class="font-extrabold text-[#2D4424]">{{ user.phone|default:"N/A"
-                                                }}</span>
+                                            <span class="font-extrabold text-[#2D4424]">{{ user.phone|default:"N/A" }}</span>
                                         </div>
                                         <div
                                             class="flex items-center justify-between text-[10px] border-t border-[#E7DCB9]/60 pt-1">
                                             <span class="font-bold text-[#567946] uppercase">Address:</span>
-                                            <span class="font-extrabold text-[#2D4424] truncate max-w-[170px]">{{
-                                                user.address|default:"N/A" }}</span>
+                                            <span class="font-extrabold text-[#2D4424] truncate max-w-[170px]">{{ user.address|default:"N/A" }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2094,9 +2090,7 @@
                                         <span
                                             class="text-[8px] text-[#567946] font-bold uppercase tracking-wider block">Issued
                                             / Member Since</span>
-                                        <span class="font-extrabold text-[#2D4424]">{% if user.id_card_issued_at %}{{
-                                            user.id_card_issued_at|date:"M d, Y" }}{% else %}{{ user.date_joined|date:"M
-                                            d, Y" }}{% endif %}</span>
+                                        <span class="font-extrabold text-[#2D4424]">{% if user.id_card_issued_at %}{{ user.id_card_issued_at|date:"M d, Y" }}{% else %}{{ user.date_joined|date:"M d, Y" }}{% endif %}</span>
                                     </div>
                                     <span
                                         class="tap-to-flip-badge text-[9px] font-bold text-[#E06A26] bg-[#FDF2EA] px-2.5 py-1 rounded-xl flex items-center gap-1 border border-[#FCE2D2] shadow-xs">
@@ -5897,6 +5891,93 @@
             }
         }
 
+        function getDepartmentContactTheme(deptName) {
+            const n = (deptName || '').toLowerCase();
+            if (n.includes('flight') || n.includes('ticket') || n.includes('airline')) {
+                return {
+                    icon: 'fa-plane-departure',
+                    badgeBg: 'bg-sky-100 text-sky-800 border-sky-300',
+                    iconBg: 'from-sky-500 to-blue-600 text-white',
+                    topBar: 'from-sky-400 via-blue-500 to-indigo-600',
+                    cardBorder: 'hover:border-sky-400',
+                    boxBg: 'bg-sky-50/60 border-sky-200/80',
+                    phoneColor: 'text-sky-900 hover:text-sky-600',
+                    btnCall: 'bg-sky-600 hover:bg-sky-700 text-white'
+                };
+            }
+            if (n.includes('hotel') || n.includes('accommodation') || n.includes('stay')) {
+                return {
+                    icon: 'fa-hotel',
+                    badgeBg: 'bg-teal-100 text-teal-800 border-teal-300',
+                    iconBg: 'from-teal-500 to-emerald-600 text-white',
+                    topBar: 'from-teal-400 via-emerald-500 to-green-600',
+                    cardBorder: 'hover:border-teal-400',
+                    boxBg: 'bg-teal-50/60 border-teal-200/80',
+                    phoneColor: 'text-teal-900 hover:text-teal-600',
+                    btnCall: 'bg-teal-700 hover:bg-teal-800 text-white'
+                };
+            }
+            if (n.includes('visa') || n.includes('passport') || n.includes('immigration')) {
+                return {
+                    icon: 'fa-passport',
+                    badgeBg: 'bg-purple-100 text-purple-800 border-purple-300',
+                    iconBg: 'from-purple-500 to-indigo-600 text-white',
+                    topBar: 'from-purple-400 via-indigo-500 to-violet-600',
+                    cardBorder: 'hover:border-purple-400',
+                    boxBg: 'bg-purple-50/60 border-purple-200/80',
+                    phoneColor: 'text-purple-900 hover:text-purple-600',
+                    btnCall: 'bg-purple-700 hover:bg-purple-800 text-white'
+                };
+            }
+            if (n.includes('account') || n.includes('finance') || n.includes('wallet') || n.includes('payment')) {
+                return {
+                    icon: 'fa-wallet',
+                    badgeBg: 'bg-amber-100 text-amber-900 border-amber-300',
+                    iconBg: 'from-amber-500 to-orange-600 text-white',
+                    topBar: 'from-amber-400 via-orange-500 to-red-500',
+                    cardBorder: 'hover:border-amber-400',
+                    boxBg: 'bg-amber-50/60 border-amber-200/80',
+                    phoneColor: 'text-amber-950 hover:text-amber-600',
+                    btnCall: 'bg-amber-600 hover:bg-amber-700 text-white'
+                };
+            }
+            if (n.includes('umrah') || n.includes('hajj') || n.includes('package')) {
+                return {
+                    icon: 'fa-kaaba',
+                    badgeBg: 'bg-emerald-100 text-[#2D4424] border-emerald-300',
+                    iconBg: 'from-[#2D4424] to-[#567946] text-white',
+                    topBar: 'from-[#2D4424] via-[#E06A26] to-[#567946]',
+                    cardBorder: 'hover:border-[#E06A26]',
+                    boxBg: 'bg-[#F0F6EC]/80 border-[#C6DCB4]',
+                    phoneColor: 'text-[#2D4424] hover:text-[#E06A26]',
+                    btnCall: 'bg-[#2D4424] hover:bg-[#1F2E1A] text-white'
+                };
+            }
+            if (n.includes('transport') || n.includes('car') || n.includes('bus')) {
+                return {
+                    icon: 'fa-bus',
+                    badgeBg: 'bg-blue-100 text-blue-800 border-blue-300',
+                    iconBg: 'from-blue-500 to-indigo-600 text-white',
+                    topBar: 'from-blue-400 via-indigo-500 to-purple-600',
+                    cardBorder: 'hover:border-blue-400',
+                    boxBg: 'bg-blue-50/60 border-blue-200/80',
+                    phoneColor: 'text-blue-900 hover:text-blue-600',
+                    btnCall: 'bg-blue-600 hover:bg-blue-700 text-white'
+                };
+            }
+            // Default
+            return {
+                icon: 'fa-headset',
+                badgeBg: 'bg-orange-100 text-[#E06A26] border-orange-300',
+                iconBg: 'from-[#E06A26] to-amber-600 text-white',
+                topBar: 'from-[#E06A26] via-amber-500 to-orange-600',
+                cardBorder: 'hover:border-[#E06A26]',
+                boxBg: 'bg-orange-50/60 border-orange-200/80',
+                phoneColor: 'text-[#2D4424] hover:text-[#E06A26]',
+                btnCall: 'bg-[#E06A26] hover:bg-[#C85918] text-white'
+            };
+        }
+
         async function fetchAgentDepartmentContacts() {
             try {
                 const data = await safeFetchJson("/dashboard/agent/api/department-contacts/");
@@ -5913,52 +5994,86 @@
                     return;
                 }
 
-                grid.innerHTML = contacts.map(c => `
-                    <div class="bg-white border border-[#E7DCB9] rounded-2xl p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-[#E06A26] transition-all flex flex-col justify-between space-y-4">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between border-b border-[#E7DCB9] pb-3">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-10 h-10 rounded-xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-lg border border-[#FCE2D2]">
-                                        <i class="fa-solid fa-sitemap"></i>
+                grid.innerHTML = contacts.map(c => {
+                    const theme = getDepartmentContactTheme(c.department_name);
+                    const waClean = c.whatsapp_number ? escapeHTML(c.whatsapp_number).replace(/[^0-9]/g, '') : '';
+                    const contactName = escapeHTML(c.contact_person_name || 'Department Desk Officer');
+
+                    return `
+                        <div class="group bg-white border border-[#E7DCB9] ${theme.cardBorder} rounded-3xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between space-y-4 relative overflow-hidden">
+                            <!-- Top Colorful Gradient Accent Strip -->
+                            <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${theme.topBar}"></div>
+                            
+                            <div class="space-y-3.5 pt-1.5">
+                                <!-- Top Header Row: SMALL Department Badge & Colorful Icon -->
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${theme.badgeBg} border shadow-2xs truncate max-w-[200px]" title="${escapeHTML(c.department_name)}">
+                                        🏢 ${escapeHTML(c.department_name)}
+                                    </span>
+                                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-br ${theme.iconBg} flex items-center justify-center font-black text-base shadow-sm shrink-0 group-hover:scale-110 transition-transform duration-300">
+                                        <i class="fa-solid ${theme.icon}"></i>
                                     </div>
-                                    <div>
-                                        <h4 class="font-black text-[#2D4424] text-sm">${escapeHTML(c.department_name)}</h4>
-                                        <span class="text-[10px] text-[#567946] font-bold block">${escapeHTML(c.contact_person_name || 'Department Desk')} ${c.designation ? '(' + escapeHTML(c.designation) + ')' : ''}</span>
+                                </div>
+
+                                <!-- Main Title: BIG Contact Person Name & Designation -->
+                                <div class="space-y-1">
+                                    <div class="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                                        <i class="fa-solid fa-user-tie text-[#E06A26]"></i> Primary Contact
                                     </div>
+                                    <h3 class="font-black text-[#0F172A] text-lg sm:text-xl tracking-tight leading-tight group-hover:text-[#E06A26] transition-colors">
+                                        ${contactName}
+                                    </h3>
+                                    ${c.designation ? `<div class="inline-block px-2 py-0.5 rounded-md bg-[#F7F3E9] text-[#567946] font-extrabold text-[11px] border border-[#E7DCB9]">${escapeHTML(c.designation)}</div>` : ''}
+                                </div>
+
+                                ${c.description ? `<p class="text-xs text-[#567946] font-medium leading-relaxed line-clamp-2">${escapeHTML(c.description)}</p>` : ''}
+
+                                <!-- Contact Info Container -->
+                                <div class="${theme.boxBg} p-3.5 rounded-2xl border space-y-2.5 text-xs">
+                                    <!-- Phone -->
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                                            <i class="fa-solid fa-phone text-[#E06A26]"></i> Direct Phone
+                                        </span>
+                                        <a href="tel:${escapeHTML(c.phone_number)}" class="font-mono font-black text-sm ${theme.phoneColor} transition-colors">${escapeHTML(c.phone_number)}</a>
+                                    </div>
+                                    <!-- WhatsApp -->
+                                    ${c.whatsapp_number ? `
+                                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
+                                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                                            <i class="fa-brands fa-whatsapp text-[#25D366]"></i> WhatsApp Line
+                                        </span>
+                                        <a href="https://wa.me/${waClean}" target="_blank" class="font-mono font-black text-xs text-[#25D366] hover:underline flex items-center gap-1">
+                                            ${escapeHTML(c.whatsapp_number)} <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                                        </a>
+                                    </div>` : ''}
+                                    <!-- Email -->
+                                    ${c.email ? `
+                                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
+                                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1.5">
+                                            <i class="fa-solid fa-envelope text-[#E06A26]"></i> Official Email
+                                        </span>
+                                        <a href="mailto:${escapeHTML(c.email)}" class="font-mono text-xs font-bold text-[#E06A26] hover:underline truncate max-w-[170px]">${escapeHTML(c.email)}</a>
+                                    </div>` : ''}
                                 </div>
                             </div>
 
-                            <p class="text-xs text-[#567946] leading-relaxed line-clamp-2">${escapeHTML(c.description || '')}</p>
-
-                            <div class="bg-[#F7F3E9] p-3 rounded-xl border border-[#D9CBAC] space-y-2 text-xs">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] text-[#567946] uppercase font-bold"><i class="fa-solid fa-phone text-[#E06A26] mr-1"></i> Phone:</span>
-                                    <a href="tel:${escapeHTML(c.phone_number)}" class="font-mono font-bold text-[#2D4424] hover:text-[#E06A26]">${escapeHTML(c.phone_number)}</a>
-                                </div>
+                            <!-- Action Buttons Grid -->
+                            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#E7DCB9]">
+                                <a href="tel:${escapeHTML(c.phone_number)}" class="py-2.5 px-3 ${theme.btnCall} text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow">
+                                    <i class="fa-solid fa-phone"></i> Call Now
+                                </a>
                                 ${c.whatsapp_number ? `
-                                <div class="flex items-center justify-between pt-1 border-t border-[#E7DCB9]">
-                                    <span class="text-[10px] text-[#567946] uppercase font-bold"><i class="fa-brands fa-whatsapp text-[#25D366] mr-1"></i> WhatsApp:</span>
-                                    <a href="https://wa.me/${escapeHTML(c.whatsapp_number).replace(/[^0-9]/g, '')}" target="_blank" class="font-mono font-bold text-[#25D366] hover:underline">${escapeHTML(c.whatsapp_number)}</a>
-                                </div>` : ''}
-                                ${c.email ? `
-                                <div class="flex items-center justify-between pt-1 border-t border-[#E7DCB9]">
-                                    <span class="text-[10px] text-[#567946] uppercase font-bold"><i class="fa-solid fa-envelope text-[#E06A26] mr-1"></i> Email:</span>
-                                    <a href="mailto:${escapeHTML(c.email)}" class="font-mono text-[11px] text-[#E06A26] truncate max-w-[150px]">${escapeHTML(c.email)}</a>
-                                </div>` : ''}
+                                <a href="https://wa.me/${waClean}" target="_blank" class="py-2.5 px-3 bg-[#25D366] hover:bg-[#1DA851] text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
+                                </a>` : `
+                                <a href="mailto:${escapeHTML(c.email)}" class="py-2.5 px-3 bg-[#E06A26] hover:bg-[#C85918] text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-envelope"></i> Email Us
+                                </a>`}
                             </div>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#E7DCB9]">
-                            <a href="tel:${escapeHTML(c.phone_number)}" class="py-2 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-xs font-bold rounded-xl border border-[#D9CBAC] transition-all flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-phone text-[#E06A26]"></i> Call Now
-                            </a>
-                            ${c.whatsapp_number ? `
-                            <a href="https://wa.me/${escapeHTML(c.whatsapp_number).replace(/[^0-9]/g, '')}" target="_blank" class="py-2 bg-[#25D366] hover:bg-[#1DA851] text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm">
-                                <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                            </a>` : `<a href="mailto:${escapeHTML(c.email)}" class="py-2 bg-[#E06A26] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"><i class="fa-solid fa-envelope"></i> Email</a>`}
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (err) {
                 console.error("Error fetching agent department contacts:", err);
             }
@@ -7194,8 +7309,8 @@
                                     <h4 class="text-xs font-extrabold text-[#2D4424] uppercase tracking-wider">Group Ticket Filters &amp; Search</h4>
                                 </div>
                                 <div class="relative w-full md:max-w-md">
-                                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#567946] pointer-events-none z-10"></i>
-                                    <input type="text" id="input-agent-group-search" value="${window._agentGroupSearchQuery || ''}" oninput="onAgentGroupSearchInput(this.value)" placeholder="Search departure, destination, airline, sector..." class="w-full pl-10 pr-4 py-2 text-xs bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl text-[#2D4424] font-bold focus:outline-none focus:border-[#E06A26] transition-all">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[#567946] text-xs pointer-events-none"></i>
+                                    <input type="text" id="input-agent-group-search" value="${window._agentGroupSearchQuery || ''}" oninput="onAgentGroupSearchInput(this.value)" placeholder="Search departure, destination, airline, sector..." class="w-full pl-9 pr-4 py-2.5 text-xs bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl text-[#2D4424] font-semibold focus:outline-none focus:border-[#E06A26] transition-all">
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -7235,8 +7350,8 @@
                                     <h4 class="text-xs font-extrabold text-[#2D4424] uppercase tracking-wider">Real-Time Ticket & Route Filters</h4>
                                 </div>
                                 <div class="relative w-full md:max-w-md">
-                                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[#567946] pointer-events-none z-10"></i>
-                                    <input type="text" id="input-agent-ticket-search" value="${window._agentTicketSearchQuery || ''}" oninput="onAgentTicketSearchInput(this.value)" placeholder="Search departure city, destination, airline..." class="w-full pl-10 pr-4 py-2 text-xs bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl text-[#2D4424] font-bold focus:outline-none focus:border-[#E06A26] transition-all">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-[#567946] text-xs pointer-events-none"></i>
+                                    <input type="text" id="input-agent-ticket-search" value="${window._agentTicketSearchQuery || ''}" oninput="onAgentTicketSearchInput(this.value)" placeholder="Search departure city, destination, airline..." class="w-full pl-9 pr-4 py-2.5 text-xs bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl text-[#2D4424] font-semibold focus:outline-none focus:border-[#E06A26] transition-all">
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -7968,31 +8083,42 @@
 
             let staysHtml = '';
             if (p.is_hajj_model && p.accommodations && p.accommodations.length > 0) {
-                staysHtml = p.accommodations.map(acc => `
-                    <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
-                        <span class="font-extrabold text-[#2D4424] flex items-center gap-1.5">
-                            <i class="fa-solid fa-hotel text-[#E06A26]"></i> ${escapeHTML(acc.city_display)}:
-                        </span>
-                        <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(acc.hotel_name)}">${escapeHTML(acc.hotel_name || 'N/A')}</span>
-                        <span class="px-2.5 py-0.5 rounded-md bg-[#F7F3E9] font-black text-xs text-[#567946] shrink-0">${acc.nights} Nights</span>
-                    </div>
-                `).join('');
+                staysHtml = p.accommodations.map(acc => {
+                    const hotelName = acc.hotel_name || acc.manual_hotel_name || 'N/A';
+                    const distanceVal = acc.hotel_distance || acc.manual_hotel_distance || '';
+                    const distStr = distanceVal ? `${escapeHTML(distanceVal)} • ` : '';
+                    return `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9] shadow-2xs">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i class="fa-solid fa-hotel text-[#E06A26] text-xs shrink-0"></i>
+                                <span class="font-extrabold text-[#1F2E1A] break-words">${escapeHTML(hotelName)}</span>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-[#F7F3E9] font-black text-xs text-[#E06A26] border border-[#E7DCB9] shrink-0 self-start sm:self-auto">${distStr}${acc.nights} Nights</span>
+                        </div>
+                    `;
+                }).join('');
             } else {
                 const makkahNightsNum = (p.makkah_nights != null && p.makkah_nights !== undefined && p.makkah_nights > 0) ? p.makkah_nights : Math.floor((parseInt(p.duration_days, 10) || 14) / 2) || 7;
                 const madinahNightsNum = (p.madinah_nights != null && p.madinah_nights !== undefined && p.madinah_nights > 0) ? p.madinah_nights : ((parseInt(p.duration_days, 10) || 14) - makkahNightsNum) || 7;
                 const makkahDist = p.makkah_hotel_distance ? `${escapeHTML(p.makkah_hotel_distance)} • ` : '';
                 const madinahDist = p.madinah_hotel_distance ? `${escapeHTML(p.madinah_hotel_distance)} • ` : '';
                 staysHtml = `
-                    <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
-                        <span class="font-extrabold text-[#2D4424] flex items-center gap-1">🕋 Makkah Hotel:</span>
-                        <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(p.makkah_hotel_name)}">${escapeHTML(p.makkah_hotel_name || 'N/A')}</span>
-                        <span class="px-2.5 py-0.5 rounded-md bg-[#F7F3E9] font-black text-xs text-[#E06A26] border border-[#E7DCB9] shrink-0">${makkahDist}${makkahNightsNum} Nights</span>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9] shadow-2xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i class="fa-solid fa-hotel text-[#E06A26] text-xs shrink-0"></i>
+                            <span class="font-extrabold text-[#1F2E1A] break-words">${escapeHTML(p.makkah_hotel_name || 'N/A')}</span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg bg-[#F7F3E9] font-black text-xs text-[#E06A26] border border-[#E7DCB9] shrink-0 self-start sm:self-auto">${makkahDist}${makkahNightsNum} Nights</span>
                     </div>
-                    <div class="flex items-center justify-between text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9]">
-                        <span class="font-extrabold text-[#2D4424] flex items-center gap-1">🕌 Madinah Hotel:</span>
-                        <span class="font-bold text-[#1F2E1A] truncate max-w-[200px]" title="${escapeHTML(p.madinah_hotel_name)}">${escapeHTML(p.madinah_hotel_name || 'N/A')}</span>
-                        <span class="px-2.5 py-0.5 rounded-md bg-[#F7F3E9] font-black text-xs text-[#E06A26] border border-[#E7DCB9] shrink-0">${madinahDist}${madinahNightsNum} Nights</span>
-                    </div>
+                    ${(p.madinah_hotel_name && p.madinah_hotel_name !== 'N/A') ? `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs bg-white p-2.5 rounded-xl border border-[#E7DCB9] shadow-2xs">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i class="fa-solid fa-hotel text-[#E06A26] text-xs shrink-0"></i>
+                                <span class="font-extrabold text-[#1F2E1A] break-words">${escapeHTML(p.madinah_hotel_name)}</span>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg bg-[#F7F3E9] font-black text-xs text-[#E06A26] border border-[#E7DCB9] shrink-0 self-start sm:self-auto">${madinahDist}${madinahNightsNum} Nights</span>
+                        </div>
+                    ` : ''}
                 `;
             }
 
@@ -8409,6 +8535,8 @@
         function buildPackageFlyerHtml(p) {
             const isHajj = p.package_type === 'hajj' || p.is_hajj_model;
             const typeLabel = isHajj ? 'OFFICIAL HAJJ PILGRIM PACKAGE' : 'OFFICIAL UMRAH PILGRIM PACKAGE';
+            const headerBg = isHajj ? '#1A2E1A' : '#1C2B3A';
+            const accentColor = isHajj ? '#C8962A' : '#B8872A';
 
             // Resolve official airline logo (strictly airline logo)
             const airName = p.airline_name || p.flight_name || 'Saudi Airlines';
@@ -8445,139 +8573,116 @@
             // Flight timing string
             const depTimeStr = p.departure_time || '18:38';
             const arrTimeStr = p.arrival_time || '06:04';
-            const flightTimeDisplay = `⏰ Time: ${depTimeStr} ➔ ${arrTimeStr}`;
 
             const priceGridHtml = roomOptions.map(opt => `
-                <div style="background: #FFFFFF; border: 2px solid #0F172A; padding: 14px 10px; border-radius: 18px; text-align: center; box-shadow: 0 3px 10px rgba(15,23,42,0.06);">
-                    <div style="font-size: 11px; font-weight: 900; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHTML(opt.label)}</div>
-                    <div style="font-size: 18px; font-weight: 900; color: #0F172A; margin-top: 4px; font-family: monospace; white-space: nowrap;">PKR ${Number(opt.price).toLocaleString()}</div>
-                    <div style="font-size: 9.5px; font-weight: 700; color: #64748B; margin-top: 2px;">Per Pilgrim</div>
+                <div style="background: #FFFFFF; border-right: 1px solid #E5E7EB; padding: 16px 8px 12px 8px; text-align: center; flex: 1;">
+                    <div style="font-size: 9px; font-weight: 800; color: #6B7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">${escapeHTML(opt.label)}</div>
+                    <div style="font-size: 16px; font-weight: 900; color: #111827; font-family: 'Courier New', monospace; white-space: nowrap; line-height: 1;">PKR ${Number(opt.price).toLocaleString()}</div>
+                    <div style="font-size: 9px; font-weight: 600; color: #9CA3AF; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px;">Per Pilgrim</div>
                 </div>
             `).join('');
 
             return `
-                <div style="width: 680px; background: #FFFFFF; border-radius: 28px; border: 2px solid #CBD5E1; overflow: hidden; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 15px 35px rgba(0,0,0,0.08); color: #1E293B;">
-                    <!-- Top Clean White Header Section -->
-                    <div style="background: #FFFFFF; padding: 24px 30px 18px 30px; text-align: center; border-bottom: 2px solid #F1F5F9; position: relative;">
-                        <!-- Top Header Row: Badge | Bismillah Calligraphy | Duration -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <span style="background: #F1F5F9; border: 1px solid #CBD5E1; color: #334155; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.2px; padding: 5px 14px; border-radius: 14px;">
-                                ✨ ${typeLabel}
-                            </span>
-                            <div style="font-size: 18px; color: #B45309; letter-spacing: 2px; font-weight: 700;">
-                                ﷽
-                            </div>
-                            <span style="background: #F1F5F9; border: 1px solid #CBD5E1; color: #334155; font-size: 11px; font-weight: 800; padding: 5px 14px; border-radius: 14px;">
-                                🕋 ${p.duration_days} Days / ${Math.max(1, p.duration_days - 1)} Nights
-                            </span>
-                        </div>
+                <div style="width: 700px; background: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #111827; border: 1px solid #E5E7EB;">
 
-                        <!-- TOP CENTER OFFICIAL AIRLINE LOGO -->
-                        <div style="display: flex; justify-content: center; align-items: center; margin: 8px 0 14px 0;">
-                            <div style="background: #FFFFFF; border: 2px solid #E2E8F0; padding: 12px 30px; border-radius: 22px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 240px; min-height: 85px;">
-                                ${airLogoUrl ? `
-                                    <img src="${airLogoUrl}" alt="${escapeHTML(airName)}" style="height: 60px; max-width: 220px; object-fit: contain; display: block;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div style="display: none; align-items: center; gap: 8px; font-size: 17px; font-weight: 900; color: #0F172A;">
-                                        ✈️ <span>${escapeHTML(airName)}</span>
-                                    </div>
-                                ` : `
-                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 900; color: #0F172A;">
-                                        ✈️ <span>${escapeHTML(airName)}</span>
-                                    </div>
-                                `}
-                                <div style="font-size: 9px; font-weight: 800; color: #64748B; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; border-top: 1px solid #F1F5F9; padding-top: 4px; width: 100%; text-align: center;">
-                                    Official Airline Carrier
-                                </div>
-                            </div>
+                    <!-- HEADER BAND -->
+                    <div style="background: ${headerBg}; padding: 0 32px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 0 10px 0; border-bottom: 1px solid rgba(255,255,255,0.12);">
+                            <div style="font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 2px;">${typeLabel}</div>
+                            <div style="font-size: 9px; font-weight: 800; color: ${accentColor}; text-transform: uppercase; letter-spacing: 2px;">${p.duration_days} DAYS / ${Math.max(1, p.duration_days - 1)} NIGHTS</div>
                         </div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 0 18px 0;">
+                            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 160px;">
+                                ${airLogoUrl ? `<img src="${airLogoUrl}" alt="${escapeHTML(airName)}" style="height: 44px; max-width: 150px; object-fit: contain; display: block; filter: brightness(0) invert(1);" onerror="this.style.display='none';">` : ''}
+                                <div style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 1.2px;">${escapeHTML(airName)}</div>
+                                <div style="font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px;">Official Carrier</div>
+                            </div>
+                            <div style="text-align: center; flex: 1; padding: 0 20px;">
+                                <div style="font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.3px; line-height: 1.2;">${escapeHTML(p.title)}</div>
+                                <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 500; margin-top: 5px;">VIP All-Inclusive Pilgrim Journey</div>
+                            </div>
 
-                        <!-- Package Title & Sub-Heading -->
-                        <h2 style="font-size: 25px; font-weight: 900; margin: 6px 0 4px 0; color: #0F172A; line-height: 1.25;">${escapeHTML(p.title)}</h2>
-                        <div style="font-size: 12px; color: #64748B; font-weight: 600;">
-                            VIP All-Inclusive Pilgrim Journey • Guaranteed Flights & Accommodations
                         </div>
                     </div>
 
-                    <!-- Flyer Body Content -->
-                    <div style="padding: 24px 28px; background: #FFFFFF;">
-                        <!-- Full Flight & Route Specifications Box -->
-                        <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 18px; padding: 16px 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 12px;">
-                                <div style="font-size: 11px; font-weight: 900; color: #0F172A; text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 6px;">
-                                    ✈️ Complete Flight Specifications
-                                </div>
-                                <span style="background: #F1F5F9; border: 1px solid #CBD5E1; color: #334155; font-size: 10px; font-weight: 800; padding: 4px 14px; border-radius: 10px; flex-shrink: 0;">
-                                    ${(p.flight_route_type || 'direct').toUpperCase()} FLIGHT
-                                </span>
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 12px; margin-bottom: 12px;">
-                                <div style="background: #FFFFFF; padding: 12px 14px; border-radius: 14px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                                    <div style="font-size: 10px; font-weight: 800; color: #64748B; text-transform: uppercase;">Flight Route & Airline</div>
-                                    <div style="font-size: 13px; font-weight: 900; color: #0F172A; margin-top: 3px;">
-                                        ${escapeHTML(airName)} • <span>${escapeHTML(p.flight_route || p.sector_name || 'KHI ➔ JED • MED ➔ KHI')}</span>
-                                    </div>
-                                </div>
-                                <div style="background: #FFFFFF; padding: 12px 14px; border-radius: 14px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                                    <div style="font-size: 10px; font-weight: 800; color: #64748B; text-transform: uppercase;">Flight Schedule & Timings</div>
-                                    <div style="font-size: 12px; font-weight: 900; color: #0F172A; margin-top: 3px;">
-                                        📅 ${p.departure_date ? `${escapeHTML(p.departure_date)} ➔ ${escapeHTML(p.return_date || 'Return')}` : 'Guaranteed Departures'}
-                                    </div>
-                                    <div style="font-size: 11px; font-weight: 800; color: #0F172A; margin-top: 3px;">
-                                        ${flightTimeDisplay}
-                                    </div>
-                                </div>
-                            </div>
-                            <div style="background: #FFFFFF; padding: 12px 14px; border-radius: 14px; border: 1px solid #E2E8F0; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-                                <div style="font-size: 10px; font-weight: 800; color: #64748B; text-transform: uppercase;">Baggage Allowance</div>
-                                <div style="font-size: 13px; font-weight: 900; color: #0F172A; margin-top: 3px;">
-                                    🧳 30 KG Checked Baggage + 7 KG Hand Carry
-                                </div>
-                            </div>
-                        </div>
+                    <!-- BODY -->
+                    <div style="padding: 24px 32px; background: #FFFFFF;">
 
-                        <!-- Accommodations Plan Grid -->
+                        <!-- SECTION: FLIGHT ITINERARY -->
                         <div style="margin-bottom: 20px;">
-                            <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; color: #0F172A; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                                <span>🏨 Luxury Hotel Accommodations</span>
-                                <span style="font-size: 10px; font-weight: 800; color: #334155; background: #F1F5F9; padding: 3px 10px; border-radius: 8px; border: 1px solid #E2E8F0;">
-                                    Walking Distance / Haram Shuttle
-                                </span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111827; padding-bottom: 6px; margin-bottom: 12px;">
+                                <div style="font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #374151;">FLIGHT ITINERARY</div>
+                                <div style="font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #FFFFFF; background: #111827; padding: 3px 10px;">${(p.flight_route_type || 'DIRECT').toUpperCase()} FLIGHT</div>
                             </div>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
-                                <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9; padding-bottom: 6px; margin-bottom: 6px;">
-                                        <span style="font-weight: 900; color: #0F172A; font-size: 12px;">🕋 Makkah Mukarramah</span>
-                                        <span style="font-weight: 800; color: #0F172A; font-size: 11px; background: #F1F5F9; padding: 2px 8px; border-radius: 6px; border: 1px solid #E2E8F0;">${makkahNightsNum} Nights</span>
-                                    </div>
-                                    <div style="font-weight: 900; font-size: 14px; color: #0F172A; margin: 4px 0 2px 0;">${escapeHTML(makkahHotel)}</div>
-                                    <div style="font-size: 11px; font-weight: 700; color: #64748B;">📍 ${escapeHTML(makkahDist)}</div>
+                            <div style="display: flex; border: 1px solid #E5E7EB;">
+                                <div style="flex: 1.4; padding: 12px 14px; border-right: 1px solid #E5E7EB;">
+                                    <div style="font-size: 8px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px;">Airline &amp; Route</div>
+                                    <div style="font-size: 13px; font-weight: 800; color: #111827; line-height: 1.35;">${escapeHTML(airName)}</div>
+                                    <div style="font-size: 10px; font-weight: 600; color: #4B5563; margin-top: 2px;">${escapeHTML(p.flight_route || p.sector_name || 'KHI — JED | MED — KHI')}</div>
                                 </div>
-                                <div style="background: #FFFFFF; border: 1.5px solid #E2E8F0; border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9; padding-bottom: 6px; margin-bottom: 6px;">
-                                        <span style="font-weight: 900; color: #0F172A; font-size: 12px;">🕌 Madinah Munawwarah</span>
-                                        <span style="font-weight: 800; color: #0F172A; font-size: 11px; background: #F1F5F9; padding: 2px 8px; border-radius: 6px; border: 1px solid #E2E8F0;">${madinahNightsNum} Nights</span>
-                                    </div>
-                                    <div style="font-weight: 900; font-size: 14px; color: #0F172A; margin: 4px 0 2px 0;">${escapeHTML(madinahHotel)}</div>
-                                    <div style="font-size: 11px; font-weight: 700; color: #64748B;">📍 ${escapeHTML(madinahDist)}</div>
+                                <div style="flex: 1; padding: 12px 14px; border-right: 1px solid #E5E7EB;">
+                                    <div style="font-size: 8px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px;">Departure</div>
+                                    <div style="font-size: 18px; font-weight: 900; color: #111827; font-family: 'Courier New', monospace; line-height: 1;">${depTimeStr}</div>
+                                    <div style="font-size: 10px; font-weight: 600; color: #4B5563; margin-top: 3px;">${p.departure_date ? escapeHTML(p.departure_date) : 'Guaranteed Departure'}</div>
+                                </div>
+                                <div style="flex: 1; padding: 12px 14px; border-right: 1px solid #E5E7EB;">
+                                    <div style="font-size: 8px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px;">Arrival</div>
+                                    <div style="font-size: 18px; font-weight: 900; color: #111827; font-family: 'Courier New', monospace; line-height: 1;">${arrTimeStr}</div>
+                                    <div style="font-size: 10px; font-weight: 600; color: #4B5563; margin-top: 3px;">${p.return_date ? escapeHTML(p.return_date) : 'Return Included'}</div>
+                                </div>
+                                <div style="flex: 1; padding: 12px 14px;">
+                                    <div style="font-size: 8px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px;">Baggage</div>
+                                    <div style="font-size: 13px; font-weight: 800; color: #111827; line-height: 1.35;">30 KG</div>
+                                    <div style="font-size: 10px; font-weight: 600; color: #4B5563; margin-top: 2px;">Check-in + 7 KG Cabin</div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Pricing Tiers Grid in Row (1. Sharing, 2. Quad, 3. Triple, 4. Double) -->
-                        <div>
-                            <div style="font-size: 11px; font-weight: 900; text-transform: uppercase; color: #0F172A; letter-spacing: 0.8px; margin-bottom: 10px;">
-                                🏷️ Promotional Package Pricing (Per Person)
+                        <!-- SECTION: HOTEL ACCOMMODATIONS -->
+                        <div style="margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111827; padding-bottom: 6px; margin-bottom: 12px;">
+                                <div style="font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #374151;">HOTEL ACCOMMODATIONS</div>
+                                <div style="font-size: 8px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 1px;">WALKING DISTANCE / HARAM SHUTTLE</div>
                             </div>
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                            <div style="display: flex; border: 1px solid #E5E7EB;">
+                                <div style="flex: 1; padding: 14px 16px; border-right: 1px solid #E5E7EB;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                        <div style="font-size: 8px; font-weight: 800; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1.2px;">MAKKAH AL-MUKARRAMAH</div>
+                                        <div style="font-size: 8px; font-weight: 800; background: #111827; color: #FFFFFF; padding: 2px 8px; white-space: nowrap;">${makkahNightsNum} NTS</div>
+                                    </div>
+                                    <div style="font-size: 14px; font-weight: 900; color: #111827; line-height: 1.3; margin-bottom: 4px;">${escapeHTML(makkahHotel)}</div>
+                                    <div style="font-size: 10px; font-weight: 600; color: #6B7280; text-transform: uppercase;">${escapeHTML(makkahDist)}</div>
+                                </div>
+                                <div style="flex: 1; padding: 14px 16px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                        <div style="font-size: 8px; font-weight: 800; color: #9CA3AF; text-transform: uppercase; letter-spacing: 1.2px;">MADINAH AL-MUNAWWARAH</div>
+                                        <div style="font-size: 8px; font-weight: 800; background: #111827; color: #FFFFFF; padding: 2px 8px; white-space: nowrap;">${madinahNightsNum} NTS</div>
+                                    </div>
+                                    <div style="font-size: 14px; font-weight: 900; color: #111827; line-height: 1.3; margin-bottom: 4px;">${escapeHTML(madinahHotel)}</div>
+                                    <div style="font-size: 10px; font-weight: 600; color: #6B7280; text-transform: uppercase;">${escapeHTML(madinahDist)}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION: PRICING TABLE -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111827; padding-bottom: 6px; margin-bottom: 12px;">
+                                <div style="font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #374151;">PACKAGE PRICING &mdash; PER PERSON</div>
+                                <div style="font-size: 8px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 1px;">PROMOTIONAL RATES</div>
+                            </div>
+                            <div style="display: flex; border: 1px solid #E5E7EB; border-right: none;">
                                 ${priceGridHtml}
                             </div>
                         </div>
 
-                        <!-- Simple Subtle Disclaimer Note (No Company Intro / Footer Bar) -->
-                        <div style="font-size: 10px; font-weight: 600; color: #94A3B8; text-align: center; margin-top: 16px; border-top: 1px solid #F1F5F9; padding-top: 10px;">
-                            * Rates & seat availability are subject to confirmation at time of booking.
-                        </div>
                     </div>
+
+                    <!-- FOOTER -->
+                    <div style="background: #F9FAFB; border-top: 1px solid #E5E7EB; padding: 10px 32px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 8px; font-weight: 800; color: #374151; text-transform: uppercase; letter-spacing: 1.5px;">REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD.</div>
+                        <div style="font-size: 8px; font-weight: 600; color: #9CA3AF;">* Rates subject to confirmation at time of booking.</div>
+                    </div>
+
                 </div>
             `;
         }
@@ -9459,12 +9564,14 @@
             <div
                 class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div class="flex items-center gap-2 w-full sm:w-auto flex-1">
-                    <i class="fa-solid fa-magnifying-glass text-[#E06A26] text-sm"></i>
-                    <input type="text" id="tracker-search-input"
-                        placeholder="Enter Order Ref (e.g. GSA-2026-00001) or PNR..."
-                        class="w-full bg-white border border-[#D9CBAC] rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-[#E06A26] text-xs pointer-events-none"></i>
+                        <input type="text" id="tracker-search-input"
+                            placeholder="Enter Order Ref (e.g. GSA-2026-00001) or PNR..."
+                            class="w-full bg-white border border-[#D9CBAC] rounded-xl pl-9 pr-4 py-2.5 text-xs font-mono font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                    </div>
                     <button type="button" onclick="searchAndTrackOrder()"
-                        class="px-4 py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow-xs transition-all shrink-0">
+                        class="px-4 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl shadow-xs transition-all shrink-0">
                         Track Order
                     </button>
                 </div>
@@ -10232,10 +10339,6 @@
                     </tr>
                 `;
             }).join('');
-        }
-        `;
-
-            contentArea.innerHTML = stepperHtml;
         }
 
         // ══════════════ ⚡ REAL-TIME AGENT NOTIFICATION ENGINE ══════════════

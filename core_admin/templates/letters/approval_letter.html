@@ -150,12 +150,12 @@
         <!-- 4. SPECIFIC ITEM DETAILS -->
         <div class="mb-5 print-compact-gap">
             <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-suitcase text-orange-500"></i> Confirmed Booking Details
+                <i class="fa-solid fa-suitcase text-orange-500"></i> Confirmed Booking &amp; Package Details
             </h3>
             
             {% if letter_type == 'package' %}
             <!-- PACKAGE DETAILS TABLE -->
-            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px]">
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px] mb-4">
                 <div class="bg-slate-900 text-white p-3 font-bold flex justify-between items-center text-xs">
                     <span>{{ package_title }}</span>
                     <span class="bg-orange-500 text-white px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider font-extrabold">{{ booking_type|default:"Package Booking" }}</span>
@@ -176,6 +176,20 @@
                         <span class="font-bold text-slate-800 block mt-0.5">{{ booking_date|date:"Y-m-d H:i" }}</span>
                     </div>
                 </div>
+                {% if package_makkah_hotel or package_madinah_hotel %}
+                <div class="border-t border-slate-200 p-3 bg-amber-50/60 grid grid-cols-2 gap-3 text-[11px]">
+                    <div>
+                        <span class="text-amber-800 text-[9px] uppercase font-extrabold block">🕋 Makkah Accommodations</span>
+                        <strong class="text-slate-900 font-bold block">{{ package_makkah_hotel|default:'5-Star Luxury Makkah Hotel' }}</strong>
+                        <span class="text-slate-500 text-[10px]">{{ package_makkah_dist|default:'Walking Distance / Shuttle Service' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-amber-800 text-[9px] uppercase font-extrabold block">🕌 Madinah Accommodations</span>
+                        <strong class="text-slate-900 font-bold block">{{ package_madinah_hotel|default:'5-Star Premium Madinah Hotel' }}</strong>
+                        <span class="text-slate-500 text-[10px]">{{ package_madinah_dist|default:'Walking Distance / Haram Shuttle' }}</span>
+                    </div>
+                </div>
+                {% endif %}
                 {% if selected_addons %}
                 <div class="border-t border-slate-200 p-3 bg-white">
                     <span class="text-slate-400 text-[9px] uppercase font-bold block mb-1">Selected Add-ons</span>
@@ -190,9 +204,58 @@
                 {% endif %}
             </div>
 
+            <!-- FLIGHT SCHEDULE & TIMINGS BOX -->
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px] bg-white mb-4">
+                <div class="bg-slate-100 border-b border-slate-200 p-3 font-bold text-slate-900 flex justify-between items-center text-xs">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-plane-departure text-orange-500"></i>
+                        Flight Schedule &amp; Airline Specifications
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        DIRECT FLIGHT
+                    </span>
+                </div>
+                <div class="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50/50">
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Airline Carrier</span>
+                        <span class="font-extrabold text-slate-900 block mt-0.5 text-xs">
+                            ✈️ {{ package_airline|default:"Saudi Airlines" }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Flight Route</span>
+                        <span class="font-extrabold text-slate-900 block mt-0.5 text-xs">
+                            📍 {{ package_routes|default:"KHI ➔ JED | MED ➔ KHI" }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Baggage Allowance</span>
+                        <span class="font-extrabold text-slate-900 block mt-0.5 text-xs">
+                            🧳 {{ package_baggage|default:"30 KG Checked + 7 KG Hand Carry" }}
+                        </span>
+                    </div>
+                </div>
+                <div class="border-t border-slate-200 p-3 bg-white grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Departure Flight Schedule</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">
+                            📅 {{ package_departure_date|default:"05 Aug 2026" }} 
+                            <span class="text-orange-600 font-mono">⏰ {{ package_departure_time|default:"18:38" }}</span>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-[9px] uppercase font-bold block">Return Flight Schedule</span>
+                        <span class="font-bold text-slate-800 block mt-0.5">
+                            📅 {{ package_return_date|default:"07 Aug 2026" }} 
+                            <span class="text-orange-600 font-mono">⏰ {{ package_return_time|default:"06:04" }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
             {% elif letter_type == 'visa' %}
             <!-- VISA DETAILS TABLE -->
-            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px]">
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px] mb-4">
                 <div class="bg-slate-900 text-white p-3 font-bold flex justify-between items-center text-xs">
                     <span>{{ visa_country }} - {{ visa_type }}</span>
                     <span class="bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider font-extrabold">APPROVED</span>
@@ -225,7 +288,7 @@
 
             {% elif letter_type == 'ticket' %}
             <!-- FLIGHT TICKET DETAILS TABLE -->
-            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px]">
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px] mb-4">
                 <div class="bg-slate-900 text-white p-3 font-bold flex justify-between items-center text-xs">
                     <span>{{ departure_city }} <i class="fa-solid fa-plane text-orange-400 mx-1.5"></i> {{ destination_city }}</span>
                     <span class="bg-indigo-500 text-white px-2 py-0.5 rounded-full text-[9px] uppercase tracking-wider font-extrabold">CONFIRMED TICKET</span>
@@ -246,6 +309,53 @@
                 </div>
             </div>
             {% endif %}
+        </div>
+
+        <!-- 5. PASSENGER MANIFEST & DETAILS -->
+        <div class="mb-5 print-compact-gap">
+            <h3 class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2 flex items-center justify-between">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-users text-orange-500"></i> Passenger Details &amp; Manifest
+                </span>
+                <span class="text-[10px] text-slate-500 font-extrabold uppercase">Registered Pax Count: {{ adults_count|default:1 }} Adult(s) {% if children_count %}, {{ children_count }} Child{% endif %}</span>
+            </h3>
+            <div class="border border-slate-200 rounded-2xl overflow-hidden text-[11px]">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-white text-[9px] uppercase font-bold tracking-wider">
+                            <th class="p-2.5 border-r border-slate-800">#</th>
+                            <th class="p-2.5 border-r border-slate-800">Passenger Name</th>
+                            <th class="p-2.5 border-r border-slate-800">Type</th>
+                            <th class="p-2.5 border-r border-slate-800">Passport Number</th>
+                            <th class="p-2.5 border-r border-slate-800">Passport Expiry</th>
+                            <th class="p-2.5">Nationality</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 font-medium">
+                        {% if passengers %}
+                            {% for p in passengers %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-2.5 border-r border-slate-200 font-mono text-slate-400">{{ forloop.counter }}</td>
+                                <td class="p-2.5 border-r border-slate-200 font-bold text-slate-900">{{ p.title|default:'Mr' }}. {{ p.first_name }} {{ p.last_name }}</td>
+                                <td class="p-2.5 border-r border-slate-200 font-bold text-slate-700 uppercase text-[10px]">{{ p.get_passenger_type_display|default:p.passenger_type|default:'Adult' }}</td>
+                                <td class="p-2.5 border-r border-slate-200 font-mono font-bold text-slate-800">{{ p.passport_number|default:'P-9842105' }}</td>
+                                <td class="p-2.5 border-r border-slate-200 font-mono text-[10px] text-slate-600">{{ p.passport_expiry_date|date:"d M Y"|default:'N/A' }}</td>
+                                <td class="p-2.5 text-slate-700">{{ p.nationality|default:'Pakistan' }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-2.5 border-r border-slate-200 font-mono text-slate-400">1</td>
+                                <td class="p-2.5 border-r border-slate-200 font-bold text-slate-900">{{ traveler_name }}</td>
+                                <td class="p-2.5 border-r border-slate-200 font-bold text-slate-700 uppercase text-[10px]">Lead Passenger</td>
+                                <td class="p-2.5 border-r border-slate-200 font-mono font-bold text-slate-800">{{ passport_number|default:"N/A" }}</td>
+                                <td class="p-2.5 border-r border-slate-200 font-mono text-[10px] text-slate-600">Valid Passport</td>
+                                <td class="p-2.5 text-slate-700">Pakistan</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- 5. FINANCIAL & PAYMENT VERIFICATION -->

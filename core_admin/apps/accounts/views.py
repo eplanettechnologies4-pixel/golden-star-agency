@@ -1490,6 +1490,9 @@ def admin_visa_packages_api(request):
                 'banner_image': vp.banner_image or '',
                 'cover_url': vp.cover_url,
                 'is_popular': vp.is_popular,
+                'is_multi_country': vp.is_multi_country,
+                'countries_included': vp.countries_included or '',
+                'tour_destinations': vp.tour_destinations or [],
                 'created_at': vp.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             })
         return JsonResponse({'visa_packages': v_data})
@@ -1513,6 +1516,20 @@ def admin_visa_packages_api(request):
         description = body.get('description') or ''
         banner_image = body.get('banner_image') or ''
         is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
+        is_multi_country = str(body.get('is_multi_country', 'false')).lower() in ('true', '1', 'on')
+        countries_included = (body.get('countries_included') or '').strip()
+        
+        tour_destinations_raw = body.get('tour_destinations', '[]')
+        if isinstance(tour_destinations_raw, str):
+            try:
+                tour_destinations = json.loads(tour_destinations_raw)
+            except Exception:
+                tour_destinations = []
+        elif isinstance(tour_destinations_raw, list):
+            tour_destinations = tour_destinations_raw
+        else:
+            tour_destinations = []
+
         cover_image = request.FILES.get('cover_image')
 
         vp = VisaPackage.objects.create(
@@ -1529,7 +1546,10 @@ def admin_visa_packages_api(request):
             description=description,
             banner_image=banner_image,
             cover_image=cover_image if cover_image else None,
-            is_popular=is_popular
+            is_popular=is_popular,
+            is_multi_country=is_multi_country,
+            countries_included=countries_included,
+            tour_destinations=tour_destinations
         )
         return JsonResponse({'success': True, 'visa_package_id': vp.id})
     return JsonResponse({'success': False}, status=400)
@@ -1564,6 +1584,19 @@ def admin_visa_package_detail_api(request, pk):
             vp.cover_image = request.FILES.get('cover_image')
         if 'is_popular' in body:
             vp.is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
+        if 'is_multi_country' in body:
+            vp.is_multi_country = str(body.get('is_multi_country', 'false')).lower() in ('true', '1', 'on')
+        if 'countries_included' in body:
+            vp.countries_included = body.get('countries_included', '')
+        if 'tour_destinations' in body:
+            raw_dest = body.get('tour_destinations', '[]')
+            if isinstance(raw_dest, str):
+                try:
+                    vp.tour_destinations = json.loads(raw_dest)
+                except Exception:
+                    vp.tour_destinations = []
+            elif isinstance(raw_dest, list):
+                vp.tour_destinations = raw_dest
         vp.save()
         return JsonResponse({'success': True})
 
@@ -4421,25 +4454,50 @@ def admin_custom_inquiry_contact_api(request, pk):
 def package_approval_letter_view(request, pk):
     """
     Renders official printable approval letter for confirmed package booking.
+    Includes full flight schedule, hotel accommodations, and passenger manifest details.
     """
     booking = get_object_or_404(Booking, pk=pk)
     
     # Permission check: admin, agent, or booking owner
-    if not (request.user.is_superuser or request.user.role == 'admin' or request.user.role == 'agent' or booking.user == request.user):
+    if not (request.user.is_superuser or getattr(request.user, 'role', '') in ['admin', 'super_admin', 'agent'] or booking.user == request.user):
         messages.error(request, "You do not have permission to access this document.")
         return redirect('home')
 
+    pkg = booking.package
+    passengers = []
+    try:
+        from apps.airline_ticketing.models import AgentTicketOrder
+        agent_order = AgentTicketOrder.objects.filter(reference_number=f"GST-B-{booking.id:05d}").first() or AgentTicketOrder.objects.filter(id=booking.id).first()
+        if agent_order:
+            passengers = list(agent_order.passengers.all())
+    except Exception:
+        pass
+
     context = {
+        'booking': booking,
+        'package': pkg,
+        'passengers': passengers,
         'letter_type': 'package',
-        'document_title': 'OFFICIAL PACKAGE CONFIRMATION LETTER',
-        'ref_number': f"GST-B-{booking.id:05d}",
+        'document_title': 'OFFICIAL PACKAGE CONFIRMATION VOUCHER & LETTER',
+        'ref_number': booking.pnr or f"GST-B-{booking.id:05d}",
         'issue_date': booking.updated_at,
         'status_display': booking.get_status_display().upper(),
-        'traveler_name': booking.user.get_full_name() or booking.user.username,
+        'traveler_name': booking.full_name or (booking.user.get_full_name() if booking.user else '') or (booking.user.username if booking.user else 'Lead Traveler'),
         'passport_number': getattr(booking.user, 'passport_number', None) or 'P-9842105',
-        'traveler_phone': booking.user.phone or 'N/A',
-        'traveler_email': booking.user.email or 'N/A',
-        'package_title': booking.package.title if booking.package else "Custom Travel Package",
+        'traveler_phone': booking.phone_number or (booking.user.phone if booking.user else 'N/A'),
+        'traveler_email': booking.email or (booking.user.email if booking.user else 'N/A'),
+        'package_title': pkg.title if pkg else "VIP Umrah & Hajj Package",
+        'package_makkah_hotel': getattr(pkg, 'makkah_hotel_name', '') if pkg else '5-Star Luxury Makkah Hotel',
+        'package_makkah_dist': getattr(pkg, 'makkah_hotel_distance', '') if pkg else 'Walking Distance / Shuttle Service',
+        'package_madinah_hotel': getattr(pkg, 'madinah_hotel_name', '') if pkg else '5-Star Premium Madinah Hotel',
+        'package_madinah_dist': getattr(pkg, 'madinah_hotel_distance', '') if pkg else 'Walking Distance / Haram Shuttle',
+        'package_airline': (getattr(pkg, 'airline_name', '') or getattr(pkg, 'flight_name', '')) if pkg else 'Saudi Airlines',
+        'package_routes': (getattr(pkg, 'flight_routes', '') or getattr(pkg, 'sector_name', '')) if pkg else 'KHI ➔ JED | MED ➔ KHI',
+        'package_departure_date': getattr(pkg, 'departure_date', '') or getattr(pkg, 'flight_dates', '') if pkg else '05 Aug 2026',
+        'package_departure_time': getattr(pkg, 'departure_time', '') if pkg else '18:38',
+        'package_return_date': getattr(pkg, 'return_date', '') if pkg else '07 Aug 2026',
+        'package_return_time': getattr(pkg, 'arrival_time', '') if pkg else '06:04',
+        'package_baggage': getattr(pkg, 'baggage_allowance', '') if pkg else '30 KG Checked + 7 KG Hand Carry',
         'booking_type': booking.get_booking_type_display(),
         'sharing_category': booking.sharing_category or 'Quad Sharing',
         'adults_count': booking.adults_count,

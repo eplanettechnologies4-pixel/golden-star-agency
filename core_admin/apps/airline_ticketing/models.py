@@ -283,6 +283,18 @@ class AgentPackage(models.Model):
             return "/static/images/hajj_card.png"
         return "/static/images/umrah_card.png"
 
+    @property
+    def flight_dates(self):
+        if self.departure_date and self.return_date:
+            return f"{self.departure_date} to {self.return_date}"
+        elif self.departure_date:
+            return str(self.departure_date)
+        return ""
+
+    @property
+    def flight_routes(self):
+        return self.flight_route or "KHI - JED - MED - KHI"
+
 
 class AgentTicketOrder(models.Model):
     ORDER_TYPE_CHOICES = (
