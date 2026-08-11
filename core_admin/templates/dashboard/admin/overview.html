@@ -3496,10 +3496,6 @@
                         document.getElementById('gpm-airline-custom').value = p.airline_name_custom || '';
                         document.getElementById('gpm-departure-city').value = p.departure_city || '';
                         document.getElementById('gpm-destination-city').value = p.destination_city || '';
-                        document.getElementById('gpm-departure-time').value = p.departure_time || '';
-                        document.getElementById('gpm-arrival-time').value = p.arrival_time || '';
-                        document.getElementById('gpm-return-departure-time').value = p.return_departure_time || '';
-                        document.getElementById('gpm-return-arrival-time').value = p.return_arrival_time || '';
                         document.getElementById('gpm-trip-type').value = p.trip_type || 'oneway';
                         document.getElementById('gpm-route-type').value = p.route_type || 'direct';
                         document.getElementById('gpm-via-city').value = p.via_city || '';
@@ -3507,23 +3503,26 @@
                         document.getElementById('gpm-total-seats').value = p.total_seats || 50;
                         document.getElementById('gpm-available-seats').value = p.available_seats || 50;
                         document.getElementById('gpm-min-group-size').value = p.min_group_size || 10;
-                        document.getElementById('gpm-discount-type').value = p.discount_type || 'percentage';
-                        document.getElementById('gpm-discount-value').value = p.discount_value || 0;
                         document.getElementById('gpm-baggage-kg').value = p.baggage_weight_kg || 30;
                         document.getElementById('gpm-return-baggage-kg').value = p.return_baggage_weight_kg || 30;
-                        document.getElementById('gpm-base-fare').value = p.base_fare || 0;
-                        document.getElementById('gpm-group-fare-override').value = p.group_fare_override !== null ? p.group_fare_override : '';
-                        document.getElementById('gpm-is-active').checked = p.is_active;
+                        
+                        const netPrice = (p.group_fare_override !== null && p.group_fare_override !== undefined) ? p.group_fare_override : (p.group_fare || p.base_fare || '');
+                        document.getElementById('gpm-group-fare-override').value = netPrice;
+                        document.getElementById('gpm-is-active').checked = p.is_active !== false;
 
-                        renderAdminGroupSectors(p.route_sectors || []);
+                        _populateSectorsDataForm(p.sectors_data || p.route_sectors || {});
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error("Error loading group policy for edit:", e);
+                }
             } else {
                 document.getElementById('gpm-modal-title').textContent = "Add Standalone Group Ticket";
                 document.getElementById('gpm-edit-id').value = '';
                 const form = document.getElementById('gpm-form');
                 if (form) form.reset();
-                renderAdminGroupSectors();
+                document.getElementById('gpm-group-fare-override').value = '';
+                document.getElementById('gpm-is-active').checked = true;
+                _populateSectorsDataForm({});
             }
 
             openModal('modal-admin-group-policy');
@@ -3537,89 +3536,37 @@
         window.closeAdminGroupPolicyModal = closeAdminGroupPolicyModal;
 
         function renderAdminGroupSectors(existingSectors = []) {
-            const tripType = document.getElementById('gpm-trip-type')?.value || 'oneway';
-            const routeType = document.getElementById('gpm-route-type')?.value || 'direct';
-
-            let count = 1;
-            if (tripType === 'oneway' && routeType === 'direct') count = 1;
-            else if (tripType === 'return' && routeType === 'direct') count = 2;
-            else if (tripType === 'oneway' && routeType === 'via') count = 2;
-            else if (tripType === 'return' && routeType === 'via') count = 4;
-
-            const titleElem = document.getElementById('gpm-sectors-title');
-            const badgeElem = document.getElementById('gpm-sectors-badge');
-            if (titleElem) titleElem.textContent = `Route Sectors (${count} Sectors Configured)`;
-            if (badgeElem) badgeElem.textContent = `${count} Sectors`;
-
-            const listElem = document.getElementById('gpm-sectors-list');
-            if (!listElem) return;
-
-            let html = '';
-            for (let i = 0; i < count; i++) {
-                const s = existingSectors[i] || {};
-                const defaultLabel = (tripType === 'return' && i >= count / 2) ? `Return Leg Sector ${i - Math.floor(count / 2) + 1}` : `Outbound Sector ${i + 1}`;
-                html += `
-                    <div class="bg-white p-3 rounded-xl border border-[#E7DCB9] shadow-2xs space-y-2">
-                        <div class="text-[10px] font-black uppercase text-[#2D4424] flex items-center justify-between border-b border-[#E7DCB9] pb-1">
-                            <span><i class="fa-solid fa-plane-departure text-[#E06A26] mr-1"></i>Sector ${i + 1}: ${defaultLabel}</span>
-                            <span class="text-[9px] font-bold text-[#567946]">Sector #${i + 1}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-[9px] font-bold text-[#567946]">From City</label>
-                                <input type="text" data-sec-idx="${i}" data-sec-key="from_city" value="${escapeHTML(s.from_city || '')}" placeholder="e.g. KHI" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-bold text-[#567946]">To City</label>
-                                <input type="text" data-sec-idx="${i}" data-sec-key="to_city" value="${escapeHTML(s.to_city || '')}" placeholder="e.g. DOH" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-bold text-[#567946]">Flight No.</label>
-                                <input type="text" data-sec-idx="${i}" data-sec-key="flight_no" value="${escapeHTML(s.flight_no || '')}" placeholder="e.g. SV-701" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-bold text-[#567946]">Date</label>
-                                <input type="text" data-sec-idx="${i}" data-sec-key="flight_date" value="${escapeHTML(s.flight_date || '')}" placeholder="e.g. 15 SEP" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-bold text-[#567946]">Dep Time</label>
-                                <input type="text" data-sec-idx="${i}" data-sec-key="dep_time" value="${escapeHTML(s.dep_time || '')}" placeholder="e.g. 03:30 AM" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
-                            </div>
-                            <div>
-                                <label class="block text-[9px] font-bold text-[#567946]">Arr Time</label>
-                                <input type="text" data-sec-idx="${i}" data-sec-key="arr_time" value="${escapeHTML(s.arr_time || '')}" placeholder="e.g. 06:45 AM" class="gpm-sec-input w-full p-1.5 border border-[#D9CBAC] rounded text-xs font-bold text-[#2D4424]">
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            listElem.innerHTML = html;
+            // Helper for dynamic sector badges if applicable
         }
 
         function collectAdminGroupSectors() {
-            const inputs = document.querySelectorAll('.gpm-sec-input');
-            const sectorsObj = {};
-            inputs.forEach(inp => {
-                const idx = inp.getAttribute('data-sec-idx');
-                const key = inp.getAttribute('data-sec-key');
-                if (!sectorsObj[idx]) sectorsObj[idx] = {};
-                sectorsObj[idx][key] = inp.value.trim();
-            });
-            return Object.values(sectorsObj);
+            return _collectSectorsDataPayload();
         }
 
         async function saveAdminGroupPolicy(e) {
             if (e) e.preventDefault();
             const editId = document.getElementById('gpm-edit-id').value;
+            const sectorsPayload = _collectSectorsDataPayload();
+            const goingLegs = sectorsPayload.going || [];
+            const comingLegs = sectorsPayload.coming || [];
+
+            // Auto-derive overall departure and arrival times from first and last legs
+            const depTime = goingLegs[0]?.dep_time || '';
+            const arrTime = goingLegs[goingLegs.length - 1]?.arr_time || '';
+            const retDepTime = comingLegs[0]?.dep_time || '';
+            const retArrTime = comingLegs[comingLegs.length - 1]?.arr_time || '';
+
+            const netFare = parseFloat(document.getElementById('gpm-group-fare-override')?.value || 0);
+
             const payload = {
                 airline_id: document.getElementById('gpm-airline').value || null,
                 airline_name_custom: document.getElementById('gpm-airline-custom').value,
                 departure_city: document.getElementById('gpm-departure-city').value,
                 destination_city: document.getElementById('gpm-destination-city').value,
-                departure_time: document.getElementById('gpm-departure-time').value,
-                arrival_time: document.getElementById('gpm-arrival-time').value,
-                return_departure_time: document.getElementById('gpm-return-departure-time').value,
-                return_arrival_time: document.getElementById('gpm-return-arrival-time').value,
+                departure_time: depTime,
+                arrival_time: arrTime,
+                return_departure_time: retDepTime,
+                return_arrival_time: retArrTime,
                 trip_type: document.getElementById('gpm-trip-type').value,
                 route_type: document.getElementById('gpm-route-type').value,
                 via_city: document.getElementById('gpm-via-city').value,
@@ -3627,13 +3574,14 @@
                 total_seats: parseInt(document.getElementById('gpm-total-seats').value || 50),
                 available_seats: parseInt(document.getElementById('gpm-available-seats').value || 50),
                 min_group_size: parseInt(document.getElementById('gpm-min-group-size').value || 10),
-                discount_type: document.getElementById('gpm-discount-type').value,
-                discount_value: parseFloat(document.getElementById('gpm-discount-value').value || 0),
+                discount_type: 'flat',
+                discount_value: 0,
                 baggage_weight_kg: parseInt(document.getElementById('gpm-baggage-kg').value || 30),
                 return_baggage_weight_kg: parseInt(document.getElementById('gpm-return-baggage-kg').value || 30),
-                base_fare: parseFloat(document.getElementById('gpm-base-fare').value || 0),
-                group_fare_override: document.getElementById('gpm-group-fare-override').value ? parseFloat(document.getElementById('gpm-group-fare-override').value) : null,
-                route_sectors: collectAdminGroupSectors(),
+                base_fare: netFare,
+                group_fare_override: netFare,
+                sectors_data: sectorsPayload,
+                route_sectors: sectorsPayload,
                 is_active: document.getElementById('gpm-is-active').checked
             };
 
@@ -10041,25 +9989,6 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-extrabold text-[#2D4424] mb-1">Outbound Dep Time</label>
-                        <input type="text" id="gpm-departure-time" placeholder="03:30 AM" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-extrabold text-[#2D4424] mb-1">Outbound Arr Time</label>
-                        <input type="text" id="gpm-arrival-time" placeholder="07:45 AM" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-extrabold text-[#2D4424] mb-1">Return Dep Time</label>
-                        <input type="text" id="gpm-return-departure-time" placeholder="10:00 AM" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-extrabold text-[#2D4424] mb-1">Return Arr Time</label>
-                        <input type="text" id="gpm-return-arrival-time" placeholder="02:30 PM" class="w-full p-2 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                </div>
-
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Trip Type</label>
@@ -10099,8 +10028,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-g1-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g1-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g1-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-g1-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-g1-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                         <!-- Going Leg 2 -->
@@ -10112,8 +10041,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-g2-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g2-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g2-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-g2-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-g2-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                         <!-- Going Leg 3 -->
@@ -10125,8 +10054,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-g3-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g3-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g3-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-g3-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-g3-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                         <!-- Going Leg 4 -->
@@ -10138,8 +10067,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-g4-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g4-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-g4-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-g4-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-g4-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                     </div>
@@ -10163,8 +10092,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-c1-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c1-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c1-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-c1-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-c1-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                         <!-- Coming Leg 2 -->
@@ -10176,8 +10105,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-c2-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c2-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c2-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-c2-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-c2-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                         <!-- Coming Leg 3 -->
@@ -10189,8 +10118,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-c3-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c3-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c3-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-c3-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-c3-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                         <!-- Coming Leg 4 -->
@@ -10202,8 +10131,8 @@
                             </div>
                             <div class="grid grid-cols-3 gap-1">
                                 <input type="text" id="gpm-c4-flight" placeholder="Flight #" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c4-dep" placeholder="Dep Time" class="p-1 border rounded text-[10px]">
-                                <input type="text" id="gpm-c4-arr" placeholder="Arr Time" class="p-1 border rounded text-[10px]">
+                                <input type="time" id="gpm-c4-dep" title="Dep Time" class="p-1 border rounded text-[10px] bg-white">
+                                <input type="time" id="gpm-c4-arr" title="Arr Time" class="p-1 border rounded text-[10px] bg-white">
                             </div>
                         </div>
                     </div>
@@ -10235,29 +10164,11 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Discount Type</label>
-                        <select id="gpm-discount-type" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
-                            <option value="percentage">Percentage (%) OFF</option>
-                            <option value="flat">Flat Amount (PKR OFF)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Discount Value</label>
-                        <input type="number" id="gpm-discount-value" value="0" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Standard Base Fare (PKR) *</label>
-                        <input type="number" id="gpm-base-fare" value="115000" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-extrabold text-[#E06A26] mb-1">Group Net Fare Override (PKR)</label>
-                        <input type="number" id="gpm-group-fare-override" placeholder="Direct group price PKR" class="w-full p-2.5 text-xs rounded-xl border border-[#E06A26]">
-                    </div>
+                <!-- Single Net Fare Configuration -->
+                <div class="p-3.5 bg-[#FFF5EF] rounded-2xl border-2 border-[#E06A26] space-y-1.5 shadow-xs">
+                    <label class="block text-xs font-black text-[#E06A26]">Group Net Fare (PKR) *</label>
+                    <input type="number" id="gpm-group-fare-override" required placeholder="e.g. 115000" class="w-full p-2.5 text-sm font-black rounded-xl border border-[#E06A26] bg-white text-[#2D4424] focus:outline-none">
+                    <span class="text-[10px] text-[#567946] font-bold block">Wholesale net price per seat displayed to travel agents.</span>
                 </div>
 
                 <div class="flex items-center justify-between pt-2">
@@ -12572,185 +12483,7 @@
         </div>
     </div>
 
-    <!-- ══════════════ ✈️ ADMIN STANDALONE GROUP TICKET MODAL ══════════════ -->
-    <div id="modal-admin-group-policy" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs hidden items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 sm:p-8 max-w-3xl w-full shadow-2xl space-y-6 my-8 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between border-b border-[#E7DCB9] pb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-2xl bg-[#FDF2EA] text-[#E06A26] flex items-center justify-center font-bold text-xl border border-[#FCE2D2]">
-                        <i class="fa-solid fa-plane-up"></i>
-                    </div>
-                    <div>
-                        <h3 id="gpm-modal-title" class="text-base font-black text-[#2D4424]">Add Standalone Group Ticket</h3>
-                        <p class="text-xs text-[#567946] font-semibold">Configure independent group seats, custom flight timings, luggage, and net fare.</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeAdminGroupPolicyModal()" class="w-8 h-8 rounded-full bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] flex items-center justify-center font-bold transition-all">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
 
-            <form id="gpm-form" onsubmit="saveAdminGroupPolicy(event)" class="space-y-5">
-                {% csrf_token %}
-                <input type="hidden" id="gpm-edit-id" value="">
-
-                <!-- Section 1: Airline & Route -->
-                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-plane-departure"></i> Airline & Route Details</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Select Airline</label>
-                            <select id="gpm-airline" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                                <option value="">-- Custom / Other Airline --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Custom Airline Name (If not in list)</label>
-                            <input type="text" id="gpm-airline-custom" placeholder="e.g. Saudia, PIA, AirBlue" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Departure City</label>
-                            <input type="text" id="gpm-departure-city" placeholder="e.g. Lahore (LHE)" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Destination City</label>
-                            <input type="text" id="gpm-destination-city" placeholder="e.g. Jeddah (JED)" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 2: Flight Leg Timings -->
-                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-clock"></i> Flight Timings & Trip Configuration</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Outbound Dep Time</label>
-                            <input type="text" id="gpm-departure-time" placeholder="e.g. 03:30 AM" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Outbound Arr Time</label>
-                            <input type="text" id="gpm-arrival-time" placeholder="e.g. 07:15 AM" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Return Dep Time (Optional)</label>
-                            <input type="text" id="gpm-return-departure-time" placeholder="e.g. 09:00 PM" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Return Arr Time (Optional)</label>
-                            <input type="text" id="gpm-return-arrival-time" placeholder="e.g. 02:30 AM" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Flight Route & Sector Type *</label>
-                            <select id="gpm-flight-route-type" onchange="renderAdminGroupSectors()" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                                <option value="one_way_direct">1 Sector — One Way Direct Flight (e.g. LYP-JED)</option>
-                                <option value="round_trip_direct" selected>2 Sectors — Round Trip Direct Flight (e.g. LYP-JED, JED-LYP)</option>
-                                <option value="multi_city_direct">2 Sectors — Multi City Direct Flight (e.g. LYP-JED, MED-LYP)</option>
-                                <option value="one_way_via">2 Sectors — One Way Via Flight (e.g. LYP-SHJ, SHJ-JED)</option>
-                                <option value="round_trip_via">4 Sectors — Round Trip Via Flight (e.g. LYP-SHJ, SHJ-JED, JED-SHJ, SHJ-LYP)</option>
-                                <option value="multi_city_via">4 Sectors — Multi City Via Flight (e.g. LYP-JED, JED-MED, MED-SHJ, SHJ-LYP)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Via Routes / Connection Summary</label>
-                            <input type="text" id="gpm-via-city" placeholder="e.g. KHI - DOH - JED - MED" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                    </div>
-
-                    <!-- Dynamic Route Sectors Container (1, 2, or 4 Sectors) -->
-                    <div id="gpm-sectors-wrapper" class="pt-3 border-t border-[#D9CBAC] space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="text-[11px] font-black uppercase text-[#E06A26] flex items-center gap-1.5">
-                                <i class="fa-solid fa-diagram-project"></i> <span id="gpm-sectors-title">Route Sectors (2 Sectors Configured)</span>
-                            </div>
-                            <span id="gpm-sectors-badge" class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#2D4424] text-white">2 Sectors</span>
-                        </div>
-                        <div id="gpm-sectors-list" class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <!-- Populated dynamically via renderAdminGroupSectors() -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 3: Baggage, Meals & Seats -->
-                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-users"></i> Baggage, Meal & Group Seats</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">In-Flight Meal</label>
-                            <select id="gpm-has-meal" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                                <option value="true">Meal Included</option>
-                                <option value="false">No Meal</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Outbound Baggage (KG)</label>
-                            <input type="number" id="gpm-baggage-kg" value="30" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Coming Baggage (KG)</label>
-                            <input type="number" id="gpm-return-baggage-kg" value="30" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Min Group Seats</label>
-                            <input type="number" id="gpm-min-group-size" value="10" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Total Allocated Group Seats</label>
-                            <input type="number" id="gpm-total-seats" value="50" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Currently Available Group Seats</label>
-                            <input type="number" id="gpm-available-seats" value="50" required class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 4: Fares & Discounts -->
-                <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <div class="text-xs font-black uppercase text-[#E06A26] flex items-center gap-1.5"><i class="fa-solid fa-tags"></i> Base Fare & Group Pricing</div>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Base Fare per Seat (PKR)</label>
-                            <input type="number" id="gpm-base-fare" placeholder="e.g. 150000" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Discount Type</label>
-                            <select id="gpm-discount-type" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                                <option value="percentage">Percentage (%)</option>
-                                <option value="flat">Flat Amount (PKR)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-[#2D4424] mb-1">Discount Value</label>
-                            <input type="number" id="gpm-discount-value" value="0" step="0.01" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                        </div>
-                    </div>
-                    <div class="pt-2">
-                        <label class="block text-[11px] font-bold text-[#E06A26] mb-1">Override Calculated Net Group Fare (Optional PKR)</label>
-                        <input type="number" id="gpm-group-fare-override" placeholder="Leave empty to use base fare - discount calculation" class="w-full px-3 py-2 bg-white border border-[#E7DCB9] rounded-xl text-xs font-bold text-[#2D4424]">
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" id="gpm-is-active" checked class="w-4 h-4 text-[#E06A26] rounded border-[#E7DCB9] focus:ring-[#E06A26]">
-                    <label for="gpm-is-active" class="text-xs font-bold text-[#2D4424]">Publish & Activate Group Ticket in Agent B2B Portal</label>
-                </div>
-
-                <div class="flex justify-end items-center gap-3 border-t border-[#E7DCB9] pt-4">
-                    <button type="button" onclick="closeAdminGroupPolicyModal()" class="px-5 py-2.5 bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] text-xs font-bold rounded-xl hover:bg-[#EBD8B3] transition-all">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-6 py-2.5 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-check"></i> Save Standalone Group Ticket
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- ══════════════ ⚡ REAL-TIME SUPER ADMIN NOTIFICATION ENGINE ══════════════ -->
     <script>

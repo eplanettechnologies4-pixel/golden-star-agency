@@ -1526,15 +1526,26 @@ def admin_group_fare_policies_api(request):
             airline_id = payload.get('airline_id')
             airline_obj = Airline.objects.filter(id=airline_id).first() if airline_id else None
 
+            sectors_data = payload.get('sectors_data') or payload.get('route_sectors') or {}
+            going_sectors = sectors_data.get('going', []) if isinstance(sectors_data, dict) else []
+            coming_sectors = sectors_data.get('coming', []) if isinstance(sectors_data, dict) else []
+
+            dep_time = payload.get('departure_time') or (going_sectors[0].get('dep_time') if going_sectors else '')
+            arr_time = payload.get('arrival_time') or (going_sectors[-1].get('arr_time') if going_sectors else '')
+            ret_dep_time = payload.get('return_departure_time') or (coming_sectors[0].get('dep_time') if coming_sectors else '')
+            ret_arr_time = payload.get('return_arrival_time') or (coming_sectors[-1].get('arr_time') if coming_sectors else '')
+
+            net_fare_val = payload.get('group_fare_override') or payload.get('base_fare') or 0
+
             p = GroupFarePolicy.objects.create(
                 airline=airline_obj,
                 airline_name_custom=payload.get('airline_name_custom', ''),
                 departure_city=payload.get('departure_city', ''),
                 destination_city=payload.get('destination_city', ''),
-                departure_time=payload.get('departure_time', ''),
-                arrival_time=payload.get('arrival_time', ''),
-                return_departure_time=payload.get('return_departure_time', ''),
-                return_arrival_time=payload.get('return_arrival_time', ''),
+                departure_time=dep_time or '',
+                arrival_time=arr_time or '',
+                return_departure_time=ret_dep_time or '',
+                return_arrival_time=ret_arr_time or '',
                 trip_type=payload.get('trip_type', 'oneway'),
                 route_type=payload.get('route_type', 'direct'),
                 via_city=payload.get('via_city', ''),
@@ -1542,14 +1553,14 @@ def admin_group_fare_policies_api(request):
                 total_seats=int(payload.get('total_seats', 50)),
                 available_seats=int(payload.get('available_seats', 50)),
                 min_group_size=int(payload.get('min_group_size', 10)),
-                discount_type=payload.get('discount_type', 'percentage'),
+                discount_type=payload.get('discount_type', 'flat'),
                 discount_value=Decimal(str(payload.get('discount_value', 0))),
                 baggage_weight_kg=int(payload.get('baggage_weight_kg', 30)),
                 return_baggage_weight_kg=int(payload.get('return_baggage_weight_kg', 30)),
-                base_fare=Decimal(str(payload.get('base_fare', 0))),
-                group_fare_override=Decimal(str(payload.get('group_fare_override'))) if payload.get('group_fare_override') not in [None, ''] else None,
+                base_fare=Decimal(str(net_fare_val)),
+                group_fare_override=Decimal(str(net_fare_val)) if net_fare_val not in [None, ''] else None,
                 is_active=bool(payload.get('is_active', True)),
-                sectors_data=payload.get('sectors_data', {})
+                sectors_data=sectors_data
             )
             return JsonResponse({'success': True, 'policy_id': p.id, 'message': 'Group ticket created successfully!'})
         except Exception as e:
@@ -1592,7 +1603,7 @@ def admin_group_fare_policy_detail_api(request, pk):
                 'baggage_weight_kg':        policy.baggage_weight_kg,
                 'return_baggage_weight_kg': policy.return_baggage_weight_kg,
                 'base_fare':                float(policy.base_fare or (fi.base_fare if fi else 0)),
-                'group_fare_override':      float(policy.group_fare_override) if policy.group_fare_override is not None else None,
+                'group_fare_override':      float(policy.group_fare_override) if policy.group_fare_override is not None else float(policy.base_fare or 0),
                 'is_active':                policy.is_active,
                 'sectors_data':             policy.sectors_data or (fi.sectors_data if fi else {}),
             }
@@ -1622,11 +1633,27 @@ def admin_group_fare_policy_detail_api(request, pk):
             if 'discount_value' in payload: policy.discount_value = Decimal(str(payload['discount_value']))
             if 'baggage_weight_kg' in payload: policy.baggage_weight_kg = int(payload['baggage_weight_kg'])
             if 'return_baggage_weight_kg' in payload: policy.return_baggage_weight_kg = int(payload['return_baggage_weight_kg'])
-            if 'base_fare' in payload: policy.base_fare = Decimal(str(payload['base_fare']))
-            if 'group_fare_override' in payload:
-                policy.group_fare_override = Decimal(str(payload['group_fare_override'])) if payload['group_fare_override'] not in [None, ''] else None
+            
+            if 'group_fare_override' in payload or 'base_fare' in payload:
+                net_val = payload.get('group_fare_override') or payload.get('base_fare') or 0
+                policy.base_fare = Decimal(str(net_val))
+                policy.group_fare_override = Decimal(str(net_val)) if net_val not in [None, ''] else None
+
             if 'is_active' in payload: policy.is_active = bool(payload['is_active'])
-            if 'sectors_data' in payload: policy.sectors_data = payload['sectors_data']
+            if 'sectors_data' in payload or 'route_sectors' in payload:
+                sec = payload.get('sectors_data') or payload.get('route_sectors') or {}
+                policy.sectors_data = sec
+                if isinstance(sec, dict):
+                    going_sec = sec.get('going', [])
+                    coming_sec = sec.get('coming', [])
+                    if going_sec and not policy.departure_time:
+                        policy.departure_time = going_sec[0].get('dep_time', '')
+                    if going_sec and not policy.arrival_time:
+                        policy.arrival_time = going_sec[-1].get('arr_time', '')
+                    if coming_sec and not policy.return_departure_time:
+                        policy.return_departure_time = coming_sec[0].get('dep_time', '')
+                    if coming_sec and not policy.return_arrival_time:
+                        policy.return_arrival_time = coming_sec[-1].get('arr_time', '')
 
             policy.save()
             return JsonResponse({'success': True, 'message': 'Group ticket updated successfully!'})
@@ -1922,7 +1949,7 @@ def agent_group_fare_policies_api(request):
 
 
 def get_agent_wallet_balance(agent):
-    from apps.accounts.models import AgentLedger
+    from ..accounts.models import AgentLedger
     from django.db.models import Sum
     entries = AgentLedger.objects.filter(agent=agent)
     credit_total = entries.filter(entry_type='credit').aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
@@ -2049,7 +2076,7 @@ def issue_pnr_and_tickets_for_order(order):
     order.save()
 
     try:
-        from apps.accounts.views import build_professional_email_html, _dispatch_email
+        from ..accounts.views import build_professional_email_html, _dispatch_email
         from django.conf import settings
         
         if order.order_type in ('umrah', 'hajj'):
@@ -2097,8 +2124,8 @@ def send_b2b_order_notification_email(order, event_type='created'):
     - 'ticketed': Sent to Agent & Traveler when order is confirmed/ticketed by admin.
     """
     try:
-        from apps.accounts.views import build_professional_email_html, _dispatch_email
-        from apps.accounts.models import User
+        from ..accounts.views import build_professional_email_html, _dispatch_email
+        from ..accounts.models import User
         from django.conf import settings
 
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or getattr(settings, 'EMAIL_HOST_USER', None) or 'goldenstartraveltours@gmail.com'
@@ -2407,7 +2434,7 @@ def agent_create_ticket_order_api(request):
                     op.save()
 
             if decision == 'pay_now':
-                from apps.accounts.models import AgentLedger
+                from ..accounts.models import AgentLedger
                 AgentLedger.objects.create(
                     agent=request.user,
                     entry_type='debit',
@@ -2492,7 +2519,7 @@ def agent_update_passengers_api(request, pk):
                 'error': f'Insufficient wallet balance. Available: PKR {wallet_balance}, Required: PKR {order.total_fare}'
             }, status=400)
 
-        from apps.accounts.models import AgentLedger
+        from ..accounts.models import AgentLedger
         AgentLedger.objects.create(
             agent=request.user,
             entry_type='debit',
@@ -2651,7 +2678,7 @@ def admin_ticket_orders_api(request):
 
     # Include Booking model records (Package Bookings from main package catalog)
     try:
-        from apps.bookings.models import Booking
+        from ..bookings.models import Booking
         pkg_bookings = Booking.objects.select_related('user', 'package').all()
         for b in pkg_bookings:
             pkg_type = getattr(b.package, 'package_type', 'umrah') if b.package else 'umrah'
@@ -2726,7 +2753,7 @@ def admin_allot_tickets_api(request, pk):
 
     str_pk = str(pk)
     if str_pk.startswith('bkg_'):
-        from apps.bookings.models import Booking
+        from ..bookings.models import Booking
         real_id = int(str_pk.replace('bkg_', ''))
         booking = get_object_or_404(Booking, pk=real_id)
 
@@ -2760,7 +2787,7 @@ def admin_allot_tickets_api(request, pk):
     if raw_discount is not None and str(raw_discount).strip() != '':
         try:
             from decimal import Decimal
-            from apps.accounts.models import AgentLedger
+            from ..accounts.models import AgentLedger
             new_discount = Decimal(str(raw_discount).strip())
             if new_discount >= 0:
                 if order.original_fare is None:
@@ -2848,7 +2875,7 @@ def admin_cancel_ticket_order_api(request, pk):
 
     str_pk = str(pk)
     if str_pk.startswith('bkg_'):
-        from apps.bookings.models import Booking
+        from ..bookings.models import Booking
         real_id = int(str_pk.replace('bkg_', ''))
         booking = get_object_or_404(Booking, pk=real_id)
         booking.status = 'cancelled'
@@ -2892,7 +2919,7 @@ def agent_cancel_ticket_order_api(request, pk):
     restore_order_seats_and_update_status(order, new_status='cancelled')
 
     if was_paid and refund_amount > 0:
-        from apps.accounts.models import AgentLedger
+        from ..accounts.models import AgentLedger
         AgentLedger.objects.create(
             agent=request.user,
             entry_type='credit',
@@ -3013,7 +3040,7 @@ def agent_ticket_order_print_view(request, reference_number):
     Supports ?hide_fare=1 or ?hide_fare=true to suppress price details for client receipts.
     Fallback lookup handles Booking IDs (e.g. INV-PKG-0046) seamlessly.
     """
-    from apps.bookings.models import Booking
+    from ..bookings.models import Booking
 
     # 1. Direct reference match on AgentTicketOrder
     order = AgentTicketOrder.objects.filter(reference_number=reference_number).select_related('agent', 'flight_inventory__airline', 'agent_package').prefetch_related('passengers').first()
@@ -3035,7 +3062,7 @@ def agent_ticket_order_print_view(request, reference_number):
         try:
             booking = Booking.objects.filter(id=int(digits)).first()
             if booking:
-                from apps.accounts.views import package_approval_letter_view
+                from ..accounts.views import package_approval_letter_view
                 return package_approval_letter_view(request, pk=booking.id)
         except Exception:
             pass
@@ -3043,7 +3070,7 @@ def agent_ticket_order_print_view(request, reference_number):
     if not order:
         booking = Booking.objects.filter(reference_number__iexact=reference_number).first()
         if booking:
-            from apps.accounts.views import package_approval_letter_view
+            from ..accounts.views import package_approval_letter_view
             return package_approval_letter_view(request, pk=booking.id)
 
     # 5. If order exists, perform authorization check
@@ -3074,7 +3101,7 @@ def agent_my_activity_api(request):
     """
     GET → Fetch agent's own ticket orders, ledger entries, and current wallet balance.
     """
-    from apps.accounts.models import AgentLedger
+    from ..accounts.models import AgentLedger
 
     orders = AgentTicketOrder.objects.filter(agent=request.user).select_related('flight_inventory__airline', 'agent_package').prefetch_related('passengers').order_by('-created_at')
 
@@ -3165,7 +3192,7 @@ def agent_wallet_ledger_api(request):
     """
     GET → List logged-in agent's wallet ledger entries with date range, entry type (+/-), and search keyword.
     """
-    from apps.accounts.models import AgentLedger
+    from ..accounts.models import AgentLedger
     from django.db.models import Q
     from decimal import Decimal
 

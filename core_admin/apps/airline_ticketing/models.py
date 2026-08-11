@@ -167,6 +167,8 @@ class GroupFarePolicy(models.Model):
     discount_value = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Discount percentage (0-100) or flat amount in PKR')
     baggage_weight_kg = models.PositiveIntegerField(default=30, help_text='Outbound Baggage allowance in KG')
     return_baggage_weight_kg = models.PositiveIntegerField(default=30, help_text='Return Baggage allowance in KG')
+    base_fare = models.DecimalField(max_digits=12, decimal_places=2, default=0, null=True, blank=True, help_text='Base/Net fare in PKR')
+    group_fare_override = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text='Net Group Fare override in PKR')
     sectors_data = models.JSONField(default=dict, blank=True, null=True, help_text='Detailed 4 going and 4 coming sectors breakdown')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
