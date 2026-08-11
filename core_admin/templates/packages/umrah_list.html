@@ -206,37 +206,116 @@
 <section class="py-16 bg-slate-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        <!-- Filter Bar: Days Dropdown & Quick Badges -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider"><i class="fa-solid fa-filter text-brand-orange"></i> Duration Filter:</span>
-                <select id="duration-filter-select" onchange="filterPackagesByDays(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:border-brand-orange">
-                    <option value="all" selected>All Durations</option>
-                    <option value="7">7 Days Packages</option>
-                    <option value="10">10 Days Packages</option>
-                    <option value="12">12 Days Packages</option>
-                    <option value="14">14 Days Packages</option>
-                    <option value="15">15 Days Packages</option>
-                    <option value="18">18 Days Packages</option>
-                    <option value="19">19 Days Packages</option>
-                    <option value="20">20 Days Packages</option>
-                    <option value="21">21 Days Packages</option>
-                    <option value="23">23 Days Packages</option>
-                    <option value="24">24 Days Packages</option>
-                    <option value="25">25 Days Packages</option>
-                    <option value="26">26 Days Packages</option>
-                    <option value="27">27 Days Packages</option>
-                    <option value="28">28 Days Packages</option>
-                </select>
+        <!-- Enhanced Multi-Filter Bar: Month, Sectors, Duration & Quick Badges -->
+        <div class="mb-10 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/80 shadow-md">
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                
+                <!-- Title & Header -->
+                <div class="flex items-center justify-between lg:justify-start gap-3">
+                    <span class="w-10 h-10 rounded-2xl bg-brand-orange/10 text-brand-orange flex items-center justify-center font-bold shrink-0">
+                        <i class="fa-solid fa-sliders text-base"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900 tracking-tight">Filter Umrah Packages</h3>
+                        <p class="text-[11px] text-slate-500">Filter by Departure Month, Flight Sector &amp; Duration</p>
+                    </div>
+                </div>
+
+                <!-- Dropdown Selectors Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-grow max-w-3xl">
+                    
+                    <!-- 1. Travel Month Filter -->
+                    <div class="relative">
+                        <label for="month-filter-select" class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+                            <i class="fa-regular fa-calendar text-brand-orange mr-1"></i> Departure Month
+                        </label>
+                        <select id="month-filter-select" onchange="filterUmrahPackages()" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs font-extrabold text-slate-800 focus:outline-none focus:border-brand-orange focus:bg-white transition-all shadow-2xs">
+                            <option value="all" selected>All Departure Months</option>
+                            <option value="2026-08">August 2026</option>
+                            <option value="2026-09">September 2026 (Rabi-ul-Awwal)</option>
+                            <option value="2026-10">October 2026</option>
+                            <option value="2026-11">November 2026</option>
+                            <option value="2026-12">December 2026 (Winter Vacation)</option>
+                            <option value="2027-01">January 2027</option>
+                            <option value="2027-02">February 2027 (Rajab)</option>
+                            <option value="2027-03">March 2027 (Ramadan Special)</option>
+                            <option value="2027-04">April 2027 (Shawwal)</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Flight Sector / City Filter -->
+                    <div class="relative">
+                        <label for="sector-filter-select" class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+                            <i class="fa-solid fa-plane-departure text-brand-orange mr-1"></i> Flight Sector / City
+                        </label>
+                        <select id="sector-filter-select" onchange="filterUmrahPackages()" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs font-extrabold text-slate-800 focus:outline-none focus:border-brand-orange focus:bg-white transition-all shadow-2xs">
+                            <option value="all" selected>All Sectors &amp; Cities</option>
+                            <option value="khi">Karachi Departure (KHI)</option>
+                            <option value="lhe">Lahore Departure (LHE)</option>
+                            <option value="isb">Islamabad Departure (ISB)</option>
+                            <option value="lyp">Faisalabad Departure (LYP)</option>
+                            <option value="mux">Multan Departure (MUX)</option>
+                            <option value="skt">Sialkot Departure (SKT)</option>
+                            <option value="pew">Peshawar Departure (PEW)</option>
+                            <option value="direct">Direct Flights Only</option>
+                            <option value="via">Connecting / Via Flights</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Duration Filter -->
+                    <div class="relative">
+                        <label for="duration-filter-select" class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">
+                            <i class="fa-solid fa-clock text-brand-orange mr-1"></i> Package Duration
+                        </label>
+                        <select id="duration-filter-select" onchange="filterUmrahPackages()" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs font-extrabold text-slate-800 focus:outline-none focus:border-brand-orange focus:bg-white transition-all shadow-2xs">
+                            <option value="all" selected>All Durations</option>
+                            <option value="7">7 Days Packages</option>
+                            <option value="10">10 Days Packages</option>
+                            <option value="12">12 Days Packages</option>
+                            <option value="14">14 Days Packages</option>
+                            <option value="15">15 Days Packages</option>
+                            <option value="18">18 Days Packages</option>
+                            <option value="20">20 Days Packages</option>
+                            <option value="21">21 Days Packages</option>
+                            <option value="25">25 Days Packages</option>
+                            <option value="28">28 Days Packages</option>
+                        </select>
+                    </div>
+
+                </div>
             </div>
-            <div class="flex items-center gap-2 text-xs text-slate-500 font-semibold">
-                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200"><i class="fa-solid fa-bolt"></i> Real-Time Seat Availability</span>
+
+            <!-- Quick Filter Chips & Results Count Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-3">
+                <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Quick Sectors:</span>
+                    <button type="button" onclick="setQuickSector('all')" class="quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-white shadow-2xs" data-sector-val="all">All</button>
+                    <button type="button" onclick="setQuickSector('khi')" class="quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-brand-orange hover:text-white border border-slate-200/80 transition-all" data-sector-val="khi">✈️ Karachi (KHI)</button>
+                    <button type="button" onclick="setQuickSector('lhe')" class="quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-brand-orange hover:text-white border border-slate-200/80 transition-all" data-sector-val="lhe">✈️ Lahore (LHE)</button>
+                    <button type="button" onclick="setQuickSector('isb')" class="quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-brand-orange hover:text-white border border-slate-200/80 transition-all" data-sector-val="isb">✈️ Islamabad (ISB)</button>
+                    <button type="button" onclick="setQuickSector('lyp')" class="quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-brand-orange hover:text-white border border-slate-200/80 transition-all" data-sector-val="lyp">✈️ Faisalabad (LYP)</button>
+                    <button type="button" onclick="setQuickSector('direct')" class="quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-500 hover:text-white transition-all" data-sector-val="direct">⚡ Direct Flights</button>
+                </div>
+
+                <div class="flex items-center gap-3 shrink-0 ml-auto">
+                    <span class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                        Showing <strong id="visible-count" class="text-brand-orange font-black">{{ packages|length }}</strong> of {{ packages|length }} Offers
+                    </span>
+                    <button type="button" onclick="resetUmrahFilters()" class="text-xs font-extrabold text-slate-400 hover:text-rose-600 transition-colors underline flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left text-[10px]"></i> Reset
+                    </button>
+                </div>
             </div>
         </div>
 
         <div id="packages-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
             {% for pkg in packages %}
-            <div class="package-card glass-card bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-200/60 shadow-sm transition-all hover:shadow-lg" data-days="{{ pkg.duration_days }}">
+            <div class="package-card glass-card bg-white rounded-2xl overflow-hidden flex flex-col border border-slate-200/60 shadow-sm transition-all hover:shadow-lg"
+                 data-days="{{ pkg.duration_days }}"
+                 data-month="{% if pkg.departure_date %}{{ pkg.departure_date|date:'Y-m' }}{% else %}{{ pkg.created_at|date:'Y-m' }}{% endif %}"
+                 data-routes="{{ pkg.flight_routes|lower }}"
+                 data-route-type="{{ pkg.flight_route_type|lower }}"
+                 data-sectors="{% with sec_info=pkg.get_sectors_list %}{{ sec_info.sectors|join:' '|lower }}{% endwith %}">
                 <div class="relative h-56 bg-slate-100 overflow-hidden group">
                     <img src="{{ pkg.cover_url }}" alt="{{ pkg.title }}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                     
@@ -347,22 +426,131 @@
                 <p class="text-xs text-slate-400 mt-1">Please check back soon or submit a custom inquiry below!</p>
             </div>
             {% endfor %}
+
+            <!-- Dynamic Empty State when filters yield zero matches -->
+            <div id="no-packages-matching" class="hidden col-span-3 text-center py-16 bg-white rounded-2xl border border-slate-200/60 shadow-sm">
+                <i class="fa-solid fa-filter-circle-xmark text-5xl text-brand-orange/40 mb-4 animate-bounce"></i>
+                <h3 class="text-base font-extrabold text-slate-800 mb-1">No Umrah Packages Match Your Filter Criteria</h3>
+                <p class="text-xs text-slate-500 max-w-md mx-auto mb-5 leading-relaxed">
+                    We couldn't find any active packages for the selected combination of Departure Month, Sector, or Duration. Try adjusting your filters or request a custom package below!
+                </p>
+                <button type="button" onclick="resetUmrahFilters()" class="px-5 py-2.5 bg-brand-orange hover:bg-brand-orange-dark text-white text-xs font-extrabold rounded-xl transition-all shadow-md inline-flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Reset All Filters
+                </button>
+            </div>
         </div>
     </div>
 </section>
 
 <script>
-function filterPackagesByDays(selectedDays) {
+function filterUmrahPackages() {
+    const monthVal = document.getElementById('month-filter-select').value.toLowerCase();
+    const sectorVal = document.getElementById('sector-filter-select').value.toLowerCase();
+    const durationVal = document.getElementById('duration-filter-select').value;
+
     const cards = document.querySelectorAll('.package-card');
+    let visibleCount = 0;
+
     cards.forEach(card => {
-        const cardDays = card.getAttribute('data-days');
-        if (selectedDays === 'all' || cardDays === selectedDays) {
+        const cDays = card.getAttribute('data-days') || '';
+        const cMonth = (card.getAttribute('data-month') || '').toLowerCase();
+        const cRoutes = (card.getAttribute('data-routes') || '').toLowerCase();
+        const cSectors = (card.getAttribute('data-sectors') || '').toLowerCase();
+        const cRouteType = (card.getAttribute('data-route-type') || '').toLowerCase();
+        const cText = card.innerText.toLowerCase();
+
+        // 1. Month Check
+        let monthMatch = (monthVal === 'all');
+        if (!monthMatch) {
+            monthMatch = cMonth.includes(monthVal) || cText.includes(monthVal);
+        }
+
+        // 2. Sector / Route Check
+        let sectorMatch = (sectorVal === 'all');
+        if (!sectorMatch) {
+            if (sectorVal === 'direct') {
+                sectorMatch = (cRouteType === 'direct') || cRoutes.includes('direct') || !cRoutes.includes('via');
+            } else if (sectorVal === 'via') {
+                sectorMatch = (cRouteType === 'via') || cRoutes.includes('via') || cRoutes.includes('shj') || cRoutes.includes('doh');
+            } else {
+                sectorMatch = cRoutes.includes(sectorVal) || cSectors.includes(sectorVal) || cText.includes(sectorVal);
+            }
+        }
+
+        // 3. Duration Check
+        let daysMatch = (durationVal === 'all' || cDays === durationVal);
+
+        if (monthMatch && sectorMatch && daysMatch) {
             card.style.display = 'flex';
+            visibleCount++;
         } else {
             card.style.display = 'none';
         }
     });
+
+    const countEl = document.getElementById('visible-count');
+    if (countEl) countEl.innerText = visibleCount;
+
+    const noMatchEl = document.getElementById('no-packages-matching');
+    if (noMatchEl) {
+        if (visibleCount === 0 && cards.length > 0) {
+            noMatchEl.classList.remove('hidden');
+        } else {
+            noMatchEl.classList.add('hidden');
+        }
+    }
 }
+
+function setQuickSector(val) {
+    const secSelect = document.getElementById('sector-filter-select');
+    if (secSelect) {
+        secSelect.value = val;
+    }
+    
+    // Update chip active styles
+    document.querySelectorAll('.quick-sector-chip').forEach(chip => {
+        if (chip.getAttribute('data-sector-val') === val) {
+            chip.className = 'quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-900 text-white shadow-2xs';
+        } else {
+            chip.className = 'quick-sector-chip px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 hover:bg-brand-orange hover:text-white border border-slate-200/80 transition-all';
+        }
+    });
+
+    filterUmrahPackages();
+}
+
+function resetUmrahFilters() {
+    document.getElementById('month-filter-select').value = 'all';
+    document.getElementById('sector-filter-select').value = 'all';
+    document.getElementById('duration-filter-select').value = 'all';
+    setQuickSector('all');
+}
+
+// Support deep-linking via URL query params (e.g. ?sector=khi&month=2026-09&days=15)
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    let changed = false;
+    
+    if (params.has('month')) {
+        const mSel = document.getElementById('month-filter-select');
+        if (mSel) { mSel.value = params.get('month'); changed = true; }
+    }
+    if (params.has('sector')) {
+        const sVal = params.get('sector');
+        const sSel = document.getElementById('sector-filter-select');
+        if (sSel) { sSel.value = sVal; changed = true; }
+        setQuickSector(sVal);
+    }
+    if (params.has('days') || params.has('duration')) {
+        const dVal = params.get('days') || params.get('duration');
+        const dSel = document.getElementById('duration-filter-select');
+        if (dSel) { dSel.value = dVal; changed = true; }
+    }
+
+    if (changed) {
+        filterUmrahPackages();
+    }
+});
 </script>
 
 <!-- Custom Pilgrimage Customizer Section -->
