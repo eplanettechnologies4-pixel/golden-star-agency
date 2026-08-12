@@ -8818,42 +8818,73 @@
             return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         }
 
-        function showAdminToast(message, type) {
+        function showAgentToast(message, type = 'info') {
             const colors = {
                 success: 'bg-emerald-600',
                 danger:  'bg-rose-600',
+                error:   'bg-rose-600',
                 info:    'bg-[#2D4424]',
+                warning: 'bg-amber-600'
             };
-            const toast = document.createElement('div');
+            const icons = {
+                success: 'fa-circle-check',
+                danger:  'fa-circle-xmark',
+                error:   'fa-circle-xmark',
+                info:    'fa-circle-info',
+                warning: 'fa-triangle-exclamation'
+            };
+            let toast = document.getElementById('agent-global-toast');
+            if (toast) {
+                toast.remove();
+            }
+            toast = document.createElement('div');
+            toast.id = 'agent-global-toast';
             toast.className = `fixed bottom-6 right-6 z-[9999] px-5 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl flex items-center gap-2 ${colors[type] || colors.info} transition-all duration-300 transform opacity-100 translate-y-0`;
-            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'danger' ? 'fa-circle-xmark' : 'fa-circle-info'}"></i> ${message}`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> <span>${message}</span>`;
             document.body.appendChild(toast);
-            setTimeout(() => {
+
+            clearTimeout(window._agentToastTimer);
+            window._agentToastTimer = setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateY(1rem)';
                 toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-                setTimeout(() => toast.remove(), 400);
+                setTimeout(() => {
+                    if (toast && toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 400);
             }, 2800);
         }
 
+        function showToast(message, type) { showAgentToast(message, type); }
+        function showAdminToast(message, type) { showAgentToast(message, type); }
+
         async function copyPackageFlyerImage(packageId, isHajjModel) {
             try {
-                showAdminToast("Generating package flyer image...", "info");
+                showAgentToast("Generating package flyer image...", "info");
                 const blob = await generatePackageFlyerBlob(packageId, isHajjModel);
                 if (!blob) {
-                    alert("Could not generate flyer image.");
+                    showAgentToast("Could not generate flyer image.", "danger");
                     return;
                 }
 
-                if (navigator.clipboard && navigator.clipboard.write) {
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-                    showAdminToast("📋 Package flyer image copied to clipboard!", "success");
+                if (navigator.clipboard && typeof navigator.clipboard.write === 'function') {
+                    try {
+                        const item = new ClipboardItem({ [blob.type || 'image/png']: blob });
+                        await navigator.clipboard.write([item]);
+                        showAgentToast("📋 Package flyer image copied to clipboard!", "success");
+                    } catch (clipErr) {
+                        console.warn("Clipboard write failed, downloading fallback image:", clipErr);
+                        const p = getPackageObjById(packageId, isHajjModel);
+                        const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
+                        downloadBlobAsFile(blob, fileName);
+                        showAgentToast("Flyer image downloaded! (Clipboard access failed or permission denied)", "warning");
+                    }
                 } else {
                     const p = getPackageObjById(packageId, isHajjModel);
                     const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
                     downloadBlobAsFile(blob, fileName);
-                    showAdminToast("Flyer image downloaded! (Clipboard not supported in this browser)", "info");
+                    showAgentToast("Flyer image downloaded! (Clipboard not supported in this browser)", "info");
                 }
             } catch (err) {
                 console.error("Error copying package flyer:", err);
@@ -8863,52 +8894,49 @@
                     if (blob) {
                         const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
                         downloadBlobAsFile(blob, fileName);
-                        showAdminToast("Flyer image downloaded!", "success");
+                        showAgentToast("Flyer image downloaded!", "success");
                         return;
                     }
                 } catch (e) { }
-                alert("Unable to copy flyer image to clipboard.");
+                showAgentToast("Unable to copy flyer image to clipboard.", "danger");
             }
         }
 
         async function sharePackageFlyerImage(packageId, isHajjModel) {
             try {
-                showAdminToast("Generating package flyer image...", "info");
+                showAgentToast("Generating package flyer image...", "info");
                 const blob = await generatePackageFlyerBlob(packageId, isHajjModel);
                 if (!blob) {
-                    alert("Could not generate flyer image.");
+                    showAgentToast("Could not generate flyer image.", "danger");
                     return;
                 }
 
                 const p = getPackageObjById(packageId, isHajjModel);
                 const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
-                const file = new File([blob], fileName, { type: 'image/png' });
 
+                // Always perform file download when Share Flyer button is clicked
+                downloadBlobAsFile(blob, fileName);
+
+                const file = new File([blob], fileName, { type: 'image/png' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: p ? p.title : 'Package Flyer',
-                        text: p ? `Check out this ${p.title} (${p.duration_days} Days)!` : 'Package Flyer'
-                    });
-                    showAdminToast("Shared successfully!", "success");
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: p ? p.title : 'Package Flyer',
+                            text: p ? `Check out this ${p.title} (${p.duration_days} Days)!` : 'Package Flyer'
+                        });
+                        showAgentToast("Flyer image downloaded & shared!", "success");
+                    } catch (shareErr) {
+                        if (shareErr && shareErr.name !== 'AbortError') {
+                            showAgentToast("Flyer image downloaded!", "success");
+                        }
+                    }
                 } else {
-                    downloadBlobAsFile(blob, fileName);
-                    showAdminToast("Flyer image downloaded! (Web Share API not supported on this browser)", "info");
+                    showAgentToast("Flyer image downloaded!", "success");
                 }
             } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error("Error sharing package flyer:", err);
-                    const p = getPackageObjById(packageId, isHajjModel);
-                    const fileName = `${(p ? p.title : 'Package').replace(/[^a-zA-Z0-9]/g, '_')}_Flyer.png`;
-                    try {
-                        const blob = await generatePackageFlyerBlob(packageId, isHajjModel);
-                        if (blob) {
-                            downloadBlobAsFile(blob, fileName);
-                            showAdminToast("Flyer image downloaded!", "success");
-                            return;
-                        }
-                    } catch (e) { }
-                }
+                console.error("Error downloading/sharing package flyer:", err);
+                showAgentToast("Unable to process flyer image.", "danger");
             }
         }
 
