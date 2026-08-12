@@ -68,7 +68,7 @@ function openQuickBookModal(pkgId, pkgTitle, pkgPrice) {
 
             <form id="form-quick-book-global" onsubmit="submitQuickBookModal(event, ${pkgId}, ${priceNum})" class="space-y-4 text-xs">
                 <div class="p-3.5 bg-[#F7F3E9] rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <span class="font-extrabold text-[#2D4424] block flex items-center gap-1.5"><i class="fa-solid fa-id-card text-[#E06A26]"></i> Passenger / Client Contact Info</span>
+                    <span class="font-extrabold text-[#2D4424] flex items-center gap-1.5"><i class="fa-solid fa-id-card text-[#E06A26]"></i> Passenger / Client Contact Info</span>
                     <div>
                         <label class="block font-bold text-[#2D4424] mb-1">Full Name *</label>
                         <input type="text" id="qb-full-name" required placeholder="e.g. Muhammad Danish" class="w-full px-3 py-2.5 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">

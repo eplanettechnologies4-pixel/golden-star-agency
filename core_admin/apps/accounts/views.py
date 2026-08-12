@@ -15,11 +15,11 @@ from django.urls import reverse
 from django.utils import timezone
 from .models import User, LoginHistory, AgentReview, AgentLedger, AgentFeedback
 from .forms import CustomerSignupForm, AgentSignupForm, AgentDocumentsForm
-from apps.packages.models import Package, CustomPackageInquiry
-from apps.visa.models import VisaApplication
-from apps.flights.models import FlightQuoteRequest
-from apps.bookings.models import Booking
-from apps.airline_ticketing.models import AgentTicketOrder
+from ..packages.models import Package, CustomPackageInquiry
+from ..visa.models import VisaApplication
+from ..flights.models import FlightQuoteRequest
+from ..bookings.models import Booking
+from ..airline_ticketing.models import AgentTicketOrder
 from django.conf import settings
 try:
     from ai_chatbot.embeddings import EmbeddingsService
@@ -188,25 +188,70 @@ def build_professional_email_html(title, recipient_name, body_html, action_text=
 </html>"""
 
 def _dispatch_email(subject, plain_msg, from_email, to_list, html_message=None):
-    """Centralized fire-and-forget background email dispatcher via thread pool."""
+    """Centralized anti-spam background email dispatcher via thread pool using EmailMultiAlternatives and RFC headers."""
+    from django.core.mail import EmailMultiAlternatives
+    from email.utils import make_msgid, formataddr
+    import re
+
+    # Sanitize subject line against header injection
+    clean_subject = str(subject or "Notification from REI Golden Star Travel").replace('\r', '').replace('\n', ' ').strip()
+
+    if not from_email or '@' not in str(from_email):
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'REI GOLDEN STAR TRAVEL & TOURS <goldenstartraveltours@gmail.com>')
+    
+    # Ensure from_email has a professional display name
+    if '<' not in str(from_email):
+        from_email = formataddr(('REI GOLDEN STAR TRAVEL & TOURS', str(from_email).strip()))
+
     if not html_message:
-        # Wrap plain message automatically into professional template
         body_formatted = f"<p style='white-space: pre-wrap; font-size: 14px; line-height: 1.6;'>{plain_msg}</p>"
-        html_message = build_professional_email_html(subject, None, body_formatted)
-        
+        html_message = build_professional_email_html(clean_subject, None, body_formatted)
+
+    # Ensure clean plain text counterpart for anti-spam multipart compliance
+    if not plain_msg or len(str(plain_msg).strip()) < 5:
+        clean_text = re.sub(r'<br\s*/?>', '\n', html_message)
+        clean_text = re.sub(r'</p>', '\n\n', clean_text)
+        clean_text = re.sub(r'<[^>]+>', '', clean_text)
+        plain_msg = clean_text.strip()
+
+    # Normalize recipient list
+    if isinstance(to_list, str):
+        to_list = [to_list]
+    to_list = [addr.strip() for addr in to_list if addr and '@' in str(addr)]
+    if not to_list:
+        print("[Email Warning] Skipped dispatch: Empty recipient list")
+        return
+
+    # Generate RFC-compliant Anti-Spam headers
+    domain = 'reigoldenstar.com'
+    msg_id = make_msgid(domain=domain)
+    headers = {
+        'Message-ID': msg_id,
+        'Reply-To': 'goldenstartraveltours@gmail.com',
+        'Auto-Submitted': 'auto-generated',
+        'X-Auto-Response-Suppress': 'All',
+        'X-Mailer': 'REI-GoldenStar-Travel-System/1.0',
+        'X-Priority': '3',
+        'List-Unsubscribe': '<mailto:goldenstartraveltours@gmail.com?subject=Unsubscribe>',
+    }
+
     def _send():
         try:
-            send_mail(
-                subject,
-                plain_msg,
-                from_email,
-                to_list,
-                html_message=html_message,
-                fail_silently=False,
+            msg = EmailMultiAlternatives(
+                subject=clean_subject,
+                body=plain_msg,
+                from_email=from_email,
+                to=to_list,
+                headers=headers
             )
-            print(f"[Email OK] Delivered to {to_list} | Subject: {subject[:50]}")
+            if html_message:
+                msg.attach_alternative(html_message, "text/html")
+            
+            msg.send(fail_silently=False)
+            print(f"[Email OK] Anti-spam email delivered to {to_list} | Subject: {clean_subject[:50]}")
         except Exception as e:
             print(f"[Email ERROR] Failed to {to_list}: {e}")
+
     _email_pool.submit(_send)
 
 def _send_verification_email_sync(user):
@@ -386,29 +431,39 @@ def verify_email_view(request, user_id):
 
 @csrf_exempt
 def resend_otp_view(request, user_id):
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'message': 'Only POST allowed'}, status=405)
-    
     user = get_object_or_404(User, id=user_id)
+    
+    is_json = request.headers.get('x-requested-with') == 'XMLHttpRequest' or 'application/json' in request.content_type if request.content_type else False
+
     if user.is_email_verified:
-        return JsonResponse({'success': False, 'message': 'Account is already verified.'})
+        if is_json or request.method == 'POST':
+            return JsonResponse({'success': False, 'message': 'Account is already verified.'})
+        messages.info(request, "Account is already verified. Please log in.")
+        return redirect('login')
         
     code = f"{random.randint(100000, 999999)}"
     user.email_verification_code = code
     user.otp_created_at = timezone.now()
     user.save()
     
-    # Update session helper
+    # Update session helper for real-time banner display
     request.session[f'verification_code_{user.id}'] = code
     
-    # Send email asynchronously
+    # Dispatch fresh verification email
     send_verification_email(user)
     
-    return JsonResponse({
-        'success': True,
-        'message': 'A new 6-digit OTP code has been sent to your email address.',
-        'dev_code': code
-    })
+    if is_json or request.method == 'POST':
+        return JsonResponse({
+            'success': True,
+            'message': 'A new 6-digit OTP code has been sent to your email address.',
+            'dev_code': code
+        })
+    else:
+        messages.success(request, f"A new 6-digit verification code has been sent to {user.email}.")
+        if user.role == 'agent':
+            return redirect('agent_signup_verify', user_id=user.id)
+        else:
+            return redirect('verify_email', user_id=user.id)
 
 
 def pending_approval_view(request):
@@ -962,14 +1017,14 @@ def admin_b2b_overview_api(request):
     from django.db.models import Sum
     from datetime import timedelta
     from decimal import Decimal
-    from apps.airline_ticketing.models import AgentTicketOrder
-    from apps.accounts.models import AgentLedger, User
+    from ..airline_ticketing.models import AgentTicketOrder
+    from .models import AgentLedger, User
 
     now = timezone.now()
     today = now.date()
 
     # 1. STAT CARDS
-    from apps.bookings.models import Booking
+    from ..bookings.models import Booking
     active_agents_count = User.objects.filter(role='agent', approval_status='approved').count()
     todays_orders_count = AgentTicketOrder.objects.filter(created_at__date=today).count() + Booking.objects.filter(created_at__date=today).count()
     pending_holds_count = AgentTicketOrder.objects.filter(status='hold').count() + Booking.objects.filter(status='pending').count()
@@ -1468,7 +1523,7 @@ def admin_visa_status_api(request, pk):
 @csrf_exempt
 @admin_required_api
 def admin_visa_packages_api(request):
-    from apps.visa.models import VisaPackage
+    from ..visa.models import VisaPackage
     if request.method == 'GET':
         vpackages = VisaPackage.objects.all().order_by('-created_at')
         v_data = []
@@ -1558,7 +1613,7 @@ def admin_visa_packages_api(request):
 @csrf_exempt
 @admin_required_api
 def admin_visa_package_detail_api(request, pk):
-    from apps.visa.models import VisaPackage
+    from ..visa.models import VisaPackage
     vp = get_object_or_404(VisaPackage, pk=pk)
     if request.method == 'POST':
         try:
@@ -1641,7 +1696,7 @@ def admin_flight_status_api(request, pk):
 @csrf_exempt
 @admin_required_api
 def admin_flight_tickets_api(request):
-    from apps.flights.models import FlightTicketOffer, FlightSector
+    from ..flights.models import FlightTicketOffer, FlightSector
     from django.utils.dateparse import parse_datetime
     from django.utils import timezone
 
@@ -1734,7 +1789,7 @@ def admin_flight_tickets_api(request):
             airline_logo = str(body.get('airline_logo') or '').strip()
             if not airline_logo:
                 try:
-                    from apps.airline_ticketing.models import Airline
+                    from ..airline_ticketing.models import Airline
                     matched_airline = Airline.objects.filter(name__iexact=airline_name).first()
                     if matched_airline and matched_airline.logo:
                         airline_logo = matched_airline.logo.url
@@ -1883,7 +1938,7 @@ def admin_flight_tickets_api(request):
 @admin_required_api
 def admin_flight_ticket_detail_api(request, pk):
     import re
-    from apps.flights.models import FlightTicketOffer, FlightSector
+    from ..flights.models import FlightTicketOffer, FlightSector
     from django.utils.dateparse import parse_datetime
     from django.utils import timezone
     ft = get_object_or_404(FlightTicketOffer, pk=pk)
@@ -2091,7 +2146,7 @@ def agent_dashboard_view(request):
 @agent_required_api
 def agent_dashboard_overview_api(request):
     try:
-        from apps.airline_ticketing.models import AgentTicketOrder
+        from ..airline_ticketing.models import AgentTicketOrder
         ticket_orders_count = AgentTicketOrder.objects.filter(agent=request.user).count()
     except Exception:
         ticket_orders_count = 0
@@ -2253,8 +2308,8 @@ def admin_agent_detail_view(request, agent_id):
 
 
 def home_view(request):
-    from apps.content.models import Achievement
-    from apps.packages.models import Package
+    from ..content.models import Achievement
+    from ..packages.models import Package
     # Fetch real-time registered agent partners ordered by latest registration
     best_agents = User.objects.filter(role='agent').order_by('-date_joined')
     achievements = Achievement.objects.filter(is_active=True)
@@ -2275,7 +2330,7 @@ def home_view(request):
 
 
 def achievements_list_view(request):
-    from apps.content.models import Achievement
+    from ..content.models import Achievement
     achievements = Achievement.objects.filter(is_active=True)
     return render(request, 'achievements.html', {'achievements': achievements})
 
@@ -3519,7 +3574,7 @@ def process_b2b_agent_commission_and_email(user, tracking_id, item_title, seats_
         return
     if getattr(user, 'role', '') == 'agent' or getattr(user, 'is_agent', False):
         try:
-            from apps.accounts.models import AgentLedger
+            from .models import AgentLedger
             from django.core.mail import send_mail
             from django.conf import settings
             
@@ -3666,8 +3721,8 @@ def send_package_booking_confirmation_email(user, tracking_id, package, booking,
 
 
 def submit_package_booking_api(request):
-    from apps.bookings.models import Booking
-    from apps.packages.models import Package
+    from ..bookings.models import Booking
+    from ..packages.models import Package
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
@@ -3840,7 +3895,7 @@ def submit_package_booking_api(request):
 
 @csrf_exempt
 def submit_visa_application_api(request):
-    from apps.visa.models import VisaApplication, VisaPackage
+    from ..visa.models import VisaApplication, VisaPackage
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
@@ -3910,7 +3965,7 @@ def submit_visa_application_api(request):
 
 @csrf_exempt
 def submit_flight_quote_api(request):
-    from apps.flights.models import FlightQuoteRequest
+    from ..flights.models import FlightQuoteRequest
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
@@ -3964,8 +4019,8 @@ def submit_flight_quote_api(request):
 
 @csrf_exempt
 def submit_flight_ticket_booking_api(request):
-    from apps.flights.models import FlightTicketOffer
-    from apps.bookings.models import Booking
+    from ..flights.models import FlightTicketOffer
+    from ..bookings.models import Booking
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
@@ -4052,12 +4107,11 @@ def submit_flight_ticket_booking_api(request):
             )
             
             if user_email:
-                send_mail(
+                _dispatch_email(
                     subject_user,
                     message_user,
-                    getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@travelagency.com'),
-                    [user_email],
-                    fail_silently=True
+                    None,
+                    [user_email]
                 )
         except Exception as mail_err:
             print(f"[Mail Notice Error] {mail_err}")
@@ -4085,9 +4139,9 @@ def live_search_api(request):
     Real-time live search API for home page hero section filter
     Supports filtering by service_type, days (15/18/28), budget, and keyword/city.
     """
-    from apps.packages.models import Package
-    from apps.flights.models import FlightTicketOffer
-    from apps.visa.models import VisaPackage
+    from ..packages.models import Package
+    from ..flights.models import FlightTicketOffer
+    from ..visa.models import VisaPackage
     from django.db.models import Q
 
     service_type = request.GET.get('service_type', 'all').lower().strip()
@@ -4200,7 +4254,7 @@ def live_search_api(request):
 @csrf_exempt
 @admin_required_api
 def admin_flight_ticket_detail_api(request, pk):
-    from apps.flights.models import FlightTicketOffer
+    from ..flights.models import FlightTicketOffer
     ticket = get_object_or_404(FlightTicketOffer, pk=pk)
     if request.method in ['POST', 'PUT']:
         try:
@@ -4242,7 +4296,7 @@ def submit_custom_inquiry_api(request):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'POST method required.'}, status=405)
         
-    from apps.packages.models import CustomPackageInquiry
+    from ..packages.models import CustomPackageInquiry
     try:
         try:
             body = json.loads(request.body.decode('utf-8'))
@@ -4408,7 +4462,7 @@ def admin_custom_inquiries_list_api(request):
     """
     GET: List all custom package inquiries.
     """
-    from apps.packages.models import CustomPackageInquiry
+    from ..packages.models import CustomPackageInquiry
     inquiries = CustomPackageInquiry.objects.all().order_by('-created_at')
     data = []
     for i in inquiries:
@@ -4438,7 +4492,7 @@ def admin_custom_inquiry_contact_api(request, pk):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'POST method only.'}, status=405)
         
-    from apps.packages.models import CustomPackageInquiry
+    from ..packages.models import CustomPackageInquiry
     inquiry = get_object_or_404(CustomPackageInquiry, pk=pk)
     inquiry.is_contacted = not inquiry.is_contacted
     inquiry.save()
@@ -4466,7 +4520,7 @@ def package_approval_letter_view(request, pk):
     pkg = booking.package
     passengers = []
     try:
-        from apps.airline_ticketing.models import AgentTicketOrder
+        from ..airline_ticketing.models import AgentTicketOrder
         agent_order = AgentTicketOrder.objects.filter(reference_number=f"GST-B-{booking.id:05d}").first() or AgentTicketOrder.objects.filter(id=booking.id).first()
         if agent_order:
             passengers = list(agent_order.passengers.all())
@@ -6262,7 +6316,7 @@ def admin_bank_accounts_api(request):
     GET  → List all CompanyBankAccount records for admin.
     POST → Create a new CompanyBankAccount record.
     """
-    from apps.accounts.models import CompanyBankAccount
+    from .models import CompanyBankAccount
 
     if request.method == 'GET':
         accounts = CompanyBankAccount.objects.all()
@@ -6316,7 +6370,7 @@ def admin_bank_account_detail_api(request, pk):
     POST   → Edit company bank account details.
     DELETE → Delete company bank account record.
     """
-    from apps.accounts.models import CompanyBankAccount
+    from .models import CompanyBankAccount
 
     acc = get_object_or_404(CompanyBankAccount, pk=pk)
 
@@ -6349,7 +6403,7 @@ def agent_bank_accounts_api(request):
     """
     GET → List active CompanyBankAccount records for agent view.
     """
-    from apps.accounts.models import CompanyBankAccount
+    from .models import CompanyBankAccount
 
     accounts = CompanyBankAccount.objects.filter(is_active=True)
     if not accounts.exists():
@@ -6422,7 +6476,7 @@ def admin_department_contacts_api(request):
     GET  → List all department contacts for Admin management.
     POST → Create a new department contact record.
     """
-    from apps.accounts.models import CompanyDepartmentContact
+    from .models import CompanyDepartmentContact
 
     if request.method == 'GET':
         contacts = CompanyDepartmentContact.objects.all().order_by('display_order', '-created_at')
@@ -6476,7 +6530,7 @@ def admin_department_contact_detail_api(request, pk):
     POST/PATCH → Update a department contact.
     DELETE → Remove a department contact record.
     """
-    from apps.accounts.models import CompanyDepartmentContact
+    from .models import CompanyDepartmentContact
 
     contact = get_object_or_404(CompanyDepartmentContact, pk=pk)
 
@@ -6526,7 +6580,7 @@ def agent_department_contacts_api(request):
     GET → List all active department contacts for Agent Portal Contact Us page.
     Seed default department records if none exist yet.
     """
-    from apps.accounts.models import CompanyDepartmentContact
+    from .models import CompanyDepartmentContact
 
     contacts = CompanyDepartmentContact.objects.filter(is_active=True).order_by('display_order', '-created_at')
 

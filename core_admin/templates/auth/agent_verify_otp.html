@@ -192,6 +192,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const resendBtn = document.getElementById('btn-resend-otp');
+    if (resendBtn) {
+        resendBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            resendBtn.style.pointerEvents = 'none';
+            resendBtn.style.opacity = '0.6';
+            resendBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Resending...';
+            
+            try {
+                const response = await fetch("{% url 'resend_otp' user_id=user.id %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(data.message || 'A new 6-digit OTP code has been sent!');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Failed to resend code. Please try again.');
+                    resendBtn.style.pointerEvents = 'auto';
+                    resendBtn.style.opacity = '1';
+                    resendBtn.innerHTML = '<i class="fa-solid fa-arrow-rotate-right"></i> Send New verification OTP';
+                }
+            } catch (err) {
+                window.location.href = "{% url 'resend_otp' user_id=user.id %}";
+            }
+        });
+    }
+
     startTimer();
 });
 </script>
