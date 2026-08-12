@@ -8818,6 +8818,24 @@
             return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
         }
 
+        function showAdminToast(message, type) {
+            const colors = {
+                success: 'bg-emerald-600',
+                danger:  'bg-rose-600',
+                info:    'bg-[#2D4424]',
+            };
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-6 right-6 z-[9999] px-5 py-3 rounded-2xl text-white text-xs font-bold shadow-2xl flex items-center gap-2 ${colors[type] || colors.info} transition-all duration-300 transform opacity-100 translate-y-0`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'danger' ? 'fa-circle-xmark' : 'fa-circle-info'}"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(1rem)';
+                toast.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                setTimeout(() => toast.remove(), 400);
+            }, 2800);
+        }
+
         async function copyPackageFlyerImage(packageId, isHajjModel) {
             try {
                 showAdminToast("Generating package flyer image...", "info");
