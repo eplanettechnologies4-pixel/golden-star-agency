@@ -1769,6 +1769,71 @@ def agent_packages_api(request):
     return JsonResponse({'success': True, 'packages': data})
 
 
+@agent_required_api
+def agent_package_detail_api(request, pk):
+    """
+    GET → Retrieve a single active AgentPackage by pk for flyer generation.
+    Returns the same structure as the list endpoint but for one package.
+    """
+    p = get_object_or_404(AgentPackage, pk=pk, is_active=True)
+    hotel_list = [{
+        'id': h.id,
+        'name': h.name,
+        'city': h.city,
+        'city_display': h.get_city_display(),
+        'distance_from_haram': h.distance_from_haram,
+        'price_sharing': float(h.price_sharing) if h.price_sharing is not None else None,
+        'price_quad': float(h.price_quad) if h.price_quad is not None else None,
+        'price_triple': float(h.price_triple) if h.price_triple is not None else None,
+        'price_double': float(h.price_double) if h.price_double is not None else None,
+    } for h in p.hotels.all()]
+    data = {
+        'id':                       p.id,
+        'package_type':             p.package_type,
+        'package_type_display':     p.get_package_type_display(),
+        'sector_id':                p.sector_id,
+        'sector_name':              p.sector.name if (p.sector and p.sector.name) else (f"{p.sector.origin_city} \u27a4 {p.sector.destination_city}" if p.sector else (p.flight_route or None)),
+        'title':                    p.title,
+        'description':              p.description,
+        'duration_days':            p.duration_days,
+        'agent_price':              str(p.agent_price),
+        'suggested_resale_price':   str(p.suggested_resale_price) if p.suggested_resale_price else '',
+        'commission_amount':        str(p.commission_amount) if p.commission_amount else '',
+        'adult_price':              str(p.adult_price) if p.adult_price is not None else str(p.agent_price),
+        'child_price':              str(p.child_price) if p.child_price is not None else str(p.agent_price),
+        'infant_price':             str(p.infant_price) if p.infant_price is not None else '0.00',
+        'price_sharing':            str(p.price_sharing) if p.price_sharing is not None else str(p.agent_price),
+        'price_quad':               str(p.price_quad) if p.price_quad is not None else str(p.agent_price),
+        'price_triple':             str(p.price_triple) if p.price_triple is not None else str(p.agent_price),
+        'price_double':             str(p.price_double) if p.price_double is not None else str(p.agent_price),
+        'flight_name':              p.flight_name or (p.airline.name if p.airline else 'Saudi Airlines'),
+        'flight_route_type':        p.flight_route_type or 'direct',
+        'flight_route':             p.flight_route or 'KHI - JED - MED - KHI',
+        'includes_meal':            p.includes_meal,
+        'meal_detail':              p.meal_detail or 'Full Board',
+        'transport_type':           p.transport_type or 'Sharing',
+        'departure_date':           p.departure_date.strftime('%Y-%m-%d') if p.departure_date else '',
+        'return_date':              p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
+        'hotel_ids':                list(p.hotels.values_list('id', flat=True)),
+        'hotels':                   hotel_list,
+        'total_seats':              p.total_seats,
+        'booked_seats':             p.booked_seats,
+        'available_seats':          p.available_seats,
+        'makkah_hotel_name':        p.makkah_hotel_name or '',
+        'makkah_hotel_distance':    p.makkah_hotel_distance or '',
+        'makkah_nights':            p.makkah_nights,
+        'madinah_hotel_name':       p.madinah_hotel_name or '',
+        'madinah_hotel_distance':   p.madinah_hotel_distance or '',
+        'madinah_nights':           p.madinah_nights,
+        'airline_name':             (p.airline.name if p.airline else None) or p.flight_name or '',
+        'airline_logo_url':         p.airline.logo.url if (p.airline and p.airline.logo) else None,
+        'images':                   p.images or [],
+        'cover_photo':              p.cover_photo.url if p.cover_photo else '',
+        'cover_photo_url':          p.cover_photo_url,
+    }
+    return JsonResponse({'success': True, 'package': data})
+
+
 @user_passes_test(is_agent)
 def agent_sectors_api(request):
     """
@@ -3712,7 +3777,12 @@ def agent_hajj_packages_api(request):
     return JsonResponse({'success': True, 'packages': data})
 
 
-
-
-
-
+@agent_required_api
+def agent_hajj_package_detail_api(request, pk):
+    """
+    GET → Retrieve a single active AgentHajjPackage by pk for flyer generation.
+    Returns the same structure as _serialize_agent_hajj_package.
+    """
+    p = get_object_or_404(AgentHajjPackage, pk=pk, is_active=True)
+    data = _serialize_agent_hajj_package(p)
+    return JsonResponse({'success': True, 'package': data})

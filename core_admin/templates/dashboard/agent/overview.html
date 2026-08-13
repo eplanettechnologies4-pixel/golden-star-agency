@@ -8210,6 +8210,10 @@
         }
 
         function renderAdminPackageCardHtml(p) {
+            window.allPackagesMasterMap = window.allPackagesMasterMap || {};
+            if (p && p.id) {
+                window.allPackagesMasterMap[p.id] = p;
+            }
             let imgUrl = '';
 
             // Priority 1: Use cover_photo / cover_photo_url if explicitly set
@@ -8683,19 +8687,42 @@
             return p;
         }
 
+        // Resolve airline logo URL from name (used both for initial load and onerror fallback)
+        function getAirlineLogoFromName(airName) {
+            const nameLower = (airName || '').toLowerCase();
+            if (nameLower.includes('saudi') || nameLower.includes('saudia') || nameLower.includes('saudia')) return '/static/images/saudia_logo.png';
+            if (nameLower.includes('pia') || nameLower.includes('pakistan')) return '/static/images/pia_logo.png';
+            if (nameLower.includes('emirates')) return '/static/images/emirates_logo.png';
+            if (nameLower.includes('flynas')) return '/static/images/flynas_logo.png';
+            if (nameLower.includes('flydubai')) return '/static/images/flydubai_logo.png';
+            if (nameLower.includes('air arabia') || nameLower.includes('air-arabia')) return '/static/images/air_arabia_logo.png';
+            return '/static/images/saudia_logo.png'; // generic fallback only if name is unknown
+        }
+
+        // Format hotel distance: if purely numeric or numeric+unit (e.g. '400', '200'), append 'from Haram'
+        function formatDistanceStr(dist) {
+            if (!dist) return dist;
+            const s = String(dist).trim();
+            // Already has 'haram', 'from', 'shuttle', 'service', etc. — return as-is
+            if (/haram|from|shuttle|service/i.test(s)) return s;
+            // Purely numeric: '400' -> '400m from Haram'
+            if (/^\d+$/.test(s)) return s + 'm from Haram';
+            // Numeric with optional unit suffix: '400m', '200 MTR', '350-400 MTR' -> append 'from Haram'
+            if (/^[\d][\d\s\-\.]+[mM]?(tr|TR|m|M|METER|meter|meters|METERS)?$/.test(s)) return s + ' from Haram';
+            return s;
+        }
+
         function buildPackageFlyerHtml(p) {
             const isHajj = p.package_type === 'hajj' || p.is_hajj_model;
             const airName = p.airline_name || p.flight_name || 'Saudi Airlines';
-            
+
             let airLogoUrl = p.airline_logo_url || p.get_airline_logo_url || p.airline_logo || '';
-            if (!airLogoUrl) {
-                const nameLower = (airName || '').toLowerCase();
-                if (nameLower.includes('saudi')) airLogoUrl = '/static/images/saudia_logo.png';
-                else if (nameLower.includes('pia') || nameLower.includes('pakistan')) airLogoUrl = '/static/images/pia_logo.png';
-                else if (nameLower.includes('emirates')) airLogoUrl = '/static/images/emirates_logo.png';
-                else if (nameLower.includes('flynas')) airLogoUrl = '/static/images/flynas_logo.png';
-                else airLogoUrl = '/static/images/saudia_logo.png';
+            if (!airLogoUrl || airLogoUrl === 'null' || airLogoUrl === 'undefined') {
+                // No uploaded logo — derive from airline name text
+                airLogoUrl = getAirlineLogoFromName(airName);
             }
+            // Data-attribute for onerror fallback uses the SAME name-based logo (not always Saudia)
+            const airLogoFallback = getAirlineLogoFromName(airName);
 
             // Helper to format date strings cleanly
             function formatDateStr(d) {
@@ -8728,25 +8755,25 @@
                 retDateFormatted = flightDatesText;
             }
 
-            const roomConfig = [
-                {
-                    label: 'SHARING ROOM',
-                    price: parseFloat(p.price_sharing || p.agent_price || p.adult_price || 2750000)
-                },
-                {
-                    label: 'QUAD ROOM',
-                    price: parseFloat(p.price_quad || 2950000)
-                },
-                {
-                    label: 'TRIPLE ROOM',
-                    price: parseFloat(p.price_triple || 3250000)
-                },
-                {
-                    label: 'DOUBLE ROOM',
-                    price: parseFloat(p.price_double || 3650000),
-                    isVip: true
-                }
-            ];
+            // Build room price grid exactly matching the card's logic:
+            // Only include a room type if its price is actually set (> 0).
+            // This mirrors lines 8286-8299 in the card renderer so card ↔ flyer are always in sync.
+            const _sharingP = parseFloat(p.price_sharing || p.agent_price || p.adult_price || 0);
+            const _quadP    = parseFloat(p.price_quad   || 0);
+            const _tripleP  = parseFloat(p.price_triple || 0);
+            const _doubleP  = parseFloat(p.price_double || 0);
+
+            const roomConfig = [];
+            if (_sharingP > 0) roomConfig.push({ label: 'SHARING ROOM', price: _sharingP });
+            if (_quadP    > 0) roomConfig.push({ label: 'QUAD ROOM',    price: _quadP    });
+            if (_tripleP  > 0) roomConfig.push({ label: 'TRIPLE ROOM',  price: _tripleP  });
+            if (_doubleP  > 0) roomConfig.push({ label: 'DOUBLE ROOM',  price: _doubleP, isVip: true });
+
+            // If nothing was set at all, fall back to a single Standard row using agent_price
+            if (roomConfig.length === 0) {
+                const fb = parseFloat(p.agent_price || p.adult_price || 0);
+                if (fb > 0) roomConfig.push({ label: 'STANDARD ROOM', price: fb });
+            }
 
             let makkahHotel = p.makkah_hotel_name || '';
             let madinahHotel = p.madinah_hotel_name || '';
@@ -8757,18 +8784,32 @@
 
             if (p.accommodations && Array.isArray(p.accommodations) && p.accommodations.length > 0) {
                 p.accommodations.forEach((acc, idx) => {
-                    const hotelName = acc.hotel_name_manual || acc.hotel_name || (acc.get_hotel_name ? acc.get_hotel_name : '');
-                    const dist = acc.distance_manual || acc.hotel_distance || (acc.get_hotel_distance ? acc.get_hotel_distance : '');
+                    const hotelName = acc.hotel_name_manual || acc.manual_hotel_name || acc.hotel_name || (acc.get_hotel_name ? acc.get_hotel_name : '');
+                    const dist = acc.distance_manual || acc.manual_hotel_distance || acc.hotel_distance || (acc.get_hotel_distance ? acc.get_hotel_distance : '');
                     const cityLower = (acc.city || '').toLowerCase();
 
                     if (!makkahHotel && (cityLower === 'makkah' || idx === 0)) {
                         makkahHotel = hotelName;
                         if (!makkahNightsNum) makkahNightsNum = acc.nights;
                         if (!makkahDist) makkahDist = dist;
-                    } else if (!madinahHotel && (cityLower === 'madinah' || idx === 1)) {
+                    } else if (!madinahHotel && (cityLower === 'madinah' || (cityLower !== 'makkah' && idx >= 1))) {
                         madinahHotel = hotelName;
                         if (!madinahNightsNum) madinahNightsNum = acc.nights;
                         if (!madinahDist) madinahDist = dist;
+                    }
+                });
+            }
+
+            // Also pull from hotels[] array (AgentPackage-style — hotels linked via M2M with distance_from_haram)
+            if (p.hotels && Array.isArray(p.hotels) && p.hotels.length > 0) {
+                p.hotels.forEach(h => {
+                    const cityLower = (h.city || '').toLowerCase();
+                    if (!makkahHotel && cityLower === 'makkah') {
+                        makkahHotel = h.name;
+                        if (!makkahDist) makkahDist = h.distance_from_haram || '';
+                    } else if (!madinahHotel && cityLower === 'madinah') {
+                        madinahHotel = h.name;
+                        if (!madinahDist) madinahDist = h.distance_from_haram || '';
                     }
                 });
             }
@@ -8780,6 +8821,10 @@
             if (!makkahDist) makkahDist = '350m from Haram';
             if (!madinahDist) madinahDist = '50m from Haram';
 
+            // Normalize distance strings: if stored as bare number like "400" add "m from Haram"
+            makkahDist = formatDistanceStr(makkahDist);
+            madinahDist = formatDistanceStr(madinahDist);
+
             const depTimeStr = p.departure_time || '18:38';
             const arrTimeStr = p.arrival_time || '06:04';
 
@@ -8788,10 +8833,10 @@
             if (p.flight_sectors && Array.isArray(p.flight_sectors) && p.flight_sectors.length > 0) {
                 sectorRows = p.flight_sectors.map((s, idx) => ({
                     type: s.type || (idx === 0 ? 'OUTBOUND SECTOR' : 'RETURN SECTOR'),
-                    flightNo: s.flight_number || s.flight_no || (p.flight_number || 'SV-795'),
+                    flightNo: s.flight_number || s.flight_no || (p.flight_number || '—'),
                     airline: s.airline || airName,
-                    origin: s.origin || s.from || (idx === 0 ? 'PEW (Peshawar)' : 'MED (Madinah)'),
-                    dest: s.destination || s.to || (idx === 0 ? 'JED (Jeddah)' : 'PEW (Peshawar)'),
+                    origin: s.origin || s.from || '—',
+                    dest: s.destination || s.to || '—',
                     depTime: s.departure_time || depTimeStr,
                     depDate: formatDateStr(s.departure_date) || depDateFormatted || 'Confirmed',
                     arrTime: s.arrival_time || arrTimeStr,
@@ -8799,33 +8844,69 @@
                     baggage: s.baggage || '30 KG + 7KG'
                 }));
             } else {
-                sectorRows = [
-                    {
-                        type: 'OUTBOUND SECTOR',
-                        flightNo: p.outbound_flight_no || p.flight_number || 'SV-795',
-                        airline: airName,
-                        origin: p.departure_city || p.origin || 'PEW (Peshawar)',
-                        dest: 'JED (Jeddah)',
-                        depTime: depTimeStr,
-                        depDate: depDateFormatted || 'Confirmed Flight',
-                        arrTime: '22:50',
-                        arrDate: depDateFormatted || 'Confirmed Flight',
-                        baggage: '30 KG + 7KG'
-                    },
-                    {
-                        type: 'RETURN SECTOR',
-                        flightNo: p.return_flight_no || 'SV-796',
-                        airline: airName,
-                        origin: 'MED (Madinah)',
-                        dest: p.departure_city || p.origin || 'PEW (Peshawar)',
-                        depTime: '22:15',
-                        depDate: retDateFormatted || 'Confirmed Flight',
-                        arrTime: arrTimeStr,
-                        arrDate: retDateFormatted || 'Confirmed Flight',
-                        baggage: '30 KG + 7KG'
-                    }
-                ];
+                // Parse the flight_route string into per-leg sector rows
+                // Supports separators: " | ", " - ", " → ", "/"
+                // Example: "KHI | DOH | JED | MED | DOH | KHI"
+                const IATA_LABELS = {
+                    KHI: 'KHI (Karachi)', LHE: 'LHE (Lahore)', ISB: 'ISB (Islamabad)',
+                    PEW: 'PEW (Peshawar)', MUX: 'MUX (Multan)', SKT: 'SKT (Sialkot)',
+                    RYK: 'RYK (Rahim Yar Khan)', LYP: 'LYP (Faisalabad)', BHV: 'BHV (Bahawalpur)',
+                    JED: 'JED (Jeddah)', MED: 'MED (Madinah)', RUH: 'RUH (Riyadh)',
+                    DMM: 'DMM (Dammam)', TIF: 'TIF (Taif)',
+                    DXB: 'DXB (Dubai)', AUH: 'AUH (Abu Dhabi)', DOH: 'DOH (Doha)',
+                    MCT: 'MCT (Muscat)', BAH: 'BAH (Bahrain)', KWI: 'KWI (Kuwait)',
+                };
+                function parseIataLabel(code) {
+                    const c = (code || '').trim().toUpperCase();
+                    return IATA_LABELS[c] || c;
+                }
+
+                const routeStr = p.flight_route || p.flight_routes || p.sector_name || '';
+                // Split on pipe, dash, arrow, or slash (with optional spaces)
+                const stops = routeStr.split(/\s*[\|\/\-→➔]\s*/).map(s => s.trim()).filter(Boolean);
+
+                if (stops.length >= 2) {
+                    // Build one row per consecutive leg
+                    sectorRows = stops.slice(0, -1).map((fromCode, idx) => {
+                        const toCode = stops[idx + 1];
+                        const isFirstHalf = idx < Math.ceil((stops.length - 1) / 2);
+                        const legDate = isFirstHalf
+                            ? (depDateFormatted || 'Confirmed Flight')
+                            : (retDateFormatted || depDateFormatted || 'Confirmed Flight');
+                        return {
+                            type: idx === 0 ? 'OUTBOUND' : (idx === stops.length - 2 ? 'RETURN' : `LEG ${idx + 1}`),
+                            flightNo: p.flight_number || '—',
+                            airline: airName,
+                            origin: parseIataLabel(fromCode),
+                            dest: parseIataLabel(toCode),
+                            depTime: idx === 0 ? depTimeStr : '—',
+                            depDate: legDate,
+                            arrTime: idx === stops.length - 2 ? arrTimeStr : '—',
+                            arrDate: legDate,
+                            baggage: '30 KG + 7KG'
+                        };
+                    });
+                } else {
+                    // Absolute last resort: show the route string in a single row
+                    const origin = p.departure_city || (p.sector && p.sector.origin_city) || routeStr.split(/[\|\/\-→➔]/)[0]?.trim() || '—';
+                    const dest = p.arrival_city || (p.sector && p.sector.destination_city) || routeStr.split(/[\|\/\-→➔]/).pop()?.trim() || '—';
+                    sectorRows = [
+                        {
+                            type: 'OUTBOUND',
+                            flightNo: p.flight_number || '—',
+                            airline: airName,
+                            origin: parseIataLabel(origin),
+                            dest: parseIataLabel(dest),
+                            depTime: depTimeStr,
+                            depDate: depDateFormatted || 'Confirmed Flight',
+                            arrTime: arrTimeStr,
+                            arrDate: depDateFormatted || 'Confirmed Flight',
+                            baggage: '30 KG + 7KG'
+                        }
+                    ];
+                }
             }
+
 
             const priceGridHtml = roomConfig.map(opt => {
                 const priceNum = Number(opt.price);
@@ -8853,7 +8934,7 @@
                     <div>
                         <!-- TOP SECTION: AIRLINE LOGO & BRAND -->
                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px;">
-                            <img src="${escapeHTML(airLogoUrl)}" alt="${escapeHTML(airName)}" style="height: 60px; max-width: 280px; object-fit: contain; display: block; margin-bottom: 8px;" onerror="this.onerror=null; this.src='/static/images/saudia_logo.png';">
+                            <img src="${escapeHTML(airLogoUrl)}" alt="${escapeHTML(airName)}" style="height: 60px; max-width: 280px; object-fit: contain; display: block; margin-bottom: 8px;" onerror="this.onerror=null; this.src='${escapeHTML(airLogoFallback)}';">  
                             <div style="font-size: 15px; font-weight: 900; color: #EA580C; text-transform: uppercase; letter-spacing: 2.5px;">${escapeHTML(airName)}</div>
                         </div>
 
@@ -8960,7 +9041,7 @@
                                 PACKAGE PRICING — PER PERSON
                             </div>
 
-                            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: stretch;">
+                            <div style="display: grid; grid-template-columns: repeat(${roomConfig.length || 4}, 1fr); gap: 16px; align-items: stretch;">
                                 ${priceGridHtml}
                             </div>
                         </div>
@@ -8983,37 +9064,26 @@
 
         async function generatePackageFlyerBlob(packageId, isHajjModel) {
             let p = getPackageObjById(packageId, isHajjModel);
-            
-            try {
-                const detailUrl = isHajjModel || (p && (p.package_type === 'hajj' || p.is_hajj_model))
-                    ? `/dashboard/admin/api/hajj-packages/${packageId}/`
-                    : `/dashboard/agent/api/packages/${packageId}/`;
-                const res = await safeFetchJson(detailUrl);
-                if (res) {
-                    const fetchedPkg = res.hajj_package || res.package || res;
-                    if (fetchedPkg && (fetchedPkg.id || fetchedPkg.title)) {
-                        p = Object.assign({}, p || {}, fetchedPkg);
-                    }
-                }
-            } catch (e) {
-                console.error("Error fetching detail for flyer:", e);
-            }
 
+            // Only fetch from network if the card's package object is not in memory
             if (!p) {
+                const isAgentHajjModel = isHajjModel === true;
+                let detailUrl = isAgentHajjModel
+                    ? `/dashboard/agent/api/agent-hajj-packages/${packageId}/`
+                    : `/dashboard/agent/api/packages/${packageId}/`;
+
                 try {
-                    const [res1, res2] = await Promise.all([
-                        fetch('/dashboard/agent/api/packages/'),
-                        fetch('/dashboard/admin/api/hajj-packages/')
-                    ]);
-                    const data1 = await res1.json();
-                    const data2 = await res2.json();
-                    const allPkgs = [...(data1.packages || []), ...(data2.packages || []), ...(data2.hajj_packages || [])];
-                    allPkgs.forEach(item => {
-                        window.allPackagesMasterMap[item.id] = item;
-                    });
-                    p = getPackageObjById(packageId, isHajjModel);
+                    const res = await safeFetchJson(detailUrl);
+                    if (res) {
+                        const fetchedPkg = res.hajj_package || res.package || res;
+                        if (fetchedPkg && (fetchedPkg.id || fetchedPkg.title)) {
+                            p = fetchedPkg;
+                            window.allPackagesMasterMap = window.allPackagesMasterMap || {};
+                            window.allPackagesMasterMap[packageId] = p;
+                        }
+                    }
                 } catch (e) {
-                    console.error("Error fetching package detail for flyer:", e);
+                    console.error("Error fetching detail for flyer:", e);
                 }
             }
 

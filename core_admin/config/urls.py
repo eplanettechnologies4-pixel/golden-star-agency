@@ -246,7 +246,7 @@ urlpatterns = [
     # Standalone Agent Hajj Packages (B2B) — Admin & Agent APIs
     path('dashboard/admin/api/agent-hajj-packages/', airline_ticketing_views.admin_agent_hajj_packages_api, name='admin_agent_hajj_packages_api'),
     path('dashboard/admin/api/agent-hajj-packages/<int:pk>/', airline_ticketing_views.admin_agent_hajj_package_detail_api, name='admin_agent_hajj_package_detail_api'),
-    path('dashboard/agent/api/agent-hajj-packages/', airline_ticketing_views.agent_hajj_packages_api, name='agent_hajj_packages_api'),
+
 
     # Hotel Master (B2B) — Admin APIs
     path('dashboard/admin/api/hotels/', airline_ticketing_views.admin_hotels_api, name='admin_hotels_api'),
@@ -259,6 +259,9 @@ urlpatterns = [
     path('dashboard/agent/api/flight-inventory/', airline_ticketing_views.agent_flight_inventory_api, name='agent_flight_inventory_api'),
     path('dashboard/agent/api/group-policies/', airline_ticketing_views.agent_group_fare_policies_api, name='agent_group_fare_policies_api'),
     path('dashboard/agent/api/packages/', airline_ticketing_views.agent_packages_api, name='agent_packages_api'),
+    path('dashboard/agent/api/packages/<int:pk>/', airline_ticketing_views.agent_package_detail_api, name='agent_package_detail_api'),
+    path('dashboard/agent/api/agent-hajj-packages/', airline_ticketing_views.agent_hajj_packages_api, name='agent_hajj_packages_api'),
+    path('dashboard/agent/api/agent-hajj-packages/<int:pk>/', airline_ticketing_views.agent_hajj_package_detail_api, name='agent_hajj_package_detail_api'),
 
     # B2B Order Creation & Booking API
     path('dashboard/agent/api/orders/create/', airline_ticketing_views.agent_create_ticket_order_api, name='agent_create_ticket_order_api'),
