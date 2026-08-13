@@ -24,43 +24,53 @@
 </section>
 
 <!-- Signup Form Container -->
-<section class="py-16 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden flex items-center justify-center min-h-[65vh] px-4">
+<section class="py-6 sm:py-10 bg-slate-950 relative overflow-hidden flex items-center justify-center min-h-screen px-4 sm:px-6">
+    <!-- Dynamic Background Video -->
+    <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80 z-0">
+        <source src="{% static 'assets/From Klickpin.com- 731975745691428406-pin-id-731975745691428406.mp4' %}" type="video/mp4">
+        <source src="{% static 'assets/From Klickpin.com- Practical Lip Combo Ideas for Weekends-pin-id-589197563749109668.mp4' %}" type="video/mp4">
+        <source src="{% static 'assets/bg_video.mp4' %}" type="video/mp4">
+        <source src="{% static 'assets/signup_bg.mp4' %}" type="video/mp4">
+    </video>
+    <div class="absolute inset-0 bg-slate-950/30 z-0 pointer-events-none"></div>
+
     <!-- Glowing radial background accent -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="max-w-xl w-full relative z-10">
-        <!-- Glassmorphism Container Card -->
-        <div class="bg-white/95 backdrop-blur-xl border border-slate-200/80 p-8 sm:p-10 rounded-3xl shadow-2xl shadow-slate-950/50 space-y-6">
+    <div class="max-w-4xl sm:max-w-5xl w-full relative z-10 my-auto">
+        <!-- Glassmorphism Container Card (Expanded width with crisp border, fitted for 100vh) -->
+        <div class="bg-slate-950/40 backdrop-blur-2xl border-2 border-white/30 hover:border-brand-orange/60 p-6 sm:p-8 rounded-3xl shadow-2xl shadow-black/90 space-y-4 text-white transition-all">
             
-            <div class="text-center">
-                <img src="{% static 'images/emblem.png' %}" alt="REI GOLDEN STAR Emblem" class="w-16 h-16 object-contain mx-auto transition-transform hover:scale-110 duration-300 drop-shadow-md">
+            <div class="text-center space-y-2 mb-1">
+                <img src="{% static 'assets/ChatGPT Image Jul 27, 2026, 02_06_02 AM.png' %}" alt="REI GOLDEN STAR Logo" class="h-16 sm:h-20 w-auto max-w-[280px] sm:max-w-[340px] object-contain mx-auto transition-transform hover:scale-105 duration-300 drop-shadow-xl rounded-xl">
+                <h2 class="text-xl sm:text-2xl font-black text-white uppercase tracking-tight leading-none">Registration Portal</h2>
+                <p class="text-xs text-slate-300 font-medium">REI GOLDEN STAR Client & B2B Partner Sign Up</p>
             </div>
 
-            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <form method="POST" enctype="multipart/form-data" class="space-y-4">
                 {% csrf_token %}
                 
                 <!-- Error Alerts -->
                 {% if customer_form.errors or agent_form.errors %}
-                <div class="bg-red-50/90 border border-red-200 text-red-700 text-xs p-4 rounded-2xl space-y-1">
+                <div class="bg-red-950/80 border border-red-500/60 text-red-200 text-xs p-3 rounded-xl space-y-1 backdrop-blur-md">
                     {% for field, errors in customer_form.errors.items %}
-                        {% for error in errors %}<p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-500"></i> <strong>Client:</strong> {{ error }}</p>{% endfor %}
+                        {% for error in errors %}<p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-400"></i> <strong>Client:</strong> {{ error }}</p>{% endfor %}
                     {% endfor %}
                     {% for field, errors in agent_form.errors.items %}
-                        {% for error in errors %}<p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-500"></i> <strong>Agent:</strong> {{ error }}</p>{% endfor %}
+                        {% for error in errors %}<p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-400"></i> <strong>Agent:</strong> {{ error }}</p>{% endfor %}
                     {% endfor %}
                 </div>
                 {% endif %}
 
                 <!-- Partner Category Selector -->
                 <div>
-                    <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-widest text-center mb-3">Select Account Type</label>
-                    <div class="grid grid-cols-2 gap-3 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/60">
-                        <button type="button" id="tab-btn-customer" class="flex flex-col items-center justify-center py-4 rounded-xl transition-all duration-300 focus:outline-none">
-                            <i class="fa-solid fa-user text-xl mb-1"></i>
+                    <div class="grid grid-cols-2 gap-3 p-1.5 bg-slate-900/60 rounded-2xl border border-white/20 backdrop-blur-md max-w-md mx-auto">
+                        <button type="button" id="tab-btn-customer" class="flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-300 focus:outline-none">
+                            <i class="fa-solid fa-user text-base"></i>
                             <span class="text-xs font-black uppercase tracking-wider">Client Account</span>
                         </button>
-                        <button type="button" id="tab-btn-agent" class="flex flex-col items-center justify-center py-4 rounded-xl transition-all duration-300 focus:outline-none">
-                            <i class="fa-solid fa-briefcase text-xl mb-1"></i>
+                        <button type="button" id="tab-btn-agent" class="flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all duration-300 focus:outline-none">
+                            <i class="fa-solid fa-briefcase text-base"></i>
                             <span class="text-xs font-black uppercase tracking-wider">B2B Agent Partner</span>
                         </button>
                     </div>
@@ -68,97 +78,130 @@
                 </div>
 
                 <!-- Client Signup Fields -->
-                <div id="customer-fields" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div id="customer-fields" class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">First Name</label>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">First Name *</label>
                             {{ customer_form.first_name }}
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Last Name</label>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Last Name *</label>
                             {{ customer_form.last_name }}
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Email Address</label>
-                        {{ customer_form.email }}
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Phone / WhatsApp</label>
-                        {{ customer_form.phone }}
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Password</label>
-                        {{ customer_form.password }}
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Confirm Password</label>
-                        {{ customer_form.password_confirm }}
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Email Address *</label>
+                            {{ customer_form.email }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Phone / WhatsApp *</label>
+                            {{ customer_form.phone }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Password *</label>
+                            {{ customer_form.password }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Confirm Password *</label>
+                            {{ customer_form.password_confirm }}
+                        </div>
                     </div>
                 </div>
 
                 <!-- Agent Signup Fields -->
-                <div id="agent-fields" class="space-y-4 hidden">
-                    <div class="p-3 bg-brand-orange/10 border border-brand-orange/20 rounded-2xl flex items-center justify-between">
+                <div id="agent-fields" class="space-y-3 hidden">
+                    <div class="p-2.5 bg-brand-orange/10 border border-brand-orange/30 rounded-xl flex items-center justify-between">
                         <span class="text-xs font-black text-brand-orange uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-id-card text-brand-orange"></i> Step 1 of 3: Account Setup
+                            <i class="fa-solid fa-briefcase"></i> B2B Agent Registration
                         </span>
-                        <div class="flex gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-brand-orange animate-pulse"></span>
-                            <span class="w-2 h-2 rounded-full bg-slate-300"></span>
-                            <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                        <span class="text-[10px] font-bold text-slate-300 uppercase">Fast Setup</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Full Name *</label>
+                            {{ agent_form.full_name }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Official Email *</label>
+                            {{ agent_form.email }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Phone / WhatsApp *</label>
+                            {{ agent_form.phone }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Agency Company Name *</label>
+                            {{ agent_form.company_name }}
+                        </div>
+                        <div>
+                            <label class="flex items-center justify-between text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">
+                                <span>Office Address</span>
+                                <span class="text-[10px] text-slate-400 font-normal lowercase italic">(optional)</span>
+                            </label>
+                            {{ agent_form.address }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Password *</label>
+                            {{ agent_form.password }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">Confirm Password *</label>
+                            {{ agent_form.password_confirm }}
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Username</label>
-                        {{ agent_form.username }}
-                    </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">First Name</label>
-                            {{ agent_form.first_name }}
+                    <!-- Document Uploads Section -->
+                    <div class="pt-2 border-t border-white/10 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <p class="text-[11px] font-extrabold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-id-card text-brand-orange"></i> Agent Identity & Documents
+                            </p>
+                            <span class="text-[10px] bg-slate-900/80 text-slate-300 border border-white/20 font-bold px-2 py-0.5 rounded-full uppercase">Optional</span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Last Name</label>
-                            {{ agent_form.last_name }}
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="flex items-center justify-between text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">
+                                    <span>Profile Photo 📷</span>
+                                    <span class="text-[10px] text-slate-400 font-normal lowercase italic">(optional)</span>
+                                </label>
+                                {{ agent_form.profile_photo }}
+                            </div>
+                            <div>
+                                <label class="flex items-center justify-between text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">
+                                    <span>ID Card Front 🪪</span>
+                                    <span class="text-[10px] text-slate-400 font-normal lowercase italic">(optional)</span>
+                                </label>
+                                {{ agent_form.id_card_front }}
+                            </div>
+                            <div>
+                                <label class="flex items-center justify-between text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">
+                                    <span>ID Card Back 🪪</span>
+                                    <span class="text-[10px] text-slate-400 font-normal lowercase italic">(optional)</span>
+                                </label>
+                                {{ agent_form.id_card_back }}
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Official Agency Email</label>
-                        {{ agent_form.email }}
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Phone / WhatsApp Number</label>
-                        {{ agent_form.phone }}
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Travel Agency Company Name</label>
-                        {{ agent_form.company_name }}
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Password</label>
-                        {{ agent_form.password }}
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Confirm Password</label>
-                        {{ agent_form.password_confirm }}
                     </div>
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-brand-orange to-orange-600 hover:from-orange-600 hover:to-brand-orange text-white font-black py-4 rounded-xl transition-all duration-300 shadow-lg shadow-brand-orange/30 text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-brand-orange to-orange-600 hover:from-orange-600 hover:to-brand-orange text-white font-black py-3 sm:py-3.5 rounded-xl transition-all duration-300 shadow-lg shadow-brand-orange/30 text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer">
                     <span>Register Account</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </form>
 
-            <div class="text-center pt-4 border-t border-slate-100">
-                <p class="text-xs text-slate-500">Already registered?</p>
-                <a href="{% url 'login' %}" class="inline-flex items-center gap-1.5 text-xs text-brand-orange hover:text-orange-700 font-extrabold uppercase tracking-wider mt-1">
+            <div class="text-center pt-2 border-t border-white/10 flex items-center justify-between text-xs text-slate-300">
+                <span>Already registered with us?</span>
+                <a href="{% url 'login' %}" class="inline-flex items-center gap-1.5 text-brand-orange hover:text-orange-400 font-extrabold uppercase tracking-wider">
                     <i class="fa-solid fa-right-to-bracket"></i> Sign In to Portal
                 </a>
             </div>
+
+        </div>
+    </div>
+</section>
 
             <!-- Tab Switching JavaScript -->
             <script>

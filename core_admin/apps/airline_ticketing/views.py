@@ -2172,7 +2172,7 @@ def send_b2b_order_notification_email(order, event_type='created'):
 
         if event_type in ('created', 'paid'):
             # 1. Admin Email Alert
-            subject_admin = f"🚨 B2B ORDER ALERT [{ref_no}] — {status_disp} ({agency_name or agent_name})"
+            subject_admin = f"B2B Order Alert [{ref_no}] — {status_disp} ({agency_name or agent_name})"
             body_admin_html = f"""
             <p>A B2B booking order <strong>#{ref_no}</strong> has been {event_type} by partner agent <strong>{agent_name}</strong> ({agency_name or 'N/A'}).</p>
             <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 16px 0;">
@@ -2194,7 +2194,7 @@ def send_b2b_order_notification_email(order, event_type='created'):
 
             # 2. Agent Email Confirmation
             if agent_email:
-                subject_agent = f"📋 B2B Order Confirmation — Ref: #{ref_no} [{status_disp}]"
+                subject_agent = f"B2B Order Confirmation — Ref: #{ref_no} [{status_disp}]"
                 body_agent_html = f"""
                 <p>Assalamu Alaikum <strong>{agent_name}</strong>,</p>
                 <p>Your B2B booking order <strong>#{ref_no}</strong> has been successfully placed in our system.</p>
@@ -2217,7 +2217,7 @@ def send_b2b_order_notification_email(order, event_type='created'):
             # 3. Confirmation alert to Agent & Traveler
             recipients = list(set([e for e in [agent_email, traveler_email] if e]))
             if recipients:
-                subject_confirm = f"✅ B2B Order #{ref_no} Confirmed & Ticketed — Golden Star Travel"
+                subject_confirm = f"B2B Order #{ref_no} Confirmed and Ticketed — Golden Star Travel"
                 pnr_str = order.pnr or 'Confirmed'
                 body_confirm_html = f"""
                 <p>Your B2B booking order <strong>#{ref_no}</strong> has been <strong>CONFIRMED & TICKETED</strong> by <strong>REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.</strong></p>
@@ -3195,48 +3195,6 @@ def agent_wallet_ledger_api(request):
     from ..accounts.models import AgentLedger
     from django.db.models import Q
     from decimal import Decimal
-
-    # Seed default initial ledger entries if none exist for this agent
-    if AgentLedger.objects.filter(agent=request.user).count() == 0:
-        try:
-            AgentLedger.objects.create(
-                agent=request.user,
-                entry_type='credit',
-                category='payment',
-                amount=Decimal('200000.00'),
-                running_balance=Decimal('200000.00'),
-                description='Initial B2B Partner Wallet Deposit Credit',
-                reference='4324'
-            )
-            AgentLedger.objects.create(
-                agent=request.user,
-                entry_type='debit',
-                category='ticket_purchase',
-                amount=Decimal('50000.00'),
-                running_balance=Decimal('150000.00'),
-                description='B2B Ticket Purchase - GSA-2026-52039',
-                reference='GSA-2026-52039'
-            )
-            AgentLedger.objects.create(
-                agent=request.user,
-                entry_type='credit',
-                category='refund',
-                amount=Decimal('50000.00'),
-                running_balance=Decimal('200000.00'),
-                description='Refund for cancelled ticket order #GSA-2026-52039',
-                reference='GSA-2026-52039'
-            )
-            AgentLedger.objects.create(
-                agent=request.user,
-                entry_type='credit',
-                category='adjustment',
-                amount=Decimal('1000.00'),
-                running_balance=Decimal('201000.00'),
-                description='Special Admin Discount credited for Order #GSA-2026-67588',
-                reference='GSA-2026-67588'
-            )
-        except Exception as seed_err:
-            pass
 
     qs = AgentLedger.objects.filter(agent=request.user).order_by('created_at')
 

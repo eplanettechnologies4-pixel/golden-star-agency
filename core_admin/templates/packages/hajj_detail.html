@@ -139,6 +139,35 @@
                     </div>
                 </div>
 
+                <!-- Primary Makkah & Madinah Hotels (Optional Overview) -->
+                {% if hajj_package.makkah_hotel_name or hajj_package.madinah_hotel_name %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% if hajj_package.makkah_hotel_name %}
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black uppercase text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200"><i class="fa-solid fa-kaaba mr-1 text-amber-600"></i>Makkah Hotel</span>
+                            {% if hajj_package.makkah_nights %}
+                            <span class="text-xs font-extrabold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200"><i class="fa-regular fa-moon text-brand-orange mr-1"></i>{{ hajj_package.makkah_nights }} Nights</span>
+                            {% endif %}
+                        </div>
+                        <h4 class="text-lg font-black text-slate-900">{{ hajj_package.makkah_hotel_name }}</h4>
+                    </div>
+                    {% endif %}
+
+                    {% if hajj_package.madinah_hotel_name %}
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black uppercase text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200"><i class="fa-solid fa-mosque mr-1 text-emerald-600"></i>Madinah Hotel</span>
+                            {% if hajj_package.madinah_nights %}
+                            <span class="text-xs font-extrabold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200"><i class="fa-regular fa-moon text-brand-orange mr-1"></i>{{ hajj_package.madinah_nights }} Nights</span>
+                            {% endif %}
+                        </div>
+                        <h4 class="text-lg font-black text-slate-900">{{ hajj_package.madinah_hotel_name }}</h4>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
                 <!-- Accommodations Plan Timeline -->
                 {% if accommodations %}
                 <div class="bg-white p-8 rounded-3xl border border-slate-200/60 shadow-sm space-y-6">
@@ -154,15 +183,21 @@
                             </div>
                             <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-5 flex-grow space-y-2">
                                 <div class="flex items-center justify-between flex-wrap gap-2">
-                                    <span class="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md {% if stay.city == 'makkah' %}bg-amber-100 text-amber-900 border border-amber-300{% else %}bg-emerald-100 text-emerald-900 border border-emerald-300{% endif %}">
-                                        <i class="fa-solid {% if stay.city == 'makkah' %}fa-kaaba{% else %}fa-mosque{% endif %} mr-1"></i>{{ stay.get_city_display }}
-                                    </span>
-                                    <span class="text-xs font-extrabold text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200">
-                                        <i class="fa-regular fa-moon text-brand-orange mr-1"></i>{{ stay.nights }} Nights Stay
-                                    </span>
+                                    <h4 class="text-lg font-black text-slate-900 flex items-center gap-2">
+                                        <i class="fa-solid fa-hotel text-brand-orange"></i>{{ stay.get_hotel_name }}
+                                    </h4>
+                                    <div class="flex items-center gap-2">
+                                        {% if stay.check_in_date and stay.check_out_date %}
+                                        <span class="text-xs font-bold text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200" title="Check-in to Check-out">
+                                            <i class="fa-solid fa-calendar-days text-amber-600 mr-1.5"></i>{{ stay.check_in_date|date:"d M Y" }} - {{ stay.check_out_date|date:"d M Y" }}
+                                        </span>
+                                        {% endif %}
+                                        <span class="text-xs font-extrabold text-slate-700 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                                            <i class="fa-regular fa-moon text-brand-orange mr-1"></i>{{ stay.nights }} Nights Stay
+                                        </span>
+                                    </div>
                                 </div>
-                                <h4 class="text-lg font-black text-slate-900">{{ stay.hotel.name }}</h4>
-                                <p class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>Distance: {{ stay.hotel.distance_from_haram }}</p>
+                                <p class="text-xs text-slate-500 font-semibold"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>Distance: {{ stay.get_hotel_distance }}</p>
                             </div>
                         </div>
                         {% endfor %}

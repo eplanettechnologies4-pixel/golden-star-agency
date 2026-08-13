@@ -29,6 +29,9 @@ sitemaps = {
     'blog': BlogPostSitemap,
 }
 
+from django.views.decorators.csrf import ensure_csrf_cookie
+admin.site.login = ensure_csrf_cookie(admin.site.login)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'favicon.ico', permanent=True)),

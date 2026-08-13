@@ -30,14 +30,16 @@ ALLOWED_HOSTS = [host.strip() for host in config('ALLOWED_HOSTS', default='local
 # Security & Proxy Settings (Required for HTTPS behind Nginx reverse proxy)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
-CSRF_TRUSTED_ORIGINS = [
-    host.strip() for host in config(
-        'CSRF_TRUSTED_ORIGINS',
-        default='https://reigoldenstar.com,https://www.reigoldenstar.com,http://localhost:8000,http://127.0.0.1:8000'
-    ).split(',') if host.strip()
-]
+_raw_csrf_origins = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://reigoldenstar.com,https://www.reigoldenstar.com,http://localhost,http://localhost:8000,http://localhost:3000,http://127.0.0.1,http://127.0.0.1:8000,http://127.0.0.1:3000,http://0.0.0.0:8000,http://127.0.0.1:*'
+).split(',')
+CSRF_TRUSTED_ORIGINS = list(set([o.strip() for o in _raw_csrf_origins if o.strip()] + [f'http://{h}' for h in ALLOWED_HOSTS] + [f'https://{h}' for h in ALLOWED_HOSTS]))
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_PATH = '/'
 
 # Feature Flags
 AI_CHATBOT_ENABLED = config('AI_CHATBOT_ENABLED', default=False, cast=bool)
@@ -249,7 +251,7 @@ EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='REI GOLDEN STAR TRAVEL & TOURS <goldenstartraveltours@gmail.com>')
-SERVER_EMAIL = config('SERVER_EMAIL', default='goldenstartraveltours@gmail.com')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='REI Golden Star Travel <reigoldenstartraveltours@gmail.com>')
+SERVER_EMAIL = config('SERVER_EMAIL', default='reigoldenstartraveltours@gmail.com')
 
 

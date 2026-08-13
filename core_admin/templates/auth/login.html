@@ -4,48 +4,56 @@
 {% block content %}
 
 <!-- Hero Banner / Header -->
-<section class="relative py-16 bg-slate-950 overflow-hidden text-center">
+<section class="relative py-12 bg-slate-950 overflow-hidden text-center">
     <div class="absolute inset-0 z-0 opacity-30">
         <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{% static "images/hero_bg.png" %}');"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-slate-950/90 via-slate-950/80 to-slate-950"></div>
     </div>
     
-    <div class="relative z-10 max-w-4xl mx-auto px-4 space-y-3">
-        <nav class="flex justify-center items-center space-x-2 text-xs font-bold text-brand-orange uppercase tracking-widest mb-2">
+    <div class="relative z-10 max-w-4xl mx-auto px-4 space-y-2">
+        <nav class="flex justify-center items-center space-x-2 text-xs font-bold text-brand-orange uppercase tracking-widest mb-1">
             <a href="{% url 'home' %}" class="hover:underline">Home</a>
             <span>/</span>
             <span class="text-slate-400">Portal Login</span>
         </nav>
-        <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight">Portal Access Sign In</h1>
-        <p class="text-slate-400 max-w-lg mx-auto text-xs sm:text-sm leading-relaxed">
+        <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Portal Access Sign In</h1>
+        <p class="text-slate-300 max-w-lg mx-auto text-xs sm:text-sm leading-relaxed">
             Access secure client dashboards, agent B2B booking consoles, ticket allocations, and real-time ledger statements.
         </p>
     </div>
 </section>
 
-<!-- Form Container -->
-<section class="py-16 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden flex items-center justify-center min-h-[60vh] px-4">
+<!-- Form Container with Full Background Video -->
+<section class="py-10 bg-slate-950 relative overflow-hidden flex items-center justify-center min-h-[70vh] px-4">
+    <!-- Dynamic Background Video -->
+    <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-80 z-0">
+        <source src="{% static 'assets/From Klickpin.com- Discover these 15 Refined Pinterest marketing ideas that are perfect when you want something stylish modern and easy to copy fo.mp4' %}" type="video/mp4">
+        <source src="{% static 'assets/bg_video.mp4' %}" type="video/mp4">
+        <source src="{% static 'assets/signup_bg.mp4' %}" type="video/mp4">
+    </video>
+    <div class="absolute inset-0 bg-slate-950/30 z-0 pointer-events-none"></div>
+
     <!-- Glowing background accent radial circle -->
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-brand-orange/10 rounded-full blur-3xl pointer-events-none"></div>
 
-    <div class="max-w-md w-full relative z-10">
-        <!-- Glassmorphism Card -->
-        <div class="bg-white/95 backdrop-blur-xl border border-slate-200/80 p-8 sm:p-10 rounded-3xl shadow-2xl shadow-slate-950/50 space-y-6">
+    <div class="max-w-md w-full relative z-10 my-auto">
+        <!-- Glassmorphism Card (Transparent background with crisp border) -->
+        <div class="bg-slate-950/40 backdrop-blur-2xl border-2 border-white/30 hover:border-brand-orange/60 p-8 sm:p-10 rounded-3xl shadow-2xl shadow-black/90 space-y-6 text-white transition-all">
             
-            <div class="text-center space-y-2">
-                <img src="{% static 'images/emblem.png' %}" alt="REI GOLDEN STAR Emblem" class="w-16 h-16 object-contain mx-auto transition-transform hover:scale-110 duration-300 drop-shadow-md">
-                <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Welcome Back</h2>
-                <p class="text-xs text-slate-500">Sign in with your registered username or email</p>
+            <div class="text-center space-y-2 mb-2">
+                <img src="{% static 'assets/ChatGPT Image Jul 27, 2026, 02_06_02 AM.png' %}" alt="REI GOLDEN STAR Logo" class="h-16 sm:h-20 w-auto max-w-[280px] sm:max-w-[340px] object-contain mx-auto transition-transform hover:scale-105 duration-300 drop-shadow-xl rounded-xl">
+                <h2 class="text-2xl font-black text-white tracking-tight uppercase">Welcome Back</h2>
+                <p class="text-xs text-slate-300">Sign in with your registered username or email</p>
             </div>
 
             <!-- Form Validation Messages -->
             {% if form.errors %}
-            <div class="bg-red-50/90 border border-red-200 text-red-700 text-xs p-4 rounded-2xl space-y-1">
+            <div class="bg-red-950/80 border border-red-500/60 text-red-200 text-xs p-4 rounded-2xl space-y-1 backdrop-blur-md">
                 {% for field, errors in form.errors.items %}
-                    {% for error in errors %}<p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-500"></i> {{ error }}</p>{% endfor %}
+                    {% for error in errors %}<p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-400"></i> {{ error }}</p>{% endfor %}
                 {% endfor %}
                 {% for error in form.non_field_errors %}
-                    <p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-500"></i> {{ error }}</p>
+                    <p class="flex items-center gap-1.5"><i class="fa-solid fa-circle-exclamation text-red-400"></i> {{ error }}</p>
                 {% endfor %}
             </div>
             {% endif %}
@@ -53,8 +61,8 @@
             {% if messages %}
             <div class="space-y-2">
                 {% for message in messages %}
-                <div class="p-4 rounded-2xl text-xs flex items-center gap-2 {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-600{% else %}bg-emerald-50 border border-emerald-200 text-emerald-700{% endif %}">
-                    <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation text-red-500{% else %}fa-circle-check text-emerald-500{% endif %} text-base"></i>
+                <div class="p-3.5 rounded-2xl text-xs flex items-center gap-2 backdrop-blur-md {% if message.tags == 'error' %}bg-red-950/80 border border-red-500/60 text-red-200{% else %}bg-emerald-950/80 border border-emerald-500/60 text-emerald-200{% endif %}">
+                    <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation text-red-400{% else %}fa-circle-check text-emerald-400{% endif %} text-base"></i>
                     <span>{{ message }}</span>
                 </div>
                 {% endfor %}
@@ -66,22 +74,22 @@
                 
                 <!-- Username / Email Field -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Username or Email</label>
+                    <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider mb-2">Username or Email</label>
                     <div class="relative flex items-center">
                         <span class="absolute left-4 text-slate-400"><i class="fa-solid fa-envelope"></i></span>
                         <input type="text" 
                                name="username" 
                                required 
                                placeholder="Enter username or email" 
-                               class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 text-sm text-slate-800 focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 transition-all font-medium">
+                               class="w-full bg-slate-900/60 border border-white/20 rounded-xl pl-11 pr-4 py-3.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/30 transition-all font-medium backdrop-blur-md">
                     </div>
                 </div>
 
                 <!-- Password Field with Visibility Toggle -->
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Password</label>
-                        <a href="{% url 'forgot_password' %}" class="text-xs text-brand-orange hover:underline font-bold transition-colors">Forgot Password?</a>
+                        <label class="block text-xs font-bold text-slate-200 uppercase tracking-wider">Password</label>
+                        <a href="{% url 'forgot_password' %}" class="text-xs text-brand-orange hover:text-orange-400 font-bold transition-colors">Forgot Password?</a>
                     </div>
                     <div class="relative flex items-center">
                         <span class="absolute left-4 text-slate-400"><i class="fa-solid fa-lock"></i></span>
@@ -90,10 +98,10 @@
                                name="password" 
                                required 
                                placeholder="Enter account password" 
-                               class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-11 py-3.5 text-sm text-slate-800 focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 transition-all font-medium">
+                               class="w-full bg-slate-900/60 border border-white/20 rounded-xl pl-11 pr-11 py-3.5 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/30 transition-all font-medium backdrop-blur-md">
                         <button type="button" 
                                 onclick="togglePasswordVisibility('password-input', 'toggle-icon')" 
-                                class="absolute right-4 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none">
+                                class="absolute right-4 text-slate-400 hover:text-white transition-colors focus:outline-none cursor-pointer">
                             <i class="fa-solid fa-eye" id="toggle-icon"></i>
                         </button>
                     </div>
@@ -101,16 +109,16 @@
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        class="w-full bg-gradient-to-r from-brand-orange to-orange-600 hover:from-orange-600 hover:to-brand-orange text-white font-extrabold py-4 rounded-xl transition-all duration-300 shadow-lg shadow-brand-orange/30 text-sm uppercase tracking-wider flex items-center justify-center gap-2 group">
+                        class="w-full bg-gradient-to-r from-brand-orange to-orange-600 hover:from-orange-600 hover:to-brand-orange text-white font-extrabold py-3.5 sm:py-4 rounded-xl transition-all duration-300 shadow-lg shadow-brand-orange/30 text-sm uppercase tracking-wider flex items-center justify-center gap-2 group cursor-pointer">
                     <span>Sign In to Portal</span>
                     <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
                 </button>
             </form>
 
             <!-- Signup Callout Link -->
-            <div class="text-center pt-4 border-t border-slate-100 space-y-2">
-                <p class="text-xs text-slate-500">Don't have an account yet?</p>
-                <a href="{% url 'signup' %}" class="inline-flex items-center gap-1.5 text-xs text-brand-orange hover:text-orange-700 font-extrabold uppercase tracking-wider">
+            <div class="text-center pt-4 border-t border-white/10 space-y-2">
+                <p class="text-xs text-slate-300">Don't have an account yet?</p>
+                <a href="{% url 'signup' %}" class="inline-flex items-center gap-1.5 text-xs text-brand-orange hover:text-orange-400 font-extrabold uppercase tracking-wider">
                     <i class="fa-solid fa-user-plus"></i> Create Client or B2B Agent Account
                 </a>
             </div>

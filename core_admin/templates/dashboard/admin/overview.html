@@ -3870,28 +3870,42 @@
 
             const manualHotelName = stayData.manual_hotel_name || stayData.hotel_name || '';
             const manualHotelDistance = stayData.manual_hotel_distance || stayData.hotel_distance || '';
+            const checkInDate = stayData.check_in_date || stayData.from_date || '';
+            const checkOutDate = stayData.check_out_date || stayData.to_date || '';
             const nights = stayData.nights || 10;
 
             const rowDiv = document.createElement('div');
-            rowDiv.className = 'agent-hajj-acc-row flex flex-wrap items-center gap-2 bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-sm';
+            rowDiv.className = 'agent-hajj-acc-row bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-sm space-y-2';
 
             rowDiv.innerHTML = `
-                <div class="w-full sm:flex-1">
-                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Hotel Name</label>
-                    <input type="text" value="${escapeHTML(manualHotelName)}" placeholder="e.g. Anjum Hotel Makkah / Azizia Building" class="acc-manual-hotel-name w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-bold text-[#2D4424]">
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="w-full sm:flex-1">
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase">Hotel Name</label>
+                        <input type="text" value="${escapeHTML(manualHotelName)}" placeholder="e.g. Anjum Hotel Makkah / Azizia Building" class="acc-manual-hotel-name w-full p-2 text-xs rounded-lg border border-[#D9CBAC] font-bold text-[#2D4424]">
+                    </div>
+                    <div class="w-full sm:w-44">
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase">Distance from Haram</label>
+                        <input type="text" value="${escapeHTML(manualHotelDistance)}" placeholder="e.g. 500m / Shifting" class="acc-manual-hotel-dist w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
+                    </div>
+                    <div class="self-end pt-1 sm:pt-0">
+                        <button type="button" onclick="removeAgentHajjAccommodationRow(this)" class="p-2 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs font-bold transition-all" title="Remove Stay">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="w-full sm:w-44">
-                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Distance from Haram</label>
-                    <input type="text" value="${escapeHTML(manualHotelDistance)}" placeholder="e.g. 500m / Shifting" class="acc-manual-hotel-dist w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
-                </div>
-                <div class="w-full sm:w-24">
-                    <label class="block text-[9px] font-bold text-[#567946] uppercase">Nights</label>
-                    <input type="number" min="1" value="${nights}" class="acc-nights-input w-full p-2 text-xs rounded-lg border border-[#D9CBAC]">
-                </div>
-                <div class="self-end pt-1 sm:pt-0">
-                    <button type="button" onclick="removeAgentHajjAccommodationRow(this)" class="p-2 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs font-bold transition-all" title="Remove Stay">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center pt-2 border-t border-slate-100">
+                    <div class="sm:col-span-5">
+                        <label class="block text-[9px] font-bold text-[#E06A26] uppercase flex items-center gap-1"><i class="fa-solid fa-calendar"></i> Check-in Date (From)</label>
+                        <input type="date" value="${checkInDate}" class="acc-from-date w-full p-1.5 text-xs rounded-lg border border-[#D9CBAC]">
+                    </div>
+                    <div class="sm:col-span-5">
+                        <label class="block text-[9px] font-bold text-[#E06A26] uppercase flex items-center gap-1"><i class="fa-solid fa-calendar"></i> Check-out Date (To)</label>
+                        <input type="date" value="${checkOutDate}" class="acc-to-date w-full p-1.5 text-xs rounded-lg border border-[#D9CBAC]">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase">Nights</label>
+                        <input type="number" min="1" value="${nights}" class="acc-nights-input w-full p-1.5 text-xs rounded-lg border border-[#D9CBAC]">
+                    </div>
                 </div>
             `;
 
@@ -3916,9 +3930,11 @@
                 const city = row.querySelector('.acc-city-select')?.value || 'makkah';
                 const manual_hotel_name = row.querySelector('.acc-manual-hotel-name')?.value?.trim() || '';
                 const manual_hotel_distance = row.querySelector('.acc-manual-hotel-dist')?.value?.trim() || '';
+                const check_in_date = row.querySelector('.acc-from-date')?.value || '';
+                const check_out_date = row.querySelector('.acc-to-date')?.value || '';
                 const nights = parseInt(row.querySelector('.acc-nights-input')?.value || '1', 10);
-                if (manual_hotel_name) {
-                    accommodations.push({ city, manual_hotel_name, manual_hotel_distance, nights });
+                if (manual_hotel_name || check_in_date || check_out_date) {
+                    accommodations.push({ city, manual_hotel_name, manual_hotel_distance, check_in_date, check_out_date, nights });
                 }
             });
 
@@ -7403,15 +7419,38 @@
                     ? `<div class="font-bold text-[#2D4424]">${escapeHTML(vp.country)}</div><div class="text-[10px] text-[#E06A26] font-semibold">Includes: ${escapeHTML(vp.countries_included)}</div>`
                     : `<div class="font-bold text-[#2D4424]">${escapeHTML(vp.country)}</div>`;
 
+                const coverCell = vp.cover_url
+                    ? `<div class="flex flex-col items-center gap-1">
+                        <img src="${vp.cover_url}" class="w-14 h-10 object-cover rounded-lg border border-[#D9CBAC] shadow-xs">
+                        <div class="flex gap-1">
+                            <a href="${vp.cover_url}" target="_blank" class="px-1.5 py-0.5 bg-[#F7F3E9] text-[#2D4424] border border-[#D9CBAC] text-[9px] font-bold rounded-md hover:bg-[#E06A26] hover:text-white transition-all"><i class="fa-solid fa-eye"></i></a>
+                            <a href="${vp.cover_url}" download class="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold rounded-md hover:bg-emerald-600 hover:text-white transition-all"><i class="fa-solid fa-download"></i></a>
+                        </div>
+                    </div>`
+                    : `<span class="text-[#D9CBAC] text-[10px]">No Cover</span>`;
+
+                const flyerCell = vp.flyer_document_url
+                    ? `<a href="${vp.flyer_document_url}" target="_blank" download class="px-2 py-1 bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-lg flex items-center gap-1 hover:bg-rose-600 hover:text-white transition-all w-max"><i class="fa-solid fa-file-arrow-down"></i> Flyer</a>`
+                    : `<span class="text-[#D9CBAC] text-[10px]">—</span>`;
+
+                const extraInfo = [];
+                if (vp.group_name) extraInfo.push(`<div class="text-[10px] text-[#567946] font-bold"><i class="fa-solid fa-users text-[#E06A26]"></i> ${escapeHTML(vp.group_name)}</div>`);
+                if (vp.tower_hotel_details) extraInfo.push(`<div class="text-[10px] text-[#2D4424] font-semibold"><i class="fa-solid fa-building text-[#567946]"></i> ${escapeHTML(vp.tower_hotel_details)}</div>`);
+
                 return `
                     <tr class="hover:bg-[#F6FAF3] transition-colors">
                         <td class="p-3 font-mono font-bold text-[#2D4424]">#${vp.id}</td>
-                        <td class="p-3">${countryDisplay}</td>
+                        <td class="p-3">
+                            ${countryDisplay}
+                            ${extraInfo.join('')}
+                        </td>
                         <td class="p-3 text-[11px] text-[#567946]">${escapeHTML(vp.visa_type)}</td>
                         <td class="p-3 text-[11px] text-[#2D4424]">${escapeHTML(vp.processing_time)}</td>
                         <td class="p-3 font-mono font-black text-[#2D4424]">PKR ${Number(vp.price).toLocaleString('en-PK')}</td>
                         <td class="p-3">${typeBadge}</td>
                         <td class="p-3">${popularBadge}</td>
+                        <td class="p-3">${coverCell}</td>
+                        <td class="p-3">${flyerCell}</td>
                         <td class="p-3">
                             <div class="flex items-center gap-1.5">
                                 <button onclick="openEditB2CVisaModal(${vp.id})" class="px-2.5 py-1 bg-[#F7F3E9] hover:bg-[#EBD8B3] text-[#2D4424] text-[10px] font-extrabold rounded-lg border border-[#D9CBAC] transition-all flex items-center gap-1 shadow-xs">
@@ -7553,6 +7592,29 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Group Name / Package Name</label>
+                                <input type="text" name="group_name" placeholder="e.g. Golden Star Umrah Combo Group" class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-bold">
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Tower / Hotel Details</label>
+                                <input type="text" name="tower_hotel_details" placeholder="e.g. Hilton Tower Makkah + Safa Royal Madinah" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Upload Cover Photo / Flyer Image 📷</label>
+                            <input type="file" name="cover_image" accept="image/*" class="w-full p-2 rounded-xl border border-[#D9CBAC] bg-white">
+                            <p class="text-[10px] text-[#567946] mt-0.5">This image will appear as the visa card cover/flyer on the website. Visitors can view or download it.</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Upload Flyer PDF / Document 📄 (Optional)</label>
+                            <input type="file" name="flyer_document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full p-2 rounded-xl border border-[#D9CBAC] bg-white">
+                            <p class="text-[10px] text-[#567946] mt-0.5">A printable flyer file (PDF/image) that agents and customers can download directly from the visa card.</p>
+                        </div>
+
                         <!-- Standard Visa Options -->
                         <div class="grid grid-cols-2 gap-3">
                             <div>
@@ -7588,11 +7650,6 @@
                                     <option value="single">Single Entry</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div>
-                            <label class="block font-extrabold text-[#2D4424] mb-1">Upload Cover Photo 📷</label>
-                            <input type="file" name="cover_image" accept="image/*" class="w-full p-2 rounded-xl border border-[#D9CBAC] bg-white">
                         </div>
 
                         <div>
@@ -7739,6 +7796,35 @@
                                     <!-- Dynamic destination rows appended here -->
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Group Name / Package Name</label>
+                                <input type="text" name="group_name" value="${_escHtml(vp.group_name || '')}" placeholder="e.g. Golden Star Umrah Combo Group" class="w-full p-2.5 rounded-xl border border-[#D9CBAC] font-bold">
+                            </div>
+                            <div>
+                                <label class="block font-extrabold text-[#2D4424] mb-1">Tower / Hotel Details</label>
+                                <input type="text" name="tower_hotel_details" value="${_escHtml(vp.tower_hotel_details || '')}" placeholder="e.g. Hilton Tower Makkah + Safa Royal Madinah" class="w-full p-2.5 rounded-xl border border-[#D9CBAC]">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Upload New Cover Photo / Flyer Image 📷 (Optional)</label>
+                            <input type="file" name="cover_image" accept="image/*" class="w-full p-2 rounded-xl border border-[#D9CBAC] bg-white">
+                            ${vp.cover_url ? `<div class="mt-1.5 flex items-center gap-2">
+                                <img src="${vp.cover_url}" class="w-16 h-10 object-cover rounded-lg border border-[#D9CBAC] shadow-xs">
+                                <div class="flex gap-1.5">
+                                    <a href="${vp.cover_url}" target="_blank" class="px-2 py-1 bg-[#F7F3E9] text-[#2D4424] border border-[#D9CBAC] text-[10px] font-bold rounded-lg flex items-center gap-1 hover:bg-[#E06A26] hover:text-white transition-all"><i class="fa-solid fa-eye"></i> View</a>
+                                    <a href="${vp.cover_url}" download class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold rounded-lg flex items-center gap-1 hover:bg-emerald-600 hover:text-white transition-all"><i class="fa-solid fa-download"></i> Download</a>
+                                </div>
+                            </div>` : ''}
+                        </div>
+
+                        <div>
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Upload New Flyer PDF / Document 📄 (Optional)</label>
+                            <input type="file" name="flyer_document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full p-2 rounded-xl border border-[#D9CBAC] bg-white">
+                            ${vp.flyer_document_url ? `<div class="mt-1 flex items-center gap-1.5 text-[10px] text-[#567946]"><i class="fa-solid fa-file-pdf text-rose-500"></i> Current Flyer: <a href="${vp.flyer_document_url}" target="_blank" class="underline font-bold text-[#E06A26]">View / Download</a></div>` : ''}
                         </div>
 
                         <!-- Standard Visa Options -->
@@ -13069,6 +13155,16 @@
                     document.getElementById("b2c-admin-hajj-license-number").value = p.license_number || '';
                     document.getElementById("b2c-admin-hajj-saudi-registration-number").value = p.saudi_registration_number || '';
                     
+                    const mkHotelEl = document.getElementById("b2c-admin-hajj-makkah-hotel-name");
+                    if (mkHotelEl) mkHotelEl.value = p.makkah_hotel_name || '';
+                    const mkNightsEl = document.getElementById("b2c-admin-hajj-makkah-nights");
+                    if (mkNightsEl) mkNightsEl.value = p.makkah_nights !== null ? p.makkah_nights : '';
+
+                    const mdHotelEl = document.getElementById("b2c-admin-hajj-madinah-hotel-name");
+                    if (mdHotelEl) mdHotelEl.value = p.madinah_hotel_name || '';
+                    const mdNightsEl = document.getElementById("b2c-admin-hajj-madinah-nights");
+                    if (mdNightsEl) mdNightsEl.value = p.madinah_nights !== null ? p.madinah_nights : '';
+
                     const airlineNameInput = document.getElementById("b2c-admin-hajj-airline-name");
                     if (airlineNameInput) airlineNameInput.value = p.airline_name || 'Saudi Airlines';
 
@@ -13150,33 +13246,82 @@
             const hotelNameManual = accData ? (accData.hotel_name_manual || accData.hotel_name || '') : '';
             const distanceManual = accData ? (accData.distance_manual || accData.hotel_distance || '') : '';
             const selectedHotelId = accData ? (accData.hotel_id || '') : '';
+            const checkInDate = accData ? (accData.check_in_date || accData.from_date || '') : '';
+            const checkOutDate = accData ? (accData.check_out_date || accData.to_date || '') : '';
             const nights = accData ? (accData.nights || 7) : 7;
 
             const rowDiv = document.createElement("div");
             rowDiv.id = rowId;
-            rowDiv.className = "b2c-hajj-stay-row grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-3 rounded-xl border border-[#D9CBAC] shadow-xs";
+            rowDiv.className = "b2c-hajj-stay-row bg-white p-3.5 rounded-xl border border-[#D9CBAC] shadow-xs space-y-2";
 
             rowDiv.innerHTML = `
-                <div class="sm:col-span-7">
-                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Hotel Name</label>
-                    <input type="text" value="${escapeHTML(hotelNameManual)}" placeholder="e.g. Anjum Hotel Makkah / Azizia Building" class="b2c-hajj-acc-hotel-name w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                    <div class="sm:col-span-7">
+                        <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Hotel Name</label>
+                        <input type="text" value="${escapeHTML(hotelNameManual)}" placeholder="e.g. Anjum Hotel Makkah / Azizia Building" class="b2c-hajj-acc-hotel-name w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div class="sm:col-span-4">
+                        <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Distance from Haram</label>
+                        <input type="text" value="${escapeHTML(distanceManual)}" placeholder="e.g. 350m from Haram / Shifting" class="b2c-hajj-acc-distance w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div class="sm:col-span-1 text-right pt-2 sm:pt-0">
+                        <button type="button" onclick="removeB2cAdminHajjStayRow(this)" class="p-1.5 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-lg text-xs font-bold transition-all" title="Remove Stay">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="sm:col-span-3">
-                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Distance from Haram</label>
-                    <input type="text" value="${escapeHTML(distanceManual)}" placeholder="e.g. 350m from Haram / Shifting" class="b2c-hajj-acc-distance w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
-                </div>
-                <div class="sm:col-span-1">
-                    <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Nights</label>
-                    <input type="number" min="1" value="${nights}" class="b2c-hajj-acc-nights w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424]">
-                </div>
-                <div class="sm:col-span-1 text-right pt-3 sm:pt-0">
-                    <button type="button" onclick="removeB2cAdminHajjStayRow(this)" class="p-1.5 bg-rose-100 text-rose-600 hover:bg-rose-200 rounded-lg text-xs font-bold transition-all" title="Remove Stay">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center pt-2 border-t border-slate-100">
+                    <div class="sm:col-span-5">
+                        <label class="block text-[9px] font-extrabold text-[#E06A26] uppercase mb-0.5 flex items-center gap-1"><i class="fa-solid fa-calendar"></i> Check-in Date (From)</label>
+                        <input type="date" value="${checkInDate}" onchange="onB2cAdminHajjStayDateChange(this)" class="b2c-hajj-acc-from-date w-full px-2 py-1.5 bg-white border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div class="sm:col-span-5">
+                        <label class="block text-[9px] font-extrabold text-[#E06A26] uppercase mb-0.5 flex items-center gap-1"><i class="fa-solid fa-calendar"></i> Check-out Date (To)</label>
+                        <input type="date" value="${checkOutDate}" onchange="onB2cAdminHajjStayDateChange(this)" class="b2c-hajj-acc-to-date w-full px-2 py-1.5 bg-white border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-[9px] font-extrabold text-[#567946] uppercase mb-0.5">Nights</label>
+                        <input type="number" min="1" value="${nights}" onchange="onB2cAdminHajjNightsChange(this)" class="b2c-hajj-acc-nights w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
                 </div>
             `;
 
             container.appendChild(rowDiv);
+        }
+
+        function onB2cAdminHajjStayDateChange(inputEl) {
+            const row = inputEl.closest(".b2c-hajj-stay-row");
+            if (!row) return;
+            const fromVal = row.querySelector(".b2c-hajj-acc-from-date")?.value;
+            const toVal = row.querySelector(".b2c-hajj-acc-to-date")?.value;
+            const nightsInput = row.querySelector(".b2c-hajj-acc-nights");
+
+            if (fromVal && toVal) {
+                const d1 = new Date(fromVal);
+                const d2 = new Date(toVal);
+                const diffTime = d2 - d1;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays > 0 && nightsInput) {
+                    nightsInput.value = diffDays;
+                }
+            }
+        }
+
+        function onB2cAdminHajjNightsChange(inputEl) {
+            const row = inputEl.closest(".b2c-hajj-stay-row");
+            if (!row) return;
+            const fromVal = row.querySelector(".b2c-hajj-acc-from-date")?.value;
+            const nightsVal = parseInt(inputEl.value, 10);
+            const toInput = row.querySelector(".b2c-hajj-acc-to-date");
+
+            if (fromVal && nightsVal > 0 && toInput) {
+                const d1 = new Date(fromVal);
+                d1.setDate(d1.getDate() + nightsVal);
+                const yyyy = d1.getFullYear();
+                const mm = String(d1.getMonth() + 1).padStart(2, '0');
+                const dd = String(d1.getDate()).padStart(2, '0');
+                toInput.value = `${yyyy}-${mm}-${dd}`;
+            }
         }
 
         function populateB2cAdminHajjHotelSelect(rowElement, city, selectedHotelId = null) {
@@ -13247,6 +13392,16 @@
             formData.append("license_number", document.getElementById("b2c-admin-hajj-license-number").value);
             formData.append("saudi_registration_number", document.getElementById("b2c-admin-hajj-saudi-registration-number").value);
 
+            const mkHotel = document.getElementById("b2c-admin-hajj-makkah-hotel-name")?.value || '';
+            if (mkHotel) formData.append("makkah_hotel_name", mkHotel);
+            const mkNights = document.getElementById("b2c-admin-hajj-makkah-nights")?.value;
+            if (mkNights) formData.append("makkah_nights", mkNights);
+
+            const mdHotel = document.getElementById("b2c-admin-hajj-madinah-hotel-name")?.value || '';
+            if (mdHotel) formData.append("madinah_hotel_name", mdHotel);
+            const mdNights = document.getElementById("b2c-admin-hajj-madinah-nights")?.value;
+            if (mdNights) formData.append("madinah_nights", mdNights);
+
             const airlineNameEl = document.getElementById("b2c-admin-hajj-airline-name");
             if (airlineNameEl) formData.append("airline_name", airlineNameEl.value);
 
@@ -13282,19 +13437,25 @@
             const accommodationRows = document.querySelectorAll(".b2c-hajj-stay-row");
             const accommodationsData = [];
             accommodationRows.forEach(row => {
-                const city = row.querySelector(".b2c-hajj-acc-city").value;
-                const hotelName = row.querySelector(".b2c-hajj-acc-hotel-name").value.trim();
-                const distance = row.querySelector(".b2c-hajj-acc-distance").value.trim();
+                const city = row.querySelector(".b2c-hajj-acc-city")?.value || 'makkah';
+                const hotelName = row.querySelector(".b2c-hajj-acc-hotel-name")?.value?.trim() || '';
+                const distance = row.querySelector(".b2c-hajj-acc-distance")?.value?.trim() || '';
+                const fromDate = row.querySelector(".b2c-hajj-acc-from-date")?.value || '';
+                const toDate = row.querySelector(".b2c-hajj-acc-to-date")?.value || '';
                 const hotelSelect = row.querySelector(".b2c-hajj-acc-hotel-select");
                 const hotelId = hotelSelect ? hotelSelect.value : "";
-                const nights = row.querySelector(".b2c-hajj-acc-nights").value;
+                const nights = row.querySelector(".b2c-hajj-acc-nights")?.value || 1;
 
-                if (hotelName || hotelId) {
+                if (hotelName || hotelId || fromDate || toDate) {
                     accommodationsData.push({
                         city: city,
                         hotel_id: hotelId ? parseInt(hotelId) : null,
                         hotel_name_manual: hotelName,
                         distance_manual: distance,
+                        check_in_date: fromDate,
+                        check_out_date: toDate,
+                        from_date: fromDate,
+                        to_date: toDate,
                         nights: parseInt(nights) || 1
                     });
                 }
@@ -13519,6 +13680,29 @@
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Saudi Registration # *</label>
                             <input type="text" id="b2c-admin-hajj-saudi-registration-number" required placeholder="e.g. SAUDI-REG-98124" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── SECTION 3.5: Primary Makkah & Madinah Hotels (Optional) ── -->
+                <div class="bg-[#F7F3E9]/50 p-4 rounded-2xl border border-[#E7DCB9] space-y-3">
+                    <p class="text-[10px] font-black text-[#E06A26] uppercase tracking-widest flex items-center gap-1.5"><i class="fa-solid fa-kaaba"></i> Primary Makkah &amp; Madinah Hotels (Optional Overview)</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                        <div class="sm:col-span-4">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Hotel Name (Optional)</label>
+                            <input type="text" id="b2c-admin-hajj-makkah-hotel-name" placeholder="e.g. Anjum Hotel Makkah" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Makkah Nights</label>
+                            <input type="number" id="b2c-admin-hajj-makkah-nights" min="0" placeholder="e.g. 14" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div class="sm:col-span-4">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Hotel Name (Optional)</label>
+                            <input type="text" id="b2c-admin-hajj-madinah-hotel-name" placeholder="e.g. Pullman Zamzam Madinah" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-extrabold text-[#2D4424] mb-1">Madinah Nights</label>
+                            <input type="number" id="b2c-admin-hajj-madinah-nights" min="0" placeholder="e.g. 10" class="w-full px-3 py-2 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
                         </div>
                     </div>
                 </div>

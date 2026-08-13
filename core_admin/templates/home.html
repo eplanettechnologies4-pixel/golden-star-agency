@@ -207,7 +207,7 @@
         <span id="hero-slide-counter" class="text-xs font-black text-brand-orange tracking-widest font-mono">01 / 05</span>
         <div class="h-3 w-px bg-white/15"></div>
         <div class="flex items-center gap-2">
-            <button onclick="goToHeroSlide(0)" class="hero-dot w-2.5 h-2.5 rounded-full bg-brand-orange transition-all duration-300 w-7"></button>
+            <button onclick="goToHeroSlide(0)" class="hero-dot w-7 h-2.5 rounded-full bg-brand-orange transition-all duration-300"></button>
             <button onclick="goToHeroSlide(1)" class="hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300"></button>
             <button onclick="goToHeroSlide(2)" class="hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300"></button>
             <button onclick="goToHeroSlide(3)" class="hero-dot w-2.5 h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300"></button>
@@ -516,7 +516,7 @@
         <!-- Agent Search Bar -->
         <div class="max-w-md mx-auto mb-8 relative px-4">
             <div class="relative">
-                <input type="text" id="agent-search-input" placeholder="Search premium agents by name, email, or services..." 
+                <input type="text" id="agent-search-input" placeholder="Search premium agents by company name or services..." 
                        class="w-full bg-slate-50 border border-slate-200 focus:border-brand-orange text-slate-800 text-sm rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-all duration-200 shadow-sm focus:ring-1 focus:ring-brand-orange">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <i class="fa-solid fa-magnifying-glass text-sm"></i>
@@ -549,8 +549,7 @@
                 {% for agent in best_agents %}
                 <div class="agent-card flex-none w-[290px] sm:w-[320px] snap-start bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm flex flex-col hover:shadow-md transition-all duration-300"
                      data-company-name="{{ agent.company_name|default:agent.username }}"
-                     data-about="{{ agent.about|default:'Professional B2B travel partner facilitating flight bookings, custom reselling, and visa processing.' }}"
-                     data-email="{{ agent.email }}">
+                     data-about="{{ agent.about|default:'Professional B2B travel partner facilitating flight bookings, custom reselling, and visa processing.' }}">
                     <!-- Cover Photo / Gradient banner -->
                     <div class="h-28 w-full relative {% if not agent.cover_photo %}bg-gradient-to-r from-[#2D4424] via-[#38522D] to-[#E06A26]{% endif %}">
                         {% if agent.cover_photo %}
@@ -577,9 +576,15 @@
                                 <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="text-base font-bold text-slate-800 hover:text-[#E06A26] transition-colors truncate">
                                     {{ agent.company_name|default:agent.get_full_name|default:agent.username }}
                                 </a>
+                                {% if agent.approval_status == 'approved' and agent.is_email_verified %}
                                 <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
                                     <i class="fa-solid fa-shield-check mr-1 text-emerald-600"></i>Verified
                                 </span>
+                                {% else %}
+                                <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0" title="Account verification in progress">
+                                    <i class="fa-solid fa-clock mr-1 text-amber-600"></i>Unverified
+                                </span>
+                                {% endif %}
                             </div>
                             
                             <p class="text-xs text-slate-500 line-clamp-3 leading-relaxed">
@@ -593,8 +598,8 @@
 
                         <div class="pt-4 border-t border-slate-200/80 flex flex-col gap-3">
                             <div class="flex items-center justify-between text-[11px] text-slate-600 font-semibold gap-2">
-                                <span class="truncate"><i class="fa-solid fa-envelope mr-1 text-[#E06A26]"></i>{{ agent.email }}</span>
-                                <span class="flex-shrink-0"><i class="fa-solid fa-phone mr-1 text-[#2D4424]"></i>{{ agent.phone|default:"N/A" }}</span>
+                                <span class="truncate"><i class="fa-solid fa-location-dot mr-1 text-[#E06A26]"></i>{{ agent.address|default:"Verified Local Partner" }}</span>
+                                <span class="flex-shrink-0 text-slate-500"><i class="fa-solid fa-handshake-simple mr-1 text-emerald-600"></i>Partner Network</span>
                             </div>
                             <a href="{% url 'public_agent_profile' agent_id=agent.id %}" class="w-full text-center py-2 bg-white hover:bg-[#E06A26] hover:text-white border border-slate-200 hover:border-[#E06A26] text-[11px] font-bold rounded-xl transition-all duration-200 text-slate-700 shadow-xs">
                                 <i class="fa-solid fa-id-card mr-1"></i> View Agent Profile

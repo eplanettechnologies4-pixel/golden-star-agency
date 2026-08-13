@@ -303,12 +303,16 @@
             </button>
 
             <button onclick="switchTab('tickets-booking')" id="tab-btn-tickets-booking"
-                class="tab-btn flex items-center space-x-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#284822] hover:text-white shrink-0 group border border-transparent hover:border-[#3E6B38]/50 w-full text-left">
-                <div
-                    class="h-7 w-7 rounded-xl bg-[#254521] text-[#F7EBB2] flex items-center justify-center text-xs group-hover:bg-[#E85D04] group-hover:text-white transition-all shrink-0">
-                    <i class="fa-solid fa-plane-departure"></i>
+                class="tab-btn flex items-center justify-between space-x-2 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 text-emerald-100/80 hover:bg-[#284822] hover:text-white shrink-0 group border border-transparent hover:border-[#3E6B38]/50 w-full text-left min-w-0">
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <div
+                        class="h-7 w-7 rounded-xl bg-[#254521] text-[#F7EBB2] flex items-center justify-center text-xs group-hover:bg-[#E85D04] group-hover:text-white transition-all shrink-0">
+                        <i class="fa-solid fa-plane-departure"></i>
+                    </div>
+                    <span class="text-[12px] font-bold leading-tight truncate">Airline &amp; Tickets</span>
                 </div>
-                <span class="truncate">My Tickets Booking</span>
+                <span
+                    class="text-[8px] font-black uppercase bg-[#E85D04] text-white px-1.5 py-0.5 rounded-md shadow-xs tracking-wider shrink-0 ml-1 animate-pulse">SOON</span>
             </button>
 
             <button onclick="switchTab('umrah-booking')" id="tab-btn-umrah-booking"
@@ -779,6 +783,83 @@
 
             <!-- ==================== PANEL: TICKET BOOKINGS (TABLE) ==================== -->
             <div id="tab-content-tickets-booking" class="tab-pane hidden space-y-6 animate-fade-in">
+                <!-- Beautiful Coming Soon Hero Teaser Banner: Real-Time Pakistan & International Airline Ticketing System -->
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1C3518] via-[#2A4E24] to-[#7A1C1C] p-6 sm:p-8 text-white shadow-2xl border border-[#3E6B38] group">
+                    <!-- Ambient Glow background graphics -->
+                    <div class="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#E85D04]/20 blur-3xl pointer-events-none group-hover:bg-[#E85D04]/30 transition-all"></div>
+                    <div class="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+
+                    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div class="space-y-3 max-w-3xl">
+                            <!-- Badges -->
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D04] text-white shadow-md border border-orange-400/30 animate-pulse">
+                                    <i class="fa-solid fa-plane-up text-xs"></i> COMING SOON
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/10 text-[#F7EBB2] border border-white/20 backdrop-blur-md">
+                                    <i class="fa-solid fa-bolt text-[#F7EBB2]"></i> Real-Time GDS Ticketing
+                                </span>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
+                                    <i class="fa-solid fa-flag"></i> Pakistan Airlines &amp; Global Carriers
+                                </span>
+                            </div>
+
+                            <!-- Main Heading -->
+                            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
+                                Real-Time Airline Ticketing &amp; Allocation System
+                            </h2>
+
+                            <p class="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
+                                Empowering REI GOLDEN STAR partner travel agencies with instant flight seat allocations, live PNR generation, and automated wholesale fare booking across all major Pakistan &amp; International Airlines.
+                            </p>
+
+                            <!-- Major Pakistan Airlines Showcase Bar -->
+                            <div class="pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-3 border-t border-white/15">
+                                <span class="text-[11px] font-black text-[#F7EBB2] uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-plane-arrival text-[#E85D04]"></i> Integrated Carriers:
+                                </span>
+                                <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                                    <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 PIA (Pakistan Int. Airlines)</span>
+                                    <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 Airblue</span>
+                                    <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 SereneAir</span>
+                                    <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 AirSial</span>
+                                    <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 Fly Jinnah</span>
+                                    <span class="bg-white/10 px-2.5 py-1 rounded-xl border border-white/15 text-white/80 shadow-xs">+ Emirates, Saudia, Qatar &amp; Gulf Air</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side Teaser Interactive Box -->
+                        <div class="shrink-0 bg-white/10 border border-white/20 rounded-2xl p-5 backdrop-blur-md space-y-3 text-center sm:text-left min-w-[260px] shadow-xl">
+                            <div class="flex items-center justify-between gap-2 border-b border-white/15 pb-2">
+                                <span class="text-[11px] font-black uppercase text-[#F7EBB2] tracking-wider">System Status</span>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">In Final Testing</span>
+                            </div>
+                            
+                            <div class="space-y-1.5 text-xs text-white/90">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                    <span class="font-bold">Live Sabre &amp; Galileo GDS Sync</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                    <span class="font-bold">Instant PNR Hold &amp; E-Tickets</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                    <span class="font-bold">Direct B2B Wallet Settlement</span>
+                                </div>
+                            </div>
+
+                            <button onclick="alert('Thank you! You have been prioritized for Early Access to the Real-Time Pakistan Airline Ticket Allocation System.')"
+                                class="w-full py-2.5 px-4 bg-gradient-to-r from-[#E85D04] to-[#B84500] hover:from-[#B84500] hover:to-[#E85D04] text-white text-xs font-black rounded-xl shadow-lg transition-all duration-200 border border-white/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-102">
+                                <i class="fa-solid fa-bell text-[#F7EBB2]"></i>
+                                <span>Notify Me on Launch</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Search & Filter Toolbar -->
                 <div
                     class="bg-white p-4 rounded-2xl border border-[#EBDFA8] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
@@ -1056,8 +1137,7 @@
                                 <span
                                     class="text-[10px] font-extrabold text-[#F7EBB2] uppercase tracking-wider block">B2B
                                     Wallet Balance</span>
-                                <span class="text-xl sm:text-2xl font-black text-white tracking-tight block mt-1">PKR
-                                    50,000</span>
+                                <span id="stat-overview-balance-card" class="text-xl sm:text-2xl font-black text-white tracking-tight block mt-1">PKR 0.00</span>
                             </div>
                             <div
                                 class="h-10 w-10 rounded-2xl bg-white/15 text-[#F7EBB2] flex items-center justify-center text-base border border-white/20 group-hover:scale-110 transition-transform shrink-0 shadow-inner">
@@ -1174,6 +1254,83 @@
 
                 <!-- ──────────────── SUB-PANEL 1: TICKETS ──────────────── -->
                 <div id="b2b-subpane-tickets" class="b2b-subpane space-y-6">
+                    <!-- Beautiful Hero Teaser Banner: Coming Soon Pakistan's Big Real-Time Airline Ticketing System (300+ Airlines) -->
+                    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1C3518] via-[#2A4E24] to-[#7A1C1C] p-6 sm:p-8 text-white shadow-2xl border border-[#3E6B38] group mb-6">
+                        <!-- Ambient Glow background graphics -->
+                        <div class="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#E85D04]/20 blur-3xl pointer-events-none group-hover:bg-[#E85D04]/30 transition-all"></div>
+                        <div class="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none"></div>
+
+                        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div class="space-y-3 max-w-3xl">
+                                <!-- Badges -->
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#E85D04] text-white shadow-md border border-orange-400/30 animate-pulse">
+                                        <i class="fa-solid fa-plane-up text-xs"></i> COMING SOON
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-white/10 text-[#F7EBB2] border border-white/20 backdrop-blur-md">
+                                        <i class="fa-solid fa-plane text-[#F7EBB2]"></i> 300+ Airlines Integrated
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
+                                        <i class="fa-solid fa-flag"></i> Pakistan Big Airline Ticketing System
+                                    </span>
+                                </div>
+
+                                <!-- Main Heading -->
+                                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
+                                    Pakistan's Big Real-Time Airline Ticketing System
+                                </h2>
+
+                                <p class="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
+                                    Connect your travel agency directly to <strong>300+ Domestic &amp; Global Airlines</strong> with instant wholesale fares, live seat allocation, and automated PNR issuance across all Pakistan routes.
+                                </p>
+
+                                <!-- Major Pakistan & Global Airlines Showcase Bar -->
+                                <div class="pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-3 border-t border-white/15">
+                                    <span class="text-[11px] font-black text-[#F7EBB2] uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-plane-arrival text-[#E85D04]"></i> Live Carriers:
+                                    </span>
+                                    <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                                        <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 PIA (Pakistan Int.)</span>
+                                        <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 Airblue</span>
+                                        <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 SereneAir</span>
+                                        <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 AirSial</span>
+                                        <span class="bg-white/15 px-2.5 py-1 rounded-xl border border-white/20 text-white shadow-xs hover:bg-white/25 transition-all">🇵🇰 Fly Jinnah</span>
+                                        <span class="bg-[#E85D04]/80 px-2.5 py-1 rounded-xl border border-orange-300/40 text-white font-extrabold shadow-xs">+ 300+ International Airlines</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Side Interactive Teaser Box -->
+                            <div class="shrink-0 bg-white/10 border border-white/20 rounded-2xl p-5 backdrop-blur-md space-y-3 text-center sm:text-left min-w-[260px] shadow-xl">
+                                <div class="flex items-center justify-between gap-2 border-b border-white/15 pb-2">
+                                    <span class="text-[11px] font-black uppercase text-[#F7EBB2] tracking-wider">GDS Status</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">300+ Airlines Ready</span>
+                                </div>
+                                
+                                <div class="space-y-1.5 text-xs text-white/90">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                        <span class="font-bold">Galileo, Sabre &amp; Amadeus APIs</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                        <span class="font-bold">Real-Time Seat &amp; Group Allocation</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                        <span class="font-bold">Automated B2B Wallet Settlement</span>
+                                    </div>
+                                </div>
+
+                                <button onclick="alert('Thank you! Your agency has been prioritized for Early Access to Pakistan Big Real-Time Airline Ticketing System with 300+ Airlines.')"
+                                    class="w-full py-2.5 px-4 bg-gradient-to-r from-[#E85D04] to-[#B84500] hover:from-[#B84500] hover:to-[#E85D04] text-white text-xs font-black rounded-xl shadow-lg transition-all duration-200 border border-white/20 flex items-center justify-center gap-2 cursor-pointer hover:scale-102">
+                                    <i class="fa-solid fa-bell text-[#F7EBB2]"></i>
+                                    <span>Notify Me on Launch</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div>
                         <div class="flex justify-between items-center mb-3">
                             <h4
@@ -5205,7 +5362,10 @@
                     // Sync B2B Wallet Balance
                     const bal = parseFloat(statsData.wallet_balance || 0);
                     const elBal = document.getElementById("stat-overview-balance");
-                    if (elBal) elBal.textContent = "PKR " + bal.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    const elBalCard = document.getElementById("stat-overview-balance-card");
+                    const formattedBal = "PKR " + bal.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    if (elBal) elBal.textContent = formattedBal;
+                    if (elBalCard) elBalCard.textContent = formattedBal;
                 }
 
                 if (currentTab === "overview" || currentTab === "b2b-deals" || currentTab === "new-booking" || currentTab === "tickets-booking" || currentTab === "umrah-booking") {
@@ -8502,15 +8662,6 @@
                                         <i class="fa-solid fa-share-nodes"></i> Share
                                     </button>
                                 </div>
-                                ${isSoldOut ? `
-                                    <button disabled class="w-full py-2 bg-gray-400 text-white text-xs font-bold rounded-xl cursor-not-allowed opacity-75 flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-ban"></i> Sold Out
-                                    </button>
-                                ` : `
-                                    <button onclick="bookB2BPackage(${p.id})" class="w-full py-2 bg-[#E06A26] hover:bg-[#C45517] text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-cart-shopping"></i> Book Package Now
-                                    </button>
-                                `}
                             </div>
                         </div>
                     `;
@@ -8536,11 +8687,47 @@
             const isHajj = p.package_type === 'hajj' || p.is_hajj_model;
             const airName = p.airline_name || p.flight_name || 'Saudi Airlines';
             
-            // Default package values matching reference flyer when model fields are not set
+            let airLogoUrl = p.airline_logo_url || p.get_airline_logo_url || p.airline_logo || '';
+            if (!airLogoUrl) {
+                const nameLower = (airName || '').toLowerCase();
+                if (nameLower.includes('saudi')) airLogoUrl = '/static/images/saudia_logo.png';
+                else if (nameLower.includes('pia') || nameLower.includes('pakistan')) airLogoUrl = '/static/images/pia_logo.png';
+                else if (nameLower.includes('emirates')) airLogoUrl = '/static/images/emirates_logo.png';
+                else if (nameLower.includes('flynas')) airLogoUrl = '/static/images/flynas_logo.png';
+                else airLogoUrl = '/static/images/saudia_logo.png';
+            }
+
+            // Helper to format date strings cleanly
+            function formatDateStr(d) {
+                if (!d) return '';
+                if (typeof d === 'string' && d.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const parts = d.split('-');
+                    const dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                    if (!isNaN(dateObj.getTime())) {
+                        return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    }
+                }
+                return String(d);
+            }
+
             const titleStr = p.title || 'FIVE STAR DELUXE HARAM FRONT HAJJ SPECIAL';
             const durationDays = p.duration_days || 28;
             const durationNights = Math.max(1, durationDays - 1);
+
+            const depDateRaw = p.departure_date || p.from_date || '';
+            const retDateRaw = p.return_date || p.to_date || '';
             
+            let depDateFormatted = formatDateStr(depDateRaw);
+            let retDateFormatted = formatDateStr(retDateRaw);
+            const flightDatesText = p.flight_dates || p.english_dates || p.hijri_dates || '';
+
+            if (!depDateFormatted && flightDatesText) {
+                depDateFormatted = flightDatesText;
+            }
+            if (!retDateFormatted && flightDatesText) {
+                retDateFormatted = flightDatesText;
+            }
+
             const roomConfig = [
                 {
                     label: 'SHARING ROOM',
@@ -8561,17 +8748,40 @@
                 }
             ];
 
-            const makkahNightsNum = (p.makkah_nights != null && p.makkah_nights > 0) ? p.makkah_nights : 14;
-            const madinahNightsNum = (p.madinah_nights != null && p.madinah_nights > 0) ? p.madinah_nights : 14;
-            const makkahHotel = p.makkah_hotel_name || (p.accommodations && p.accommodations[0] ? p.accommodations[0].hotel_name : 'Address Jabal Omar Makkah');
-            const madinahHotel = p.madinah_hotel_name || (p.accommodations && p.accommodations[1] ? p.accommodations[1].hotel_name : 'Shahd Al Madinah Hotel');
-            const makkahDist = p.makkah_hotel_distance || '0m (Haram Front)';
-            const madinahDist = p.madinah_hotel_distance || '50m from Haram';
+            let makkahHotel = p.makkah_hotel_name || '';
+            let madinahHotel = p.madinah_hotel_name || '';
+            let makkahNightsNum = p.makkah_nights;
+            let madinahNightsNum = p.madinah_nights;
+            let makkahDist = p.makkah_hotel_distance || '';
+            let madinahDist = p.madinah_hotel_distance || '';
+
+            if (p.accommodations && Array.isArray(p.accommodations) && p.accommodations.length > 0) {
+                p.accommodations.forEach((acc, idx) => {
+                    const hotelName = acc.hotel_name_manual || acc.hotel_name || (acc.get_hotel_name ? acc.get_hotel_name : '');
+                    const dist = acc.distance_manual || acc.hotel_distance || (acc.get_hotel_distance ? acc.get_hotel_distance : '');
+                    const cityLower = (acc.city || '').toLowerCase();
+
+                    if (!makkahHotel && (cityLower === 'makkah' || idx === 0)) {
+                        makkahHotel = hotelName;
+                        if (!makkahNightsNum) makkahNightsNum = acc.nights;
+                        if (!makkahDist) makkahDist = dist;
+                    } else if (!madinahHotel && (cityLower === 'madinah' || idx === 1)) {
+                        madinahHotel = hotelName;
+                        if (!madinahNightsNum) madinahNightsNum = acc.nights;
+                        if (!madinahDist) madinahDist = dist;
+                    }
+                });
+            }
+
+            if (!makkahHotel) makkahHotel = 'Address Jabal Omar Makkah';
+            if (!madinahHotel) madinahHotel = 'Shahd Al Madinah Hotel';
+            if (!makkahNightsNum) makkahNightsNum = 14;
+            if (!madinahNightsNum) madinahNightsNum = 14;
+            if (!makkahDist) makkahDist = '350m from Haram';
+            if (!madinahDist) madinahDist = '50m from Haram';
 
             const depTimeStr = p.departure_time || '18:38';
             const arrTimeStr = p.arrival_time || '06:04';
-            const depDateStr = p.departure_date || '2026-05-23';
-            const retDateStr = p.return_date || '2026-06-20';
 
             // Detailed Sector Schedule Data
             let sectorRows = [];
@@ -8583,9 +8793,9 @@
                     origin: s.origin || s.from || (idx === 0 ? 'PEW (Peshawar)' : 'MED (Madinah)'),
                     dest: s.destination || s.to || (idx === 0 ? 'JED (Jeddah)' : 'PEW (Peshawar)'),
                     depTime: s.departure_time || depTimeStr,
-                    depDate: s.departure_date || depDateStr,
+                    depDate: formatDateStr(s.departure_date) || depDateFormatted || 'Confirmed',
                     arrTime: s.arrival_time || arrTimeStr,
-                    arrDate: s.arrival_date || retDateStr,
+                    arrDate: formatDateStr(s.arrival_date) || retDateFormatted || 'Confirmed',
                     baggage: s.baggage || '30 KG + 7KG'
                 }));
             } else {
@@ -8594,12 +8804,12 @@
                         type: 'OUTBOUND SECTOR',
                         flightNo: p.outbound_flight_no || p.flight_number || 'SV-795',
                         airline: airName,
-                        origin: 'PEW (Peshawar)',
+                        origin: p.departure_city || p.origin || 'PEW (Peshawar)',
                         dest: 'JED (Jeddah)',
                         depTime: depTimeStr,
-                        depDate: depDateStr,
+                        depDate: depDateFormatted || 'Confirmed Flight',
                         arrTime: '22:50',
-                        arrDate: depDateStr,
+                        arrDate: depDateFormatted || 'Confirmed Flight',
                         baggage: '30 KG + 7KG'
                     },
                     {
@@ -8607,11 +8817,11 @@
                         flightNo: p.return_flight_no || 'SV-796',
                         airline: airName,
                         origin: 'MED (Madinah)',
-                        dest: 'PEW (Peshawar)',
+                        dest: p.departure_city || p.origin || 'PEW (Peshawar)',
                         depTime: '22:15',
-                        depDate: retDateStr,
+                        depDate: retDateFormatted || 'Confirmed Flight',
                         arrTime: arrTimeStr,
-                        arrDate: '2026-06-21',
+                        arrDate: retDateFormatted || 'Confirmed Flight',
                         baggage: '30 KG + 7KG'
                     }
                 ];
@@ -8643,8 +8853,8 @@
                     <div>
                         <!-- TOP SECTION: AIRLINE LOGO & BRAND -->
                         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 24px;">
-                            <img src="/static/images/saudia_official_logo.png" alt="Saudi Airlines" style="height: 56px; max-width: 260px; object-fit: contain; display: block; margin-bottom: 6px;" onerror="this.style.display='none';">
-                            <div style="font-size: 14px; font-weight: 900; color: #EA580C; text-transform: uppercase; letter-spacing: 2.5px;">SAUDI AIRLINES</div>
+                            <img src="${escapeHTML(airLogoUrl)}" alt="${escapeHTML(airName)}" style="height: 60px; max-width: 280px; object-fit: contain; display: block; margin-bottom: 8px;" onerror="this.onerror=null; this.src='/static/images/saudia_logo.png';">
+                            <div style="font-size: 15px; font-weight: 900; color: #EA580C; text-transform: uppercase; letter-spacing: 2.5px;">${escapeHTML(airName)}</div>
                         </div>
 
                         <!-- MAIN TITLE & DURATION -->
@@ -8758,25 +8968,46 @@
 
                     <!-- FOOTER SECTION -->
                     <div style="border-top: 2.5px solid #EA580C; padding-top: 18px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="font-size: 12px; font-weight: 900; color: #EA580C; text-transform: uppercase; letter-spacing: 1.8px;">REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD.</div>
-                        <div style="font-size: 10px; font-weight: 700; color: #64748B;">* Rates &amp; room availability subject to confirmation at time of booking.</div>
+                        <div>
+                            <div style="font-size: 16px; font-weight: 900; color: #0F172A; text-transform: uppercase; letter-spacing: 0.5px;">GOLDEN STAR TRAVEL &amp; TOURS</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #64748B; margin-top: 3px;">Government License # HGO-4092 / B2B Authorized Partner</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 11px; font-weight: 800; color: #EA580C; text-transform: uppercase; letter-spacing: 0.5px;">FOR BOOKING &amp; RESERVATIONS</div>
+                            <div style="font-size: 15px; font-weight: 900; color: #0F172A; margin-top: 2px;">+92 300 1234567 | info@goldenstartravel.com</div>
+                        </div>
                     </div>
-
                 </div>
             `;
         }
 
         async function generatePackageFlyerBlob(packageId, isHajjModel) {
             let p = getPackageObjById(packageId, isHajjModel);
+            
+            try {
+                const detailUrl = isHajjModel || (p && (p.package_type === 'hajj' || p.is_hajj_model))
+                    ? `/dashboard/admin/api/hajj-packages/${packageId}/`
+                    : `/dashboard/agent/api/packages/${packageId}/`;
+                const res = await safeFetchJson(detailUrl);
+                if (res) {
+                    const fetchedPkg = res.hajj_package || res.package || res;
+                    if (fetchedPkg && (fetchedPkg.id || fetchedPkg.title)) {
+                        p = Object.assign({}, p || {}, fetchedPkg);
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching detail for flyer:", e);
+            }
+
             if (!p) {
                 try {
                     const [res1, res2] = await Promise.all([
                         fetch('/dashboard/agent/api/packages/'),
-                        fetch('/dashboard/agent/api/agent-hajj-packages/')
+                        fetch('/dashboard/admin/api/hajj-packages/')
                     ]);
                     const data1 = await res1.json();
                     const data2 = await res2.json();
-                    const allPkgs = [...(data1.packages || []), ...(data2.packages || [])];
+                    const allPkgs = [...(data1.packages || []), ...(data2.packages || []), ...(data2.hajj_packages || [])];
                     allPkgs.forEach(item => {
                         window.allPackagesMasterMap[item.id] = item;
                     });
@@ -9484,7 +9715,9 @@
                 if (debElem) debElem.textContent = totalDebitStr;
 
                 const sidebarBal = document.getElementById("stat-overview-balance");
+                const sidebarBalCard = document.getElementById("stat-overview-balance-card");
                 if (sidebarBal) sidebarBal.textContent = balFormatted;
+                if (sidebarBalCard) sidebarBalCard.textContent = balFormatted;
 
                 const bookingsTbody = document.getElementById("act-bookings-tbody");
                 if (bookingsTbody && data.orders) {
@@ -10604,10 +10837,10 @@
             const dropdownItemsContainer = document.getElementById('agent-noti-dropdown-items');
             if (dropdownItemsContainer) {
                 if (agentNotificationsList.length === 0) {
-                    dropdownItemsContainer.innerHTML = `< div class="p-6 text-center text-xs text-[#567946]" > No notifications found.</div > `;
+                    dropdownItemsContainer.innerHTML = `<div class="p-6 text-center text-xs text-[#567946]">No notifications found.</div>`;
                 } else {
                     dropdownItemsContainer.innerHTML = agentNotificationsList.slice(0, 6).map(n => `
-            < div onclick = "handleAgentNotiItemClick('${n.id}', '${n.actionRef || ''}', '${n.actionTab || ''}')" class="p-3.5 hover:bg-[#FAF7F2] transition-colors cursor-pointer flex items-start space-x-3 ${n.isRead ? 'opacity-70' : 'bg-emerald-50/40'}" >
+                        <div onclick="handleAgentNotiItemClick('${n.id}', '${n.actionRef || ''}', '${n.actionTab || ''}')" class="p-3.5 hover:bg-[#FAF7F2] transition-colors cursor-pointer flex items-start space-x-3 ${n.isRead ? 'opacity-70' : 'bg-emerald-50/40'}">
                             <div class="text-base shrink-0 mt-0.5">${n.icon}</div>
                             <div class="flex-grow space-y-0.5">
                                 <div class="flex items-center justify-between">
@@ -10617,8 +10850,8 @@
                                 <p class="text-[11px] text-[#567946] font-medium leading-snug line-clamp-2">${escapeHTML(n.message)}</p>
                                 <span class="text-[9px] font-mono text-gray-400 block pt-0.5">${n.time}</span>
                             </div>
-                        </div >
-            `).join('');
+                        </div>
+                    `).join('');
                 }
             }
 
@@ -10683,7 +10916,7 @@
             document.querySelectorAll('.noti-filter-btn').forEach(btn => {
                 btn.className = "noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-[#2D4424] border border-[#E7DCB9] hover:bg-[#F7F3E9]";
             });
-            const activeBtn = document.getElementById(`noti - filter - btn - ${ cat } `);
+            const activeBtn = document.getElementById(`noti-filter-btn-${cat}`);
             if (activeBtn) {
                 activeBtn.className = "noti-filter-btn px-3 py-1.5 rounded-xl text-xs font-black bg-[#E06A26] text-white shadow-xs";
             }
@@ -10705,17 +10938,17 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-            < div class="p-12 text-center bg-white border-2 border-dashed border-[#E7DCB9] rounded-3xl space-y-2" >
+                    <div class="p-12 text-center bg-white border-2 border-dashed border-[#E7DCB9] rounded-3xl space-y-2">
                         <div class="text-3xl">🔔</div>
                         <div class="font-black text-sm text-[#2D4424]">No Notifications Found</div>
                         <p class="text-xs text-[#567946]">There are no alerts matching this filter category.</p>
-                    </div >
-            `;
+                    </div>
+                `;
                 return;
             }
 
             container.innerHTML = filtered.map(n => `
-            < div onclick = "handleAgentNotiItemClick('${n.id}', '${n.actionRef || ''}', '${n.actionTab || ''}')" class="p-4 bg-white border-2 border-[#E7DCB9] rounded-2xl shadow-xs hover:border-[#E06A26] hover:shadow-md transition-all cursor-pointer flex items-start justify-between gap-4 ${n.isRead ? 'opacity-75' : 'bg-emerald-50/30 ring-2 ring-emerald-500/20'}" >
+                <div onclick="handleAgentNotiItemClick('${n.id}', '${n.actionRef || ''}', '${n.actionTab || ''}')" class="p-4 bg-white border-2 border-[#E7DCB9] rounded-2xl shadow-xs hover:border-[#E06A26] hover:shadow-md transition-all cursor-pointer flex items-start justify-between gap-4 ${n.isRead ? 'opacity-75' : 'bg-emerald-50/30 ring-2 ring-emerald-500/20'}">
                     <div class="flex items-start space-x-3.5">
                         <div class="w-10 h-10 rounded-2xl bg-[#F7F3E9] text-[#2D4424] flex items-center justify-center text-lg shrink-0 border border-[#D9CBAC]">
                             ${n.icon}
@@ -10730,7 +10963,7 @@
                         </div>
                     </div>
                     <i class="fa-solid fa-chevron-right text-gray-400 text-xs mt-3"></i>
-                </div >
+                </div>
             `).join('');
         }
 
@@ -10794,13 +11027,14 @@
                 const elVisas = document.getElementById('stat-overview-visas');
                 const elFlights = document.getElementById('stat-overview-flights');
                 const elBalance = document.getElementById('stat-overview-balance');
+                const elBalanceCard = document.getElementById('stat-overview-balance-card');
+                const formattedVal = 'PKR ' + walletBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
                 if (elBookings) elBookings.textContent = totalBookings;
                 if (elVisas) elVisas.textContent = totalVisas;
                 if (elFlights) elFlights.textContent = totalFlights;
-                if (elBalance) {
-                    elBalance.textContent = 'PKR ' + walletBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                }
+                if (elBalance) elBalance.textContent = formattedVal;
+                if (elBalanceCard) elBalanceCard.textContent = formattedVal;
             } catch (err) {
                 console.error("Error syncing agent overview stats:", err);
             }

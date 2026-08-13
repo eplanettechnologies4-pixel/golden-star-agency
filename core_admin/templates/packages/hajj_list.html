@@ -316,10 +316,15 @@
                         <div class="pt-2 border-t border-slate-200/60 space-y-1">
                             <span class="text-[10px] font-extrabold uppercase text-slate-500 block">Accommodation Plan:</span>
                             {% for acc in pkg.accommodations.all %}
-                            <p class="text-[11px] text-slate-700 font-medium flex items-center justify-between">
-                                <span><i class="fa-solid fa-hotel text-brand-orange mr-1"></i>{{ acc.get_city_display }}: <strong>{{ acc.hotel.name }}</strong></span>
-                                <span class="text-[10px] font-bold text-emerald-600">({{ acc.nights }} Nights)</span>
-                            </p>
+                            <div class="text-[11px] text-slate-700 font-medium flex items-center justify-between flex-wrap gap-1">
+                                <span><i class="fa-solid fa-hotel text-brand-orange mr-1"></i><strong>{{ acc.get_hotel_name }}</strong></span>
+                                <div class="flex items-center gap-1">
+                                    {% if acc.check_in_date and acc.check_out_date %}
+                                    <span class="text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200" title="Check-in to Check-out">📅 {{ acc.check_in_date|date:"d M" }} - {{ acc.check_out_date|date:"d M" }}</span>
+                                    {% endif %}
+                                    <span class="text-[10px] font-bold text-emerald-600">({{ acc.nights }} Nights)</span>
+                                </div>
+                            </div>
                             {% endfor %}
                         </div>
                         {% endif %}

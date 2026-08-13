@@ -618,6 +618,8 @@ def admin_hajj_packages_api(request):
                     'hotel_distance': acc.get_hotel_distance,
                     'hotel_name_manual': acc.hotel_name_manual or '',
                     'distance_manual': acc.distance_manual or '',
+                    'check_in_date': acc.check_in_date.strftime('%Y-%m-%d') if acc.check_in_date else '',
+                    'check_out_date': acc.check_out_date.strftime('%Y-%m-%d') if acc.check_out_date else '',
                     'nights': acc.nights,
                     'order': acc.order
                 })
@@ -648,6 +650,10 @@ def admin_hajj_packages_api(request):
                 'cover_photo': p.cover_photo.url if p.cover_photo else '',
                 'cover_photo_url': p.cover_photo_url,
                 'is_active': p.is_active,
+                'makkah_hotel_name': p.makkah_hotel_name or '',
+                'makkah_nights': p.makkah_nights if p.makkah_nights is not None else '',
+                'madinah_hotel_name': p.madinah_hotel_name or '',
+                'madinah_nights': p.madinah_nights if p.madinah_nights is not None else '',
                 'accommodations': accommodations_data,
                 'created_at': p.created_at.strftime('%Y-%m-%d'),
             })
@@ -712,6 +718,14 @@ def admin_hajj_packages_api(request):
             elif isinstance(urls_raw, list):
                 images_list.extend(urls_raw)
 
+        mk_name = (body.get('makkah_hotel_name') or request.POST.get('makkah_hotel_name') or '').strip()
+        mk_n_raw = body.get('makkah_nights') or request.POST.get('makkah_nights')
+        mk_nights = int(mk_n_raw) if mk_n_raw and str(mk_n_raw).strip() != '' else None
+
+        md_name = (body.get('madinah_hotel_name') or request.POST.get('madinah_hotel_name') or '').strip()
+        md_n_raw = body.get('madinah_nights') or request.POST.get('madinah_nights')
+        md_nights = int(md_n_raw) if md_n_raw and str(md_n_raw).strip() != '' else None
+
         hajj_pkg = HajjPackage.objects.create(
             title=title,
             description=description,
@@ -725,6 +739,10 @@ def admin_hajj_packages_api(request):
             price_triple=price_triple,
             price_double=price_double,
             price_sharing=price_sharing,
+            makkah_hotel_name=mk_name or None,
+            makkah_nights=mk_nights,
+            madinah_hotel_name=md_name or None,
+            madinah_nights=md_nights,
             hajj_operator_name=hajj_operator_name,
             license_number=license_number,
             saudi_registration_number=saudi_registration_number,
@@ -763,6 +781,9 @@ def admin_hajj_packages_api(request):
                     h_dist = (acc_item.get('distance_manual') or acc_item.get('distance') or (hotel_inst.distance_from_haram if hotel_inst else '')).strip()
                     city_val = acc_item.get('city') or (hotel_inst.city if hotel_inst else 'makkah')
 
+                    c_in = _safe_parse_date(acc_item.get('check_in_date') or acc_item.get('from_date'))
+                    c_out = _safe_parse_date(acc_item.get('check_out_date') or acc_item.get('to_date'))
+
                     if h_name or hotel_inst:
                         HajjAccommodation.objects.create(
                             hajj_package=hajj_pkg,
@@ -770,6 +791,8 @@ def admin_hajj_packages_api(request):
                             hotel=hotel_inst,
                             hotel_name_manual=h_name,
                             distance_manual=h_dist,
+                            check_in_date=c_in,
+                            check_out_date=c_out,
                             nights=int(acc_item.get('nights', 1)),
                             order=idx
                         )
@@ -801,6 +824,8 @@ def admin_hajj_package_detail_api(request, pk):
                 'hotel_distance': acc.get_hotel_distance,
                 'hotel_name_manual': acc.hotel_name_manual or '',
                 'distance_manual': acc.distance_manual or '',
+                'check_in_date': acc.check_in_date.strftime('%Y-%m-%d') if acc.check_in_date else '',
+                'check_out_date': acc.check_out_date.strftime('%Y-%m-%d') if acc.check_out_date else '',
                 'nights': acc.nights,
                 'order': acc.order
             })
@@ -831,6 +856,10 @@ def admin_hajj_package_detail_api(request, pk):
                 'cover_photo': hajj_pkg.cover_photo.url if hajj_pkg.cover_photo else '',
                 'cover_photo_url': hajj_pkg.cover_photo_url,
                 'is_active': hajj_pkg.is_active,
+                'makkah_hotel_name': hajj_pkg.makkah_hotel_name or '',
+                'makkah_nights': hajj_pkg.makkah_nights if hajj_pkg.makkah_nights is not None else '',
+                'madinah_hotel_name': hajj_pkg.madinah_hotel_name or '',
+                'madinah_nights': hajj_pkg.madinah_nights if hajj_pkg.madinah_nights is not None else '',
                 'accommodations': accommodations_data,
                 'created_at': _safe_format_date(hajj_pkg.created_at, '%Y-%m-%d'),
             }
@@ -878,6 +907,20 @@ def admin_hajj_package_detail_api(request, pk):
             hajj_pkg.license_number = body.get('license_number') if 'license_number' in body else request.POST.get('license_number')
         if 'saudi_registration_number' in body or 'saudi_registration_number' in request.POST:
             hajj_pkg.saudi_registration_number = body.get('saudi_registration_number') if 'saudi_registration_number' in body else request.POST.get('saudi_registration_number')
+
+        if 'makkah_hotel_name' in body or 'makkah_hotel_name' in request.POST:
+            val = (body.get('makkah_hotel_name') if 'makkah_hotel_name' in body else request.POST.get('makkah_hotel_name') or '').strip()
+            hajj_pkg.makkah_hotel_name = val if val else None
+        if 'makkah_nights' in body or 'makkah_nights' in request.POST:
+            val = body.get('makkah_nights') if 'makkah_nights' in body else request.POST.get('makkah_nights')
+            hajj_pkg.makkah_nights = int(val) if val and str(val).strip() != '' else None
+
+        if 'madinah_hotel_name' in body or 'madinah_hotel_name' in request.POST:
+            val = (body.get('madinah_hotel_name') if 'madinah_hotel_name' in body else request.POST.get('madinah_hotel_name') or '').strip()
+            hajj_pkg.madinah_hotel_name = val if val else None
+        if 'madinah_nights' in body or 'madinah_nights' in request.POST:
+            val = body.get('madinah_nights') if 'madinah_nights' in body else request.POST.get('madinah_nights')
+            hajj_pkg.madinah_nights = int(val) if val and str(val).strip() != '' else None
 
         if 'total_seats' in body or 'total_seats' in request.POST:
             hajj_pkg.total_seats = int(body.get('total_seats') or request.POST.get('total_seats') or hajj_pkg.total_seats)
@@ -939,6 +982,9 @@ def admin_hajj_package_detail_api(request, pk):
                         h_dist = (acc_item.get('distance_manual') or acc_item.get('distance') or (hotel_inst.distance_from_haram if hotel_inst else '')).strip()
                         city_val = acc_item.get('city') or (hotel_inst.city if hotel_inst else 'makkah')
 
+                        c_in = _safe_parse_date(acc_item.get('check_in_date') or acc_item.get('from_date'))
+                        c_out = _safe_parse_date(acc_item.get('check_out_date') or acc_item.get('to_date'))
+
                         if h_name or hotel_inst:
                             HajjAccommodation.objects.create(
                                 hajj_package=hajj_pkg,
@@ -946,6 +992,8 @@ def admin_hajj_package_detail_api(request, pk):
                                 hotel=hotel_inst,
                                 hotel_name_manual=h_name,
                                 distance_manual=h_dist,
+                                check_in_date=c_in,
+                                check_out_date=c_out,
                                 nights=int(acc_item.get('nights', 1)),
                                 order=idx
                             )

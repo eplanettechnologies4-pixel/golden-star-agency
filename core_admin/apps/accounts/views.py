@@ -8,7 +8,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.contrib import messages
 from django.views.decorators.cache import never_cache
 from django.urls import reverse
@@ -25,7 +25,7 @@ try:
     from ai_chatbot.embeddings import EmbeddingsService
 except ImportError:
     EmbeddingsService = None
-from django.core.mail import send_mail
+# send_mail imported locally in specific views that still need it
 from django.core.cache import cache
 import io
 import json
@@ -81,21 +81,11 @@ _email_pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix='email-worker
 
 def build_professional_email_html(title, recipient_name, body_html, action_text=None, action_url=None):
     """
-    Builds a highly professional, responsive HTML email template for REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.
-    Includes official company header, office address, phone numbers, portal link, and social profiles.
+    Builds a clean, plain-white HTML email for REI GOLDEN STAR TRAVEL & TOURS (PVT) LTD.
+    No coloured backgrounds, no buttons — simple transactional format for better inbox delivery.
+    action_text and action_url are accepted for backwards compatibility but are intentionally ignored.
     """
-    portal_link = action_url or "http://127.0.0.1:8000/auth/login/"
-    action_button_markup = ""
-    if action_text and action_url:
-        action_button_markup = f"""
-        <div style="text-align: center; margin: 30px 0 20px 0;">
-            <a href="{action_url}" style="background-color: #ea580c; background-image: linear-gradient(135deg, #ea580c 0%, #c45517 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 800; font-size: 14px; display: inline-block; box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3); font-family: 'Plus Jakarta Sans', Arial, sans-serif;">
-                {action_text} &rarr;
-            </a>
-        </div>
-        """
-
-    greeting_markup = f"<p style='margin-top: 0; font-size: 15px;'>Dear <strong>{recipient_name}</strong>,</p>" if recipient_name else ""
+    greeting_markup = f"<p style='margin-top:0; font-size:14px;'>Dear <strong>{recipient_name}</strong>,</p>" if recipient_name else ""
 
     return f"""<!DOCTYPE html>
 <html>
@@ -104,79 +94,39 @@ def build_professional_email_html(title, recipient_name, body_html, action_text=
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Plus Jakarta Sans', Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; color: #1e293b;">
-    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 30px 10px;">
+<body style="margin:0; padding:0; background-color:#ffffff; font-family:Arial, Helvetica, sans-serif; color:#222222;">
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ffffff; padding:24px 10px;">
         <tr>
             <td align="center">
-                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 620px; background-color: #ffffff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.06);">
-                    
-                    <!-- BRAND HEADER -->
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width:580px; background-color:#ffffff; border:1px solid #dddddd;">
+
+                    <!-- HEADER -->
                     <tr>
-                        <td style="background-color: #1f2e1a; background-image: linear-gradient(135deg, #1f2e1a 0%, #2d4424 100%); padding: 32px 30px; text-align: center; border-bottom: 4px solid #ea580c;">
-                            <div style="display: inline-block; background-color: #ea580c; color: #ffffff; width: 44px; height: 44px; line-height: 44px; border-radius: 12px; font-size: 22px; font-weight: 900; text-align: center; margin-bottom: 10px;">&#9733;</div>
-                            <h1 style="color: #ffffff; font-size: 19px; font-weight: 900; margin: 0; letter-spacing: 0.5px; text-transform: uppercase;">
-                                REI GOLDEN <span style="color: #ea580c;">STAR</span> TRAVEL &amp; TOURS
-                            </h1>
-                            <p style="color: #ebd8b3; font-size: 11px; font-weight: 700; margin: 6px 0 0 0; letter-spacing: 1.5px; text-transform: uppercase;">
-                                (PVT) LTD. &bull; Official Travel &amp; Tour Services
-                            </p>
+                        <td style="padding:20px 28px 16px 28px; border-bottom:1px solid #dddddd;">
+                            <p style="margin:0; font-size:16px; font-weight:bold; color:#222222;">REI Golden Star Travel &amp; Tours (Pvt) Ltd.</p>
+                            <p style="margin:4px 0 0 0; font-size:12px; color:#555555;">Official Travel &amp; Tour Services</p>
                         </td>
                     </tr>
 
-                    <!-- MAIN BODY CONTAINER -->
+                    <!-- BODY -->
                     <tr>
-                        <td style="padding: 35px 32px 25px 32px; font-size: 14px; line-height: 1.7; color: #334155;">
-                            <h2 style="color: #0f172a; font-size: 18px; font-weight: 800; margin-top: 0; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
-                                {title}
-                            </h2>
+                        <td style="padding:24px 28px; font-size:14px; line-height:1.6; color:#333333;">
+                            <p style="margin:0 0 16px 0; font-size:15px; font-weight:bold; color:#222222; border-bottom:1px solid #eeeeee; padding-bottom:10px;">{title}</p>
 
                             {greeting_markup}
 
                             {body_html}
-
-                            {action_button_markup}
                         </td>
                     </tr>
 
-                    <!-- FOOTER & OFFICIAL SIGNATURE -->
+                    <!-- FOOTER -->
                     <tr>
-                        <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 28px 32px; font-size: 12px; color: #64748b; line-height: 1.6;">
-                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
-                                <tr>
-                                    <td style="padding-bottom: 18px; border-bottom: 1px solid #e2e8f0;">
-                                        <p style="margin: 0 0 6px 0; font-size: 13px; font-weight: 800; color: #0f172a;">
-                                            REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD.
-                                        </p>
-                                        <p style="margin: 0 0 4px 0; color: #475569;">
-                                            &#128205; <strong>Office Address:</strong> Office 7/8, New Civil Lines, Regency Road, Faisalabad, Pakistan
-                                        </p>
-                                        <p style="margin: 0 0 4px 0; color: #475569;">
-                                            &#128222; <strong>Call / WhatsApp:</strong> <a href="tel:+923077233303" style="color: #ea580c; text-decoration: none; font-weight: bold;">+92 307 7233303</a> | <a href="tel:+923341114888" style="color: #ea580c; text-decoration: none; font-weight: bold;">+92 334 1114888</a>
-                                        </p>
-                                        <p style="margin: 0; color: #475569;">
-                                            &#9993; <strong>Email Support:</strong> <a href="mailto:goldenstartraveltours@gmail.com" style="color: #ea580c; text-decoration: none;">goldenstartraveltours@gmail.com</a> | <a href="mailto:goldenstaroofficial70@gmail.com" style="color: #ea580c; text-decoration: none;">goldenstaroofficial70@gmail.com</a>
-                                        </p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-top: 18px; text-align: center;">
-                                        <p style="margin: 0 0 10px 0; font-size: 12px;">
-                                            &#127760; <strong>Portal Access:</strong> 
-                                            <a href="{portal_link}" style="color: #ea580c; font-weight: bold; text-decoration: underline;">
-                                                Client &amp; Agent Portal Login
-                                            </a>
-                                        </p>
-                                        <div style="margin: 10px 0 14px 0; font-size: 12px;">
-                                            <a href="https://www.facebook.com/profile.php?id=61591481684842" target="_blank" style="color: #2563eb; font-weight: bold; text-decoration: none; margin: 0 6px;">Facebook</a> &bull; 
-                                            <a href="https://www.instagram.com/reigoldenstartravel/" target="_blank" style="color: #db2777; font-weight: bold; text-decoration: none; margin: 0 6px;">Instagram</a> &bull; 
-                                            <a href="https://www.tiktok.com/@reigoldenstartravel" target="_blank" style="color: #0f172a; font-weight: bold; text-decoration: none; margin: 0 6px;">TikTok</a>
-                                        </div>
-                                        <p style="margin: 0; font-size: 11px; color: #94a3b8;">
-                                            &copy; 2026 REI GOLDEN STAR TRAVEL &amp; TOURS (PVT) LTD. All rights reserved.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
+                        <td style="padding:16px 28px 20px 28px; border-top:1px solid #dddddd; font-size:12px; color:#555555; line-height:1.6;">
+                            <p style="margin:0 0 4px 0; font-weight:bold; color:#222222;">REI Golden Star Travel &amp; Tours (Pvt) Ltd.</p>
+                            <p style="margin:0 0 4px 0;">Office 7/8, New Civil Lines, Regency Road, Faisalabad, Pakistan</p>
+                            <p style="margin:0 0 4px 0;">Phone / WhatsApp: +92 307 7233303 | +92 334 1114888</p>
+                            <p style="margin:0 0 10px 0;">Email: reigoldenstartraveltours@gmail.com</p>
+                            <p style="margin:0; color:#888888; font-size:11px;">&copy; 2026 REI Golden Star Travel &amp; Tours (Pvt) Ltd. All rights reserved.</p>
                         </td>
                     </tr>
 
@@ -225,14 +175,20 @@ def _dispatch_email(subject, plain_msg, from_email, to_list, html_message=None):
     # Generate RFC-compliant Anti-Spam headers
     domain = 'reigoldenstar.com'
     msg_id = make_msgid(domain=domain)
+    # Reply-To must match the authenticated SMTP sender to avoid Gmail spam filters
+    reply_to_addr = getattr(settings, 'EMAIL_HOST_USER', None) or getattr(settings, 'DEFAULT_FROM_EMAIL', 'reigoldenstartraveltours@gmail.com')
+    # Strip display name if present (e.g. "Name <addr>") — Reply-To needs bare address
+    import re as _re
+    _rt_match = _re.search(r'<([^>]+)>', str(reply_to_addr))
+    reply_to_addr = _rt_match.group(1) if _rt_match else str(reply_to_addr).strip()
     headers = {
         'Message-ID': msg_id,
-        'Reply-To': 'goldenstartraveltours@gmail.com',
+        'Reply-To': reply_to_addr,
         'Auto-Submitted': 'auto-generated',
         'X-Auto-Response-Suppress': 'All',
         'X-Mailer': 'REI-GoldenStar-Travel-System/1.0',
         'X-Priority': '3',
-        'List-Unsubscribe': '<mailto:goldenstartraveltours@gmail.com?subject=Unsubscribe>',
+        'List-Unsubscribe': f'<mailto:{reply_to_addr}?subject=Unsubscribe>',
     }
 
     def _send():
@@ -321,6 +277,7 @@ def send_agent_status_email(agent, status):
     _email_pool.submit(_send_agent_status_email_sync, agent, status)
 
 
+@ensure_csrf_cookie
 def signup_view(request):
     if request.user.is_authenticated:
         return redirect_dashboard(request.user)
@@ -474,6 +431,7 @@ def pending_approval_view(request):
     return render(request, 'auth/pending_approval.html', {'pending_user': user})
 
 
+@ensure_csrf_cookie
 def login_view(request):
     if request.user.is_authenticated:
         return redirect_dashboard(request.user)
@@ -511,10 +469,6 @@ def login_view(request):
                         send_verification_email(user)
                         return redirect('agent_signup_verify', user_id=user.id)
                     
-                    elif not user.address or not user.profile_photo or not user.id_card_front or not user.id_card_back:
-                        # Email is verified, but documents are missing! Redirect to step 3
-                        return redirect('agent_signup_documents', user_id=user.id)
-
                     elif user.approval_status == 'pending':
                         request.session['pending_user_id'] = user.id
                         return redirect('pending_approval')
@@ -1542,8 +1496,11 @@ def admin_visa_packages_api(request):
                 'required_documents': vp.required_documents,
                 'docs_list': vp.get_docs_list(),
                 'description': vp.description or '',
+                'group_name': vp.group_name or '',
+                'tower_hotel_details': vp.tower_hotel_details or '',
                 'banner_image': vp.banner_image or '',
                 'cover_url': vp.cover_url,
+                'flyer_document_url': vp.flyer_document.url if vp.flyer_document else '',
                 'is_popular': vp.is_popular,
                 'is_multi_country': vp.is_multi_country,
                 'countries_included': vp.countries_included or '',
@@ -1569,6 +1526,8 @@ def admin_visa_packages_api(request):
         original_price = body.get('original_price') or None
         required_documents = body.get('required_documents') or 'Passport Copy (6 Months Validity), Passport Size Photo, CNIC Copy'
         description = body.get('description') or ''
+        group_name = (body.get('group_name') or '').strip()
+        tower_hotel_details = (body.get('tower_hotel_details') or '').strip()
         banner_image = body.get('banner_image') or ''
         is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
         is_multi_country = str(body.get('is_multi_country', 'false')).lower() in ('true', '1', 'on')
@@ -1586,6 +1545,7 @@ def admin_visa_packages_api(request):
             tour_destinations = []
 
         cover_image = request.FILES.get('cover_image')
+        flyer_document = request.FILES.get('flyer_document')
 
         vp = VisaPackage.objects.create(
             country=country,
@@ -1599,8 +1559,11 @@ def admin_visa_packages_api(request):
             original_price=original_price if original_price else None,
             required_documents=required_documents,
             description=description,
+            group_name=group_name,
+            tower_hotel_details=tower_hotel_details,
             banner_image=banner_image,
             cover_image=cover_image if cover_image else None,
+            flyer_document=flyer_document if flyer_document else None,
             is_popular=is_popular,
             is_multi_country=is_multi_country,
             countries_included=countries_included,
@@ -1633,10 +1596,16 @@ def admin_visa_package_detail_api(request, pk):
             vp.original_price = body.get('original_price') or None
         vp.required_documents = body.get('required_documents', vp.required_documents)
         vp.description = body.get('description', vp.description)
+        if 'group_name' in body:
+            vp.group_name = body.get('group_name', '')
+        if 'tower_hotel_details' in body:
+            vp.tower_hotel_details = body.get('tower_hotel_details', '')
         if 'banner_image' in body:
             vp.banner_image = body.get('banner_image')
         if 'cover_image' in request.FILES:
             vp.cover_image = request.FILES.get('cover_image')
+        if 'flyer_document' in request.FILES:
+            vp.flyer_document = request.FILES.get('flyer_document')
         if 'is_popular' in body:
             vp.is_popular = str(body.get('is_popular', 'false')).lower() in ('true', '1', 'on')
         if 'is_multi_country' in body:
@@ -2336,7 +2305,7 @@ def achievements_list_view(request):
 
 
 def public_agent_profile_view(request, agent_id):
-    agent = get_object_or_404(User, id=agent_id, role='agent', approval_status='approved')
+    agent = get_object_or_404(User, id=agent_id, role='agent')
     reviews = agent.reviews_received.all().order_by('-created_at')
     
     if request.method == 'POST':
@@ -3214,7 +3183,7 @@ def forgot_password_reset_view(request, user_id):
 def agent_signup_verify_view(request, user_id):
     user = get_object_or_404(User, id=user_id, role='agent')
     if user.is_email_verified:
-        return redirect('agent_signup_documents', user_id=user.id)
+        return redirect('pending_approval')
         
     now = timezone.now()
     is_expired = False
@@ -3238,8 +3207,8 @@ def agent_signup_verify_view(request, user_id):
                 user.email_verification_code = None
                 user.otp_created_at = None
                 user.save()
-                messages.success(request, "Email verified successfully! Please complete Step 3 of onboarding.")
-                return redirect('agent_signup_documents', user_id=user.id)
+                messages.success(request, "Your email has been verified successfully! Your account application is now pending admin review.")
+                return redirect('pending_approval')
             else:
                 messages.error(request, "Invalid verification code. Please try again.")
                 
@@ -3255,32 +3224,7 @@ def agent_signup_verify_view(request, user_id):
 
 def agent_signup_documents_view(request, user_id):
     user = get_object_or_404(User, id=user_id, role='agent')
-    if not user.is_email_verified:
-        messages.error(request, "Please verify your email address first.")
-        return redirect('agent_signup_verify', user_id=user.id)
-        
-    # Check if they are already fully complete
-    if user.address and user.profile_photo and user.id_card_front and user.id_card_back:
-        return redirect('pending_approval')
-        
-    form = AgentDocumentsForm(instance=user)
-    if request.method == 'POST':
-        form = AgentDocumentsForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            form.save()
-            user.approval_status = 'pending'
-            user.save()
-            
-            # Clear dev helper code in session if present
-            request.session.pop(f'verification_code_{user.id}', None)
-            
-            messages.success(request, "Documents uploaded successfully! Your application is now pending admin review.")
-            return redirect('pending_approval')
-            
-    return render(request, 'auth/agent_documents.html', {
-        'form': form,
-        'user': user
-    })
+    return redirect('pending_approval')
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -4089,7 +4033,7 @@ def submit_flight_ticket_booking_api(request):
             from django.core.mail import send_mail
             from django.conf import settings
 
-            subject_user = f"✈️ Flight Ticket Reservation - {ticket_offer.airline_name} [{tracking_id}]"
+            subject_user = f"Flight Ticket Reservation — {ticket_offer.airline_name} [{tracking_id}]"
             message_user = (
                 f"Assalamu Alaikum {passenger_name or 'Valued Customer'},\n\n"
                 f"Your flight seat reservation request has been submitted successfully!\n\n"

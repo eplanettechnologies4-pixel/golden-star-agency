@@ -590,6 +590,8 @@ class AgentHajjAccommodation(models.Model):
     hotel = models.ForeignKey('airline_ticketing.Hotel', on_delete=models.SET_NULL, null=True, blank=True, related_name='agent_hajj_stays')
     manual_hotel_name = models.CharField(max_length=200, blank=True, default='')
     manual_hotel_distance = models.CharField(max_length=100, blank=True, default='')
+    check_in_date = models.DateField(null=True, blank=True)
+    check_out_date = models.DateField(null=True, blank=True)
     nights = models.PositiveIntegerField()
     order = models.PositiveIntegerField(default=0)
 

@@ -284,6 +284,12 @@ class HajjPackage(models.Model):
     price_double = models.DecimalField(max_digits=10, decimal_places=2)
     price_sharing = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
+    # Optional Makkah & Madinah summary hotels & nights
+    makkah_hotel_name = models.CharField(max_length=200, blank=True, null=True)
+    makkah_nights = models.PositiveIntegerField(null=True, blank=True)
+    madinah_hotel_name = models.CharField(max_length=200, blank=True, null=True)
+    madinah_nights = models.PositiveIntegerField(null=True, blank=True)
+
     # Compliance / regulatory fields specific to Hajj
     hajj_operator_name = models.CharField(max_length=200)
     license_number = models.CharField(max_length=100)
@@ -377,6 +383,8 @@ class HajjAccommodation(models.Model):
     hotel = models.ForeignKey('airline_ticketing.Hotel', on_delete=models.SET_NULL, related_name='hajj_stays', null=True, blank=True)
     hotel_name_manual = models.CharField(max_length=200, blank=True, null=True)
     distance_manual = models.CharField(max_length=100, blank=True, null=True)
+    check_in_date = models.DateField(null=True, blank=True)
+    check_out_date = models.DateField(null=True, blank=True)
     nights = models.PositiveIntegerField(default=1)
     order = models.PositiveIntegerField(default=0)  # sequence of stays
 
