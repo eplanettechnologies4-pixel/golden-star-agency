@@ -1,0 +1,143 @@
+/* Custom variables & Earthy Terracotta/Sage/Forest theme overrides */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap');
+
+:root {
+    --font-primary: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+    --color-terracotta: #E06A26;
+    --color-terracotta-dark: #C45517;
+    --color-forest: #2D4424;
+    --color-forest-dark: #1F2E1A;
+    --color-moss: #567946;
+    --color-sage: #90B576;
+    --color-sand: #EBD8B3;
+    --color-canvas: #F7F3E9;
+    --color-card: #FFFFFF;
+}
+
+body {
+    font-family: var(--font-primary);
+    scroll-behavior: smooth;
+    background-color: #F7F3E9 !important;
+    color: #1F2E1A !important;
+}
+
+/* Scrollbar Theme */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #EBD8B3;
+}
+::-webkit-scrollbar-thumb {
+    background: #90B576;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #567946;
+}
+
+/* Earthy Glassmorphism */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid #D9CBAC;
+}
+
+.glass-card {
+    background: #FFFFFF;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid #E7DCB9;
+    box-shadow: 0 4px 12px rgba(45, 68, 36, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    background: #ffffff;
+    border-color: #E06A26;
+    transform: translateY(-4px);
+    box-shadow: 0 20px 25px -5px rgba(224, 106, 38, 0.15), 0 10px 10px -5px rgba(224, 106, 38, 0.05);
+}
+
+/* Glow effects */
+.glow-orange {
+    box-shadow: 0 0 25px rgba(224, 106, 38, 0.3);
+}
+
+.glow-forest {
+    box-shadow: 0 0 20px rgba(45, 68, 36, 0.2);
+}
+
+/* Text Gradients */
+.text-gradient-orange {
+    background: linear-gradient(135deg, #E06A26 0%, #C45517 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-forest {
+    background: linear-gradient(135deg, #2D4424 0%, #567946 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Buttons Theme Overrides */
+.btn-earth-primary {
+    background-color: #E06A26 !important;
+    color: #ffffff !important;
+}
+.btn-earth-primary:hover {
+    background-color: #C45517 !important;
+}
+
+.btn-earth-forest {
+    background-color: #2D4424 !important;
+    color: #ffffff !important;
+}
+.btn-earth-forest:hover {
+    background-color: #1F2E1A !important;
+}
+
+/* Animations */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+
+.animate-float {
+    animation: float 4s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.25; }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 8s ease-in-out infinite;
+}
+
+/* Chatbot styling */
+.chatbot-chat-window {
+    box-shadow: 0 10px 30px rgba(45, 68, 36, 0.2);
+    border: 1px solid #D9CBAC;
+}
+
+/* Marquee behavior */
+@keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+    animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+    animation-play-state: paused;
+}
