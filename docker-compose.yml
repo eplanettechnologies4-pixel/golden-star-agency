@@ -50,7 +50,7 @@ services:
     command: gunicorn --chdir core_admin config.wsgi:application --bind 0.0.0.0:8000 --workers 3
     volumes:
       - .:/app
-      - static_volume:/app/core_admin/staticfiles
+      - ./core_admin/staticfiles:/app/core_admin/staticfiles
       - ./core_admin/media:/app/core_admin/media
     ports:
       - "${DJANGO_PORT:-8000}:8000"
@@ -109,4 +109,3 @@ volumes:
   postgres_data:
   redis_data:
   n8n_data:
-  static_volume:
