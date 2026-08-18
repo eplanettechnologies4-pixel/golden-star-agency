@@ -804,10 +804,12 @@ def admin_agent_packages_api(request):
                 'flight_route_type':        p.flight_route_type or 'direct',
                 'flight_route_type_display':'Direct Flight' if (p.flight_route_type or 'direct') == 'direct' else 'Via Flight',
                 'flight_route':             p.flight_route or 'KHI - JED - MED - KHI',
+                'sectors_data':            p.sectors_data if isinstance(p.sectors_data, (dict, list)) else {},
                 'includes_meal':            p.includes_meal,
                 'meal_display':             'Yes' if p.includes_meal else 'No',
                 'meal_detail':              p.meal_detail or 'Full Board',
                 'transport_type':           p.transport_type or 'Sharing',
+                'baggage_detail':           p.baggage_detail or '30 KG',
                 'departure_date':           p.departure_date.strftime('%Y-%m-%d') if p.departure_date else '',
                 'return_date':              p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
                 'hotel_ids':                list(p.hotels.values_list('id', flat=True)),
@@ -896,10 +898,23 @@ def admin_agent_packages_api(request):
         flight_name = request.POST.get('flight_name', '').strip() or (airline.name if airline else 'Saudi Airlines')
         flight_route_type = request.POST.get('flight_route_type', 'direct').strip()
         flight_route = request.POST.get('flight_route', '').strip() or 'KHI - JED - MED - KHI'
+
+        sectors_raw = request.POST.get('sectors_data', '')
+        parsed_sectors = {}
+        if sectors_raw:
+            if isinstance(sectors_raw, (dict, list)):
+                parsed_sectors = sectors_raw
+            elif isinstance(sectors_raw, str) and sectors_raw.strip():
+                try:
+                    parsed_sectors = json.loads(sectors_raw)
+                except Exception:
+                    parsed_sectors = {}
+
         includes_meal_raw = request.POST.get('includes_meal')
         includes_meal = includes_meal_raw in ('true', '1', 'True', True, 'on') if includes_meal_raw is not None else True
         meal_detail = request.POST.get('meal_detail', 'Full Board').strip()
         transport_type = request.POST.get('transport_type', 'Sharing').strip()
+        baggage_detail = request.POST.get('baggage_detail', '30 KG').strip() or '30 KG'
 
         pkg = AgentPackage(
             sector=sector,
@@ -920,9 +935,11 @@ def admin_agent_packages_api(request):
             flight_name=flight_name,
             flight_route_type=flight_route_type,
             flight_route=flight_route,
+            sectors_data=parsed_sectors,
             includes_meal=includes_meal,
             meal_detail=meal_detail,
             transport_type=transport_type,
+            baggage_detail=baggage_detail,
             departure_date=parse_date(request.POST.get('departure_date')),
             return_date=parse_date(request.POST.get('return_date')),
             total_seats=int(request.POST.get('total_seats', 30) or 30),
@@ -1033,11 +1050,21 @@ def admin_agent_package_detail_api(request, pk):
         if 'flight_name' in request.POST: pkg.flight_name = request.POST.get('flight_name', '').strip()
         if 'flight_route_type' in request.POST: pkg.flight_route_type = request.POST.get('flight_route_type', '').strip()
         if 'flight_route' in request.POST: pkg.flight_route = request.POST.get('flight_route', '').strip()
+        if 'sectors_data' in request.POST:
+            sec_raw = request.POST.get('sectors_data', '')
+            if isinstance(sec_raw, (dict, list)):
+                pkg.sectors_data = sec_raw
+            elif isinstance(sec_raw, str) and sec_raw.strip():
+                try:
+                    pkg.sectors_data = json.loads(sec_raw)
+                except Exception:
+                    pass
         if 'includes_meal' in request.POST:
             inc_raw = request.POST.get('includes_meal')
             pkg.includes_meal = inc_raw in ('true', '1', 'True', True, 'on')
         if 'meal_detail' in request.POST: pkg.meal_detail = request.POST.get('meal_detail', '').strip()
         if 'transport_type' in request.POST: pkg.transport_type = request.POST.get('transport_type', '').strip()
+        if 'baggage_detail' in request.POST: pkg.baggage_detail = request.POST.get('baggage_detail', '').strip()
 
         pkg.makkah_hotel_name = request.POST.get('makkah_hotel_name', pkg.makkah_hotel_name).strip()
         pkg.makkah_hotel_distance = request.POST.get('makkah_hotel_distance', pkg.makkah_hotel_distance).strip()
@@ -1743,10 +1770,13 @@ def agent_packages_api(request):
             'flight_route_type':        p.flight_route_type or 'direct',
             'flight_route_type_display':'Direct Flight' if (p.flight_route_type or 'direct') == 'direct' else 'Via Flight',
             'flight_route':             p.flight_route or 'KHI - JED - MED - KHI',
+            'sectors_data':             p.sectors_data if isinstance(p.sectors_data, (dict, list)) else [],
+            'sectors_list':             p.sectors_list,
             'includes_meal':            p.includes_meal,
             'meal_display':             'Yes' if p.includes_meal else 'No',
             'meal_detail':              p.meal_detail or 'Full Board',
             'transport_type':           p.transport_type or 'Sharing',
+            'baggage_detail':           p.baggage_detail or '30 KG',
             'departure_date':           p.departure_date.strftime('%Y-%m-%d') if p.departure_date else '',
             'return_date':              p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
             'hotel_ids':                list(p.hotels.values_list('id', flat=True)),
@@ -1792,7 +1822,7 @@ def agent_package_detail_api(request, pk):
         'package_type':             p.package_type,
         'package_type_display':     p.get_package_type_display(),
         'sector_id':                p.sector_id,
-        'sector_name':              p.sector.name if (p.sector and p.sector.name) else (f"{p.sector.origin_city} \u27a4 {p.sector.destination_city}" if p.sector else (p.flight_route or None)),
+        'sector_name':              p.sector.name if (p.sector and p.sector.name) else (f"{p.sector.origin_city} ➔ {p.sector.destination_city}" if p.sector else (p.flight_route or None)),
         'title':                    p.title,
         'description':              p.description,
         'duration_days':            p.duration_days,
@@ -1809,9 +1839,12 @@ def agent_package_detail_api(request, pk):
         'flight_name':              p.flight_name or (p.airline.name if p.airline else 'Saudi Airlines'),
         'flight_route_type':        p.flight_route_type or 'direct',
         'flight_route':             p.flight_route or 'KHI - JED - MED - KHI',
+        'sectors_data':             p.sectors_data if isinstance(p.sectors_data, (dict, list)) else [],
+        'sectors_list':             p.sectors_list,
         'includes_meal':            p.includes_meal,
         'meal_detail':              p.meal_detail or 'Full Board',
         'transport_type':           p.transport_type or 'Sharing',
+        'baggage_detail':           p.baggage_detail or '30 KG',
         'departure_date':           p.departure_date.strftime('%Y-%m-%d') if p.departure_date else '',
         'return_date':              p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
         'hotel_ids':                list(p.hotels.values_list('id', flat=True)),

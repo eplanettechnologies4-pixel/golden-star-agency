@@ -8241,6 +8241,18 @@
                     <span class="text-xs font-black tracking-widest uppercase opacity-80">${p.package_type === 'hajj' ? 'Hajj Wholesale' : 'Umrah Wholesale'}</span>
                    </div>`;
 
+            const totalSeats = parseInt(p.total_seats, 10) || 0;
+            const bookedSeats = parseInt(p.booked_seats, 10) || 0;
+            const availSeats = (p.available_seats !== undefined && p.available_seats !== null) ? parseInt(p.available_seats, 10) : Math.max(0, totalSeats - bookedSeats);
+            const isSoldOut = availSeats <= 0;
+            const seatBgClass = isSoldOut ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white';
+            const seatDetailsBadgeClass = isSoldOut ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200';
+            let logoBadge = '';
+            if (p.airline_logo_url || p.airline_logo) {
+                const logoUrl = p.airline_logo_url || p.airline_logo;
+                logoBadge = `<img src="${escapeHTML(logoUrl)}" alt="Airline" class="h-4 w-auto object-contain inline-block ml-1">`;
+            }
+
             const typeBadge = p.package_type === 'hajj'
                 ? `<span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-[#FDF2EA] text-[#E06A26] border border-[#FCE2D2] shadow-2xs flex items-center gap-1"><i class="fa-solid fa-mosque"></i> HAJJ PACKAGE</span>`
                 : `<span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-[#F0F6EC] text-[#2D4424] border border-[#C6DCB4] shadow-2xs flex items-center gap-1"><i class="fa-solid fa-kaaba text-[#E06A26]"></i> UMRAH PACKAGE</span>`;
@@ -8334,13 +8346,47 @@
                 </div>
             ` : '';
 
-            const logoBadge = p.company_logo_url ? `<img src="${p.company_logo_url}" class="h-6 w-auto object-contain bg-white p-0.5 rounded border border-[#E7DCB9] shadow-2xs inline-block ml-2">` : '';
+            let flightItineraryHtml = '';
+            const rawPackageLegs = p.sectors_list || p.sectors_data;
+            const packageLegs = Array.isArray(rawPackageLegs) ? rawPackageLegs.filter(l => l && typeof l === 'object' && (l.from || l.to || l.flight_no || l.dep_time || l.arr_time)) : 
+                                 (rawPackageLegs && typeof rawPackageLegs === 'object' && (rawPackageLegs.going || rawPackageLegs.coming) ? [...(rawPackageLegs.going || []), ...(rawPackageLegs.coming || [])].filter(l => l && typeof l === 'object') : []);
 
-            const availSeats = (p.available_seats !== undefined && p.available_seats !== null) ? parseInt(p.available_seats, 10) : Math.max(0, (parseInt(p.total_seats, 10) || 30) - (parseInt(p.booked_seats, 10) || 0));
-            const totalSeats = parseInt(p.total_seats, 10) || 30;
-            const isSoldOut = availSeats <= 0;
-            const seatBgClass = availSeats > 5 ? 'bg-emerald-500/90 text-white' : (availSeats > 0 ? 'bg-amber-500/90 text-white' : 'bg-rose-600 text-white');
-            const seatDetailsBadgeClass = availSeats > 5 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : (availSeats > 0 ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-rose-100 text-rose-800 border-rose-300');
+            if (packageLegs.length > 0) {
+                const legsHtml = packageLegs.map((leg, idx) => `
+                    <div class="bg-white p-2 rounded-xl border border-[#D9CBAC] flex flex-wrap items-center justify-between text-xs gap-2 shadow-2xs">
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-[#E06A26] bg-[#FDF2EA] px-2 py-0.5 rounded text-[10px]">Leg ${idx + 1}</span>
+                            <div class="font-black text-[#2D4424] flex items-center gap-1.5">
+                                <span>${escapeHTML(leg.from || '')}</span>
+                                <i class="fa-solid fa-arrow-right text-[#E06A26] text-[10px]"></i>
+                                <span>${escapeHTML(leg.to || '')}</span>
+                                ${leg.flight_no ? `<span class="text-[10px] text-[#567946] font-mono font-bold bg-[#F7F3E9] px-1.5 py-0.5 rounded border border-[#D9CBAC]">#${escapeHTML(leg.flight_no)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-[#567946] font-bold flex items-center gap-2">
+                            ${leg.dep_time ? `<span>Dep: <strong class="text-[#2D4424]">${escapeHTML(leg.dep_time)}</strong></span>` : ''}
+                            ${leg.arr_time ? `<span>Arr: <strong class="text-[#2D4424]">${escapeHTML(leg.arr_time)}</strong></span>` : ''}
+                            ${(leg.baggage || p.baggage_detail) ? `<span class="bg-[#F0F6EC] text-[#2D4424] px-1.5 py-0.5 rounded border border-[#C6DCB4] font-black text-[9px]"><i class="fa-solid fa-suitcase mr-1 text-[#E06A26]"></i>${escapeHTML(leg.baggage || p.baggage_detail)}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+                flightItineraryHtml = `
+                    <div class="bg-[#FDF2EA]/80 p-3 rounded-2xl border border-[#FCE2D2] space-y-2">
+                        <div class="flex items-center justify-between border-b border-[#FCE2D2] pb-1">
+                            <span class="text-[10px] font-black uppercase text-[#E06A26] flex items-center gap-1.5">
+                                <i class="fa-solid fa-plane-departure"></i> Flight Itinerary &amp; Leg Schedule (${packageLegs.length} Leg${packageLegs.length > 1 ? 's' : ''})
+                            </span>
+                            <span class="text-[10px] font-bold text-[#2D4424] uppercase bg-white px-2 py-0.5 rounded border border-[#D9CBAC]">
+                                <i class="fa-solid fa-route text-[#E06A26] mr-1"></i>${(p.flight_route_type || 'direct') === 'via' ? 'Via / Connecting' : 'Direct Flight'}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            ${legsHtml}
+                        </div>
+                    </div>
+                `;
+            }
 
             return `
                 <div class="group bg-white border border-[#E7DCB9] rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:border-[#E06A26] transition-all duration-300 grid grid-cols-1 lg:grid-cols-12 gap-0 relative">
@@ -8396,6 +8442,8 @@
                                     ` : ''}
                                 </div>
                             </div>
+
+                            ${flightItineraryHtml}
 
                             <div class="bg-[#F7F3E9] p-3 rounded-2xl border border-[#D9CBAC] space-y-2">
                                 <div class="text-[10px] font-black uppercase tracking-wider text-[#567946] flex items-center justify-between border-b border-[#D9CBAC]/60 pb-1">
@@ -8830,18 +8878,26 @@
 
             // Detailed Sector Schedule Data
             let sectorRows = [];
-            if (p.flight_sectors && Array.isArray(p.flight_sectors) && p.flight_sectors.length > 0) {
-                sectorRows = p.flight_sectors.map((s, idx) => ({
-                    type: s.type || (idx === 0 ? 'OUTBOUND SECTOR' : 'RETURN SECTOR'),
-                    flightNo: s.flight_number || s.flight_no || (p.flight_number || '—'),
+            const rawSectors = p.sectors_list || p.sectors_data || p.flight_sectors || p.route_sectors;
+            let packageLegs = [];
+            if (Array.isArray(rawSectors)) {
+                packageLegs = rawSectors.filter(s => s && typeof s === 'object');
+            } else if (rawSectors && typeof rawSectors === 'object' && (rawSectors.going || rawSectors.coming)) {
+                packageLegs = [...(rawSectors.going || []), ...(rawSectors.coming || [])].filter(s => s && typeof s === 'object');
+            }
+
+            if (packageLegs.length > 0) {
+                sectorRows = packageLegs.map((s, idx) => ({
+                    type: s.type || (idx === 0 ? 'OUTBOUND SECTOR' : (idx === packageLegs.length - 1 ? 'RETURN SECTOR' : `CONNECTING LEG ${idx + 1}`)),
+                    flightNo: s.flight_no || s.flight_number || p.flight_number || '—',
                     airline: s.airline || airName,
-                    origin: s.origin || s.from || '—',
-                    dest: s.destination || s.to || '—',
-                    depTime: s.departure_time || depTimeStr,
-                    depDate: formatDateStr(s.departure_date) || depDateFormatted || 'Confirmed',
-                    arrTime: s.arrival_time || arrTimeStr,
-                    arrDate: formatDateStr(s.arrival_date) || retDateFormatted || 'Confirmed',
-                    baggage: s.baggage || '30 KG + 7KG'
+                    origin: s.from || s.origin || '—',
+                    dest: s.to || s.destination || '—',
+                    depTime: s.dep_time || s.departure_time || depTimeStr,
+                    depDate: formatDateStr(s.dep_date || s.departure_date) || depDateFormatted || 'Confirmed',
+                    arrTime: s.arr_time || s.arrival_time || arrTimeStr,
+                    arrDate: formatDateStr(s.arr_date || s.arrival_date) || retDateFormatted || 'Confirmed',
+                    baggage: s.baggage || p.baggage_detail || '30 KG'
                 }));
             } else {
                 // Parse the flight_route string into per-leg sector rows
@@ -8883,7 +8939,7 @@
                             depDate: legDate,
                             arrTime: idx === stops.length - 2 ? arrTimeStr : '—',
                             arrDate: legDate,
-                            baggage: '30 KG + 7KG'
+                            baggage: p.baggage_detail || '30 KG'
                         };
                     });
                 } else {
@@ -8901,7 +8957,7 @@
                             depDate: depDateFormatted || 'Confirmed Flight',
                             arrTime: arrTimeStr,
                             arrDate: depDateFormatted || 'Confirmed Flight',
-                            baggage: '30 KG + 7KG'
+                            baggage: p.baggage_detail || '30 KG'
                         }
                     ];
                 }
@@ -9055,7 +9111,8 @@
                         </div>
                         <div style="text-align: right;">
                             <div style="font-size: 11px; font-weight: 800; color: #EA580C; text-transform: uppercase; letter-spacing: 0.5px;">FOR BOOKING &amp; RESERVATIONS</div>
-                            <div style="font-size: 15px; font-weight: 900; color: #0F172A; margin-top: 2px;">+92 300 1234567 | info@goldenstartravel.com</div>
+                            <div style="font-size: 14px; font-weight: 900; color: #0F172A; margin-top: 2px;">+92 333 7233303 | +92 306 5919504</div>
+                            <div style="font-size: 11.5px; font-weight: 800; color: #EA580C; margin-top: 2px;">reigoldenstartraveltours@gmail.com</div>
                         </div>
                     </div>
                 </div>

@@ -296,7 +296,7 @@
                 </div>
             </div>
 
-            <div id="b2b-sidebar-links" class="b2b-sidebar-group flex flex-row md:flex-col gap-1 hidden">
+            <div id="b2b-sidebar-links" class="b2b-sidebar-group flex-row md:flex-col gap-1 hidden">
                 <!-- B2B Overview is the FIRST / DEFAULT TAB for B2B -->
                 <button onclick="switchTab('b2b-overview')" id="tab-btn-b2b-overview" class="tab-btn active-pill flex items-center space-x-2.5 px-3.5 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all bg-white text-[#2D4424] shrink-0 shadow-md">
                     <i class="fa-solid fa-gauge w-4 text-[#E06A26]"></i>
@@ -2328,7 +2328,7 @@
                         </table>
                     </div>
                     <!-- Pagination -->
-                    <div id="blog-pagination" class="hidden border-t border-[#E7DCB9] px-5 py-3 flex justify-between items-center">
+                    <div id="blog-pagination" class="hidden border-t border-[#E7DCB9] px-5 py-3 justify-between items-center">
                         <span id="blog-pagination-info" class="text-xs text-[#567946] font-semibold"></span>
                         <div class="flex gap-2">
                             <button id="blog-prev-btn" onclick="changeBlogPage(-1)" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#F7F3E9] border border-[#D9CBAC] text-[#2D4424] hover:bg-[#EBD8B3] disabled:opacity-40 disabled:cursor-not-allowed transition-all">
@@ -5660,32 +5660,57 @@
         }
         window.closeModal = closeModal;
 
-        function toggleViaFlightRoutes(routeType, existingRouteStr = '') {
+        function toggleViaFlightRoutes(routeType, existingData = null) {
             const wrapper = document.getElementById('via-flight-routes-wrapper');
             if (!wrapper) return;
 
-            if (routeType === 'via') {
+            if (routeType === 'via' || routeType === 'direct') {
                 wrapper.classList.remove('hidden');
                 const list = document.getElementById('via-routes-list');
                 if (list) {
                     list.innerHTML = '';
-                    let segments = [];
-                    if (existingRouteStr) {
-                        segments = existingRouteStr.split('|').map(s => s.trim()).filter(Boolean);
-                        if (segments.length === 1 && existingRouteStr.includes('-')) {
-                            const parts = existingRouteStr.split('-').map(s => s.trim()).filter(Boolean);
-                            if (parts.length > 2) {
-                                segments = [];
-                                for (let i = 0; i < parts.length - 1; i++) {
-                                    segments.push(`${parts[i]} - ${parts[i+1]}`);
+                    let legs = [];
+
+                    if (existingData) {
+                        if (Array.isArray(existingData)) {
+                            legs = existingData;
+                        } else if (typeof existingData === 'object' && (existingData.going || existingData.coming)) {
+                            legs = [...(existingData.going || []), ...(existingData.coming || [])];
+                        } else if (typeof existingData === 'string' && existingData.trim()) {
+                            let parts = existingData.split('|').map(s => s.trim()).filter(Boolean);
+                            if (parts.length === 1 && existingData.includes('-')) {
+                                const sub = existingData.split('-').map(s => s.trim()).filter(Boolean);
+                                if (sub.length > 2) {
+                                    parts = [];
+                                    for (let i = 0; i < sub.length - 1; i++) {
+                                        parts.push(`${sub[i]} - ${sub[i+1]}`);
+                                    }
                                 }
                             }
+                            legs = parts.map(p => {
+                                const pSub = p.split('-').map(s => s.trim());
+                                return { from: pSub[0] || '', to: pSub[1] || '', flight_no: '', dep_time: '', arr_time: '' };
+                            });
                         }
                     }
-                    if (segments.length === 0) {
-                        segments = ['KHI - DOH', 'DOH - JED', 'MED - DOH', 'DOH - KHI'];
+
+                    if (!legs || legs.length === 0) {
+                        if (routeType === 'via') {
+                            legs = [
+                                { from: 'LHE', to: 'DXB', flight_no: 'EK-623', dep_time: '14:30 PM', arr_time: '17:30 PM' },
+                                { from: 'DXB', to: 'JED', flight_no: 'EK-801', dep_time: '19:30 PM', arr_time: '22:30 PM' },
+                                { from: 'MED', to: 'DXB', flight_no: 'EK-802', dep_time: '08:00 AM', arr_time: '11:00 AM' },
+                                { from: 'DXB', to: 'LHE', flight_no: 'EK-624', dep_time: '13:00 PM', arr_time: '17:00 PM' }
+                            ];
+                        } else {
+                            legs = [
+                                { from: 'LHE', to: 'JED', flight_no: 'SV-738', dep_time: '14:30 PM', arr_time: '18:30 PM' },
+                                { from: 'MED', to: 'LHE', flight_no: 'SV-739', dep_time: '09:00 AM', arr_time: '15:00 PM' }
+                            ];
+                        }
                     }
-                    segments.forEach(seg => addViaRouteSegment(seg));
+
+                    legs.forEach(legObj => addViaRouteSegment(legObj));
                     updateCombinedFlightRoute();
                 }
             } else {
@@ -5693,30 +5718,76 @@
             }
         }
 
-        function addViaRouteSegment(val = '') {
+        function addViaRouteSegment(legObj = {}) {
             const list = document.getElementById('via-routes-list');
             if (!list) return;
+
+            let fromVal = '', toVal = '', flightNoVal = '', depVal = '', arrVal = '', baggageVal = '';
+            if (typeof legObj === 'string') {
+                const parts = legObj.split('-').map(s => s.trim());
+                fromVal = parts[0] || '';
+                toVal = parts[1] || '';
+            } else if (typeof legObj === 'object' && legObj !== null) {
+                fromVal = legObj.from || legObj.route || '';
+                toVal = legObj.to || '';
+                flightNoVal = legObj.flight_no || legObj.flight_number || '';
+                depVal = legObj.dep_time || legObj.departure_time || '';
+                arrVal = legObj.arr_time || legObj.arrival_time || '';
+                baggageVal = legObj.baggage || legObj.baggage_allowance || '';
+            }
+
             const index = list.children.length + 1;
             const row = document.createElement('div');
-            row.className = 'flex items-center gap-1.5 bg-white p-1.5 rounded-lg border border-[#D9CBAC]';
+            row.className = 'pkg-leg-row bg-white p-3 rounded-xl border border-[#D9CBAC] space-y-2 relative shadow-2xs col-span-full';
             row.innerHTML = `
-                <span class="text-[10px] font-bold text-[#567946] w-12 shrink-0">Leg ${index}:</span>
-                <input type="text" value="${val}" placeholder="e.g. KHI - DOH" oninput="updateCombinedFlightRoute()" class="via-route-segment-input w-full p-1.5 text-xs rounded border border-[#D9CBAC] font-semibold text-[#2D4424] focus:outline-none focus:border-[#E06A26]">
-                <button type="button" onclick="removeViaRouteSegment(this)" class="px-2 py-1 bg-rose-100 text-rose-700 hover:bg-rose-200 text-xs font-bold rounded transition-all shrink-0" title="Remove Segment"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex items-center justify-between border-b border-[#F7F3E9] pb-1.5">
+                    <span class="text-[11px] font-black text-[#2D4424] flex items-center gap-1.5">
+                        <i class="fa-solid fa-plane-up text-[#E06A26]"></i> Leg <span class="pkg-leg-index">${index}</span> Flight Itinerary
+                    </span>
+                    <button type="button" onclick="removeViaRouteSegment(this)" class="px-2 py-0.5 bg-rose-100 text-rose-700 hover:bg-rose-200 text-[10px] font-bold rounded transition-all shrink-0 flex items-center gap-1" title="Remove Leg">
+                        <i class="fa-solid fa-xmark"></i> Remove Leg
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Departure City/Airport</label>
+                        <input type="text" value="${escapeHTML(fromVal)}" placeholder="e.g. LHE / Lahore" oninput="updateCombinedFlightRoute()" class="pkg-leg-from w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Departure Time</label>
+                        <input type="text" value="${escapeHTML(depVal)}" placeholder="e.g. 14:30 PM" oninput="updateCombinedFlightRoute()" class="pkg-leg-deptime w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Arrival City/Airport</label>
+                        <input type="text" value="${escapeHTML(toVal)}" placeholder="e.g. DXB / Dubai" oninput="updateCombinedFlightRoute()" class="pkg-leg-to w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Arrival Time</label>
+                        <input type="text" value="${escapeHTML(arrVal)}" placeholder="e.g. 18:30 PM" oninput="updateCombinedFlightRoute()" class="pkg-leg-arrtime w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Flight Number</label>
+                        <input type="text" value="${escapeHTML(flightNoVal)}" placeholder="e.g. SV-738" oninput="updateCombinedFlightRoute()" class="pkg-leg-flightno w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-extrabold text-[#2D4424] text-xs uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-[9px] font-bold text-[#567946] uppercase mb-0.5">Baggage Allowance</label>
+                        <input type="text" value="${escapeHTML(baggageVal)}" placeholder="e.g. 30 KG" oninput="updateCombinedFlightRoute()" class="pkg-leg-baggage w-full px-2 py-1.5 bg-[#F7F3E9] border border-[#D9CBAC] rounded-lg font-bold text-[#2D4424] text-xs">
+                    </div>
+                </div>
             `;
             list.appendChild(row);
             updateCombinedFlightRoute();
         }
 
         function removeViaRouteSegment(btn) {
-            const row = btn.closest('div');
+            const row = btn.closest('.pkg-leg-row') || btn.closest('div');
             if (row) {
                 row.remove();
                 const list = document.getElementById('via-routes-list');
                 if (list) {
                     Array.from(list.children).forEach((child, idx) => {
-                        const span = child.querySelector('span');
-                        if (span) span.textContent = `Leg ${idx + 1}:`;
+                        const span = child.querySelector('.pkg-leg-index');
+                        if (span) span.textContent = `${idx + 1}`;
                     });
                 }
                 updateCombinedFlightRoute();
@@ -5724,19 +5795,23 @@
         }
 
         function updateCombinedFlightRoute() {
-            const routeTypeSelect = document.getElementById('input-pkg-flight-type');
-            if (!routeTypeSelect || routeTypeSelect.value !== 'via') return;
+            const list = document.getElementById('via-routes-list');
+            if (!list) return;
 
-            const inputs = document.querySelectorAll('.via-route-segment-input');
-            const segments = [];
-            inputs.forEach(inp => {
-                const v = inp.value.trim();
-                if (v) segments.push(v);
+            const rows = list.querySelectorAll('.pkg-leg-row');
+            const summaries = [];
+            rows.forEach(r => {
+                const from = r.querySelector('.pkg-leg-from')?.value.trim().toUpperCase() || '';
+                const to = r.querySelector('.pkg-leg-to')?.value.trim().toUpperCase() || '';
+                const fn = r.querySelector('.pkg-leg-flightno')?.value.trim().toUpperCase() || '';
+                if (from || to) {
+                    summaries.push(fn ? `${from}-${to} (${fn})` : `${from}-${to}`);
+                }
             });
 
             const routeSummaryInput = document.getElementById('input-pkg-flight-route');
-            if (routeSummaryInput && segments.length > 0) {
-                routeSummaryInput.value = segments.join(' | ');
+            if (routeSummaryInput && summaries.length > 0) {
+                routeSummaryInput.value = summaries.join(' | ');
             }
         }
 
@@ -5785,10 +5860,11 @@
                 const fType = pkg.flight_route_type || 'direct';
                 if (document.getElementById('input-pkg-flight-type')) document.getElementById('input-pkg-flight-type').value = fType;
                 if (document.getElementById('input-pkg-flight-route')) document.getElementById('input-pkg-flight-route').value = pkg.flight_route || 'KHI - JED - MED - KHI';
-                toggleViaFlightRoutes(fType, pkg.flight_route || '');
+                toggleViaFlightRoutes(fType, pkg.sectors_data || pkg.flight_route || '');
 
                 if (document.getElementById('input-pkg-includes-meal')) document.getElementById('input-pkg-includes-meal').value = pkg.includes_meal !== undefined ? String(pkg.includes_meal) : 'true';
                 if (document.getElementById('input-pkg-transport-type')) document.getElementById('input-pkg-transport-type').value = pkg.transport_type || 'Sharing';
+                if (document.getElementById('input-pkg-baggage-detail')) document.getElementById('input-pkg-baggage-detail').value = pkg.baggage_detail || '30 KG';
 
                 document.getElementById('input-pkg-dep-date').value = pkg.departure_date || '';
                 document.getElementById('input-pkg-ret-date').value = pkg.return_date || '';
@@ -5882,9 +5958,7 @@
             const form = e.target;
 
             // Make sure connecting flight route segments are updated
-            if (document.getElementById('input-pkg-flight-type')?.value === 'via') {
-                updateCombinedFlightRoute();
-            }
+            updateCombinedFlightRoute();
 
             // Sync agent_price hidden field with adult or room prices if blank
             const priceInput = document.getElementById('input-pkg-price');
@@ -5895,7 +5969,23 @@
                 priceInput.value = adultP || sharingP || quadP || '0.00';
             }
 
+            // Collect flight leg itinerary details payload
+            const legRows = document.querySelectorAll('#via-routes-list .pkg-leg-row');
+            const sectorsList = [];
+            legRows.forEach(r => {
+                const from = r.querySelector('.pkg-leg-from')?.value.trim() || '';
+                const to = r.querySelector('.pkg-leg-to')?.value.trim() || '';
+                const flight_no = r.querySelector('.pkg-leg-flightno')?.value.trim() || '';
+                const dep_time = r.querySelector('.pkg-leg-deptime')?.value.trim() || '';
+                const arr_time = r.querySelector('.pkg-leg-arrtime')?.value.trim() || '';
+                const baggage = r.querySelector('.pkg-leg-baggage')?.value.trim() || '';
+                if (from || to || flight_no || dep_time || arr_time || baggage) {
+                    sectorsList.push({ from, to, flight_no, dep_time, arr_time, baggage });
+                }
+            });
+
             const formData = new FormData(form);
+            formData.append('sectors_data', JSON.stringify(sectorsList));
             const pkgId = document.getElementById('input-pkg-id').value;
             const url = pkgId ? `/dashboard/admin/api/agent-packages/${pkgId}/` : '/dashboard/admin/api/agent-packages/';
 
@@ -9835,7 +9925,7 @@
     </div>
 
     <!-- Flight Quote Update Modal -->
-    <div id="modal-flight-quote-update" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 hidden">
+    <div id="modal-flight-quote-update" class="fixed inset-0 z-50 items-center justify-center bg-black/60 backdrop-blur-sm p-4 hidden">
         <div class="bg-white border-2 border-[#E7DCB9] rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 animate-fade-in">
             <div class="flex justify-between items-center border-b border-[#E7DCB9] pb-3">
                 <h3 class="text-base font-black text-[#2D4424] flex items-center gap-2">
@@ -10624,7 +10714,7 @@
 
                 <!-- Flight Specifications (Name, Route Type: Direct vs Via, Flight Route) -->
                 <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <label class="block text-xs font-black text-[#2D4424] flex items-center justify-between">
+                    <label class="text-xs font-black text-[#2D4424] flex items-center justify-between">
                         <span><i class="fa-solid fa-plane-departure text-[#E06A26] mr-1"></i> Flight Specifications &amp; Flight Route</span>
                         <span class="text-[10px] text-[#567946] font-normal">Direct or Connecting Multi-Leg Routes</span>
                     </label>
@@ -10646,25 +10736,25 @@
                         </div>
                     </div>
 
-                    <!-- Dynamic Via Flight Connecting Routes Builder (Shown when 'via' selected) -->
-                    <div id="via-flight-routes-wrapper" class="hidden space-y-2 pt-2 border-t border-[#D9CBAC]">
+                    <!-- Dynamic Via Flight / Multi-Leg Connecting Routes Builder -->
+                    <div id="via-flight-routes-wrapper" class="space-y-2 pt-2 border-t border-[#D9CBAC]">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-extrabold text-[#E06A26] flex items-center gap-1">
-                                <i class="fa-solid fa-route"></i> Connecting Routes / Sectors (Add 3, 4 or more routes)
+                                <i class="fa-solid fa-route"></i> Detailed Flight Itinerary Legs (Departure &amp; Arrival Times, Flight Numbers)
                             </span>
                             <button type="button" onclick="addViaRouteSegment()" class="px-2.5 py-1 bg-[#2D4424] hover:bg-[#1F2E1A] text-white text-[10px] font-bold rounded-lg transition-all flex items-center gap-1">
-                                <i class="fa-solid fa-plus"></i> Add Route Segment
+                                <i class="fa-solid fa-plus"></i> Add Flight Leg
                             </button>
                         </div>
-                        <p class="text-[10px] text-[#567946]">Enter route legs for connecting flight (e.g. Leg 1: KHI-DOH, Leg 2: DOH-JED, Leg 3: MED-DOH, Leg 4: DOH-KHI):</p>
-                        <div id="via-routes-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <!-- Route segment rows populated dynamically -->
+                        <p class="text-[10px] text-[#567946]">Specify departure/arrival cities, departure/arrival times, and flight numbers for each itinerary leg (e.g. Leg 1: LHE -&gt; DXB 14:30 - 17:30, Flight EK-623):</p>
+                        <div id="via-routes-list" class="space-y-2">
+                            <!-- Route segment leg rows populated dynamically -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Meal & Transport Inclusions -->
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Meal, Transport & Baggage Inclusions -->
+                <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Meal Included</label>
                         <select name="includes_meal" id="input-pkg-includes-meal" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
@@ -10675,6 +10765,10 @@
                     <div>
                         <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Transport Type</label>
                         <input type="text" name="transport_type" id="input-pkg-transport-type" value="Sharing" placeholder="Sharing" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-[#2D4424] mb-1">Baggage Allowance</label>
+                        <input type="text" name="baggage_detail" id="input-pkg-baggage-detail" value="30 KG" placeholder="e.g. 30 KG or 20 KG + 7 KG Hand" class="w-full p-2.5 text-xs rounded-xl border border-[#D9CBAC]">
                     </div>
                 </div>
 
@@ -10692,7 +10786,7 @@
 
                 <!-- Interactive Hotel Selection & Master Links -->
                 <div class="space-y-4 border-t border-[#E7DCB9] pt-4">
-                    <label class="block text-xs font-black text-[#2D4424] flex items-center justify-between">
+                    <label class="text-xs font-black text-[#2D4424] flex items-center justify-between">
                         <span><i class="fa-solid fa-hotel text-[#E06A26] mr-1"></i> Hotel Details &amp; Master Hotel Mapping</span>
                         <span class="text-[10px] text-[#567946] font-normal">Auto-linked or Custom Hotel Names</span>
                     </label>
@@ -10800,7 +10894,7 @@
 
                 <!-- Section 2: Travel Dates & Flight Specifications -->
                 <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <label class="block text-xs font-black text-[#2D4424] flex items-center justify-between">
+                    <label class="text-xs font-black text-[#2D4424] flex items-center justify-between">
                         <span><i class="fa-solid fa-plane-departure text-[#E06A26] mr-1"></i> Airline Details, Flight Route & Travel Dates</span>
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -10829,7 +10923,7 @@
 
                 <!-- Section 3: Meal Plan Specifications -->
                 <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-2">
-                    <label class="block text-xs font-black text-[#2D4424] flex items-center gap-1.5">
+                    <label class="text-xs font-black text-[#2D4424] flex items-center gap-1.5">
                         <i class="fa-solid fa-utensils text-[#E06A26]"></i> Meal Plan & Catering Inclusions
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -10849,7 +10943,7 @@
 
                 <!-- Section 4: Manual Hotel & Distance Summary (Makkah & Madinah) -->
                 <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-3">
-                    <label class="block text-xs font-black text-[#2D4424] flex items-center justify-between">
+                    <label class="text-xs font-black text-[#2D4424] flex items-center justify-between">
                         <span><i class="fa-solid fa-hotel text-[#E06A26] mr-1"></i> Makkah & Madinah Hotel Overview (Manual Text Input Option)</span>
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -10873,7 +10967,7 @@
 
                 <!-- Section 5: Pricing Tiers -->
                 <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-2">
-                    <label class="block text-xs font-black text-[#2D4424] flex items-center gap-1.5">
+                    <label class="text-xs font-black text-[#2D4424] flex items-center gap-1.5">
                         <i class="fa-solid fa-tags text-[#E06A26]"></i> Room Occupancy Wholesale Pricing per Person (PKR)
                     </label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -10898,7 +10992,7 @@
 
                 <!-- Section 6: Compliance Info -->
                 <div class="bg-[#F7F3E9] p-4 rounded-2xl border border-[#D9CBAC] space-y-2">
-                    <label class="block text-xs font-black text-[#2D4424] flex items-center gap-1.5">
+                    <label class="text-xs font-black text-[#2D4424] flex items-center gap-1.5">
                         <i class="fa-solid fa-shield-halved text-[#E06A26]"></i> Hajj Operator Regulatory Compliance Info
                     </label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
@@ -11401,7 +11495,7 @@
 
                 <!-- ── TRIP TYPE (First Field) ── -->
                 <div class="bg-gradient-to-r from-[#F0F6EC] to-[#F7F3E9] p-4 rounded-2xl border-2 border-[#567946]">
-                    <label class="block font-extrabold text-[#2D4424] mb-2 flex items-center gap-2">
+                    <label class="font-extrabold text-[#2D4424] mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-route text-[#E06A26]"></i> Trip Type <span class="text-rose-500">*</span>
                     </label>
                     <select id="b2c-flight-trip-type" name="trip_type" onchange="renderB2CFlightSectors()" class="w-full px-3 py-2.5 border-2 border-[#567946] rounded-xl focus:outline-none focus:border-[#E06A26] bg-white font-extrabold text-[#2D4424] text-xs">
@@ -12313,7 +12407,7 @@
                             </div>
                         </div>
                         <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5 mt-1">
-                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                            <label class="font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
                                 <span class="flex items-center gap-1.5"><i class="fa-solid fa-image text-[#E06A26]"></i> Package Cover Image</span>
                                 <span class="text-[10px] text-[#567946] font-semibold">(Shown on Website & Admin List)</span>
                             </label>
@@ -12426,7 +12520,7 @@
                         </div>
                         <!-- Airline Logo Upload & Preview -->
                         <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5 mt-1">
-                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                            <label class="font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
                                 <span class="flex items-center gap-1.5"><i class="fa-solid fa-plane text-[#E06A26]"></i> Airline Logo Image Upload</span>
                                 <span class="text-[10px] text-[#567946] font-semibold">(PNG / JPG / WEBP logo file from disk)</span>
                             </label>
@@ -12456,7 +12550,7 @@
                             </div>
                         </div>
                         <!-- Via & Multi-City: 4 sectors -->
-                        <div id="pkg-routes-via" class="grid grid-cols-2 sm:grid-cols-4 gap-2 hidden">
+                        <div id="pkg-routes-via" class="grid-cols-2 sm:grid-cols-4 gap-2 hidden">
                             <div>
                                 <label class="block text-[9px] font-bold text-[#567946] uppercase mb-1">Sector 1 (e.g. LYP-SHJ)</label>
                                 <input type="text" id="pkg-route-v1" placeholder="LYP-SHJ" class="w-full px-3 py-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-xl font-black text-[#2D4424] focus:outline-none focus:border-[#E06A26] uppercase tracking-widest text-center text-xs" oninput="this.value=this.value.toUpperCase()" onchange="_syncRouteString()">
@@ -12531,7 +12625,7 @@
                         </div>
                         <!-- Makkah Hotel Photos Upload -->
                         <div class="sm:col-span-3 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5">
-                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                            <label class="font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
                                 <span class="flex items-center gap-1.5"><i class="fa-solid fa-kaaba text-amber-600"></i> Makkah Hotel Photos</span>
                                 <span class="text-[10px] text-[#567946] font-semibold">(Upload JPG/PNG photo files from disk)</span>
                             </label>
@@ -12557,7 +12651,7 @@
                         </div>
                         <!-- Makkah Hotel Photos Upload -->
                         <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5">
-                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                            <label class="font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
                                 <span class="flex items-center gap-1.5"><i class="fa-solid fa-kaaba text-amber-600"></i> Makkah Hotel Photos</span>
                                 <span class="text-[10px] text-[#567946] font-semibold">(Upload JPG/PNG photo files from disk)</span>
                             </label>
@@ -12579,7 +12673,7 @@
                         </div>
                         <!-- Madinah Hotel Photos Upload -->
                         <div class="sm:col-span-2 bg-[#F7F3E9] border border-[#D9CBAC] rounded-2xl p-3.5">
-                            <label class="block font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
+                            <label class="font-extrabold text-[#2D4424] mb-1.5 flex items-center justify-between">
                                 <span class="flex items-center gap-1.5"><i class="fa-solid fa-mosque text-emerald-600"></i> Madinah Hotel Photos</span>
                                 <span class="text-[10px] text-[#567946] font-semibold">(Upload JPG/PNG photo files from disk)</span>
                             </label>
@@ -13565,7 +13659,7 @@
                         <div>
                             <label class="block font-extrabold text-[#2D4424] mb-1">Company / Brand Logo</label>
                             <input type="file" id="b2c-admin-hajj-company-logo" accept="image/*" class="w-full px-3 py-1.5 bg-white border border-[#D9CBAC] rounded-xl font-bold text-[#2D4424]">
-                            <div id="b2c-admin-hajj-logo-preview" class="mt-2 hidden flex items-center gap-2">
+                            <div id="b2c-admin-hajj-logo-preview" class="mt-2 hidden items-center gap-2">
                                 <img src="" class="h-10 w-auto object-contain rounded border border-[#E7DCB9]" id="b2c-admin-hajj-logo-img">
                                 <span class="text-[10px] text-[#567946] font-bold">Current Logo</span>
                             </div>
@@ -13744,7 +13838,7 @@
         </div>
     </div>
     <!-- Modal: B2C Booking & Customer Details -->
-    <div id="modal-b2c-booking-details" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div id="modal-b2c-booking-details" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm items-center justify-center p-4 overflow-y-auto">
         <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-[#D9CBAC] transform transition-all my-8">
             <!-- Header -->
             <div class="bg-[#2D4424] text-white px-6 py-4 flex items-center justify-between">
@@ -13849,7 +13943,7 @@
 
                 <!-- Special Notes Section -->
                 <div id="b2c-modal-notes-container" class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-                    <span class="text-slate-500 block text-[10px] font-bold uppercase mb-1 flex items-center gap-1">
+                    <span class="text-slate-500 text-[10px] font-bold uppercase mb-1 flex items-center gap-1">
                         <i class="fa-solid fa-comment-dots text-slate-400"></i> Customer Notes & Requests
                     </span>
                     <p id="b2c-modal-notes" class="text-xs text-slate-700 italic">No notes provided.</p>

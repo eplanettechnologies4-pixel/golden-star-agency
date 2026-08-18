@@ -249,10 +249,12 @@ class AgentPackage(models.Model):
     flight_name = models.CharField(max_length=150, default='Saudi Airlines', blank=True, null=True)
     flight_route_type = models.CharField(max_length=20, default='direct', choices=(('direct', 'Direct Flight'), ('via', 'Via Flight')), blank=True, null=True)
     flight_route = models.CharField(max_length=255, default='KHI - JED - MED - KHI', blank=True, null=True)
+    sectors_data = models.JSONField(default=dict, blank=True, null=True, help_text='Detailed flight legs breakdown with departure/arrival times & flight numbers')
     
     includes_meal = models.BooleanField(default=True, help_text='Meal Included: Yes / No')
     meal_detail = models.CharField(max_length=100, default='Full Board', blank=True, null=True)
     transport_type = models.CharField(max_length=100, default='Sharing', blank=True, null=True)
+    baggage_detail = models.CharField(max_length=100, default='30 KG', blank=True, null=True, help_text='Baggage allowance (e.g. 30 KG, 20 KG, 2x23 KG)')
     
     images = models.JSONField(default=list, blank=True, null=True)
     cover_photo = models.ImageField(upload_to='umrah_packages/covers/', null=True, blank=True)
@@ -290,6 +292,22 @@ class AgentPackage(models.Model):
         elif self.departure_date:
             return str(self.departure_date)
         return ""
+
+    @property
+    def sectors_list(self):
+        if not self.sectors_data:
+            return []
+        if isinstance(self.sectors_data, list):
+            return [s for s in self.sectors_data if isinstance(s, dict)]
+        if isinstance(self.sectors_data, dict):
+            if 'going' in self.sectors_data or 'coming' in self.sectors_data:
+                g = self.sectors_data.get('going') or []
+                c = self.sectors_data.get('coming') or []
+                return [s for s in (g + c) if isinstance(s, dict)]
+            if 'sectors' in self.sectors_data:
+                s_list = self.sectors_data.get('sectors') or []
+                return [s for s in s_list if isinstance(s, dict)]
+        return []
 
     @property
     def flight_routes(self):
