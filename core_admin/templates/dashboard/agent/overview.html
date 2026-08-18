@@ -1028,8 +1028,7 @@
                                 <i class="fa-solid fa-shield-check text-emerald-400"></i> Verified B2B Partner Portal
                             </span>
                             <span class="text-xs text-white/60">•</span>
-                            <span class="text-xs text-[#F7EBB2] font-mono font-bold">AGENCY ID: #{{
-                                user.agent_id_number|default:user.username|upper }}</span>
+                            <span class="text-xs text-[#F7EBB2] font-mono font-bold">AGENCY ID: #<span class="agent-id-number-display">{{ user.agent_id_number|default:user.username|upper }}</span></span>
                         </div>
                         <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
                             <span>Welcome, {{ user.get_full_name|default:user.username }}</span>
@@ -1891,9 +1890,7 @@
                                     VERIFIED
                                 </span>
                             </div>
-                            <p class="text-xs text-[#F7EBB2] font-semibold mt-1">Agent ID Number: <span
-                                    class="font-mono text-[#E85D04] font-extrabold">{{
-                                    user.agent_id_number|default:"GSA-AGT-PENDING" }}</span></p>
+                            <p class="text-xs text-[#F7EBB2] font-semibold mt-1">Agent ID Number: <span class="font-mono text-[#E85D04] font-extrabold agent-id-number-display">{{ user.agent_id_number|default:"GSA-AGT-PENDING" }}</span></p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 z-10">

@@ -805,6 +805,7 @@ def admin_agent_packages_api(request):
                 'flight_route_type_display':'Direct Flight' if (p.flight_route_type or 'direct') == 'direct' else 'Via Flight',
                 'flight_route':             p.flight_route or 'KHI - JED - MED - KHI',
                 'sectors_data':            p.sectors_data if isinstance(p.sectors_data, (dict, list)) else {},
+                'sectors_list':            p.sectors_list,
                 'includes_meal':            p.includes_meal,
                 'meal_display':             'Yes' if p.includes_meal else 'No',
                 'meal_detail':              p.meal_detail or 'Full Board',
@@ -813,7 +814,7 @@ def admin_agent_packages_api(request):
                 'departure_date':           p.departure_date.strftime('%Y-%m-%d') if p.departure_date else '',
                 'return_date':              p.return_date.strftime('%Y-%m-%d') if p.return_date else '',
                 'hotel_ids':                list(p.hotels.values_list('id', flat=True)),
-                'hotels':                   [{'id': h.id, 'name': h.name, 'city': h.city, 'location': h.location, 'city_display': h.get_city_display(), 'distance_from_haram': h.distance_from_haram, 'price_sharing': float(h.price_sharing) if h.price_sharing is not None else None, 'price_quad': float(h.price_quad) if h.price_quad is not None else None, 'price_triple': float(h.price_triple) if h.price_triple is not None else None, 'price_double': float(h.price_double) if h.price_double is not None else None} for h in p.hotels.all()],
+                'hotels':                   [{'id': h.id, 'name': h.name, 'city': h.city, 'location': getattr(h, 'location', ''), 'city_display': h.get_city_display() if hasattr(h, 'get_city_display') else h.city, 'distance_from_haram': h.distance_from_haram, 'price_sharing': float(h.price_sharing) if h.price_sharing is not None else None, 'price_quad': float(h.price_quad) if h.price_quad is not None else None, 'price_triple': float(h.price_triple) if h.price_triple is not None else None, 'price_double': float(h.price_double) if h.price_double is not None else None} for h in p.hotels.all()],
                 'total_seats':              p.total_seats,
                 'booked_seats':             p.booked_seats,
                 'available_seats':          p.available_seats,
@@ -825,12 +826,12 @@ def admin_agent_packages_api(request):
                 'madinah_nights':           p.madinah_nights,
                 'airline_id':               p.airline_id,
                 'airline_name':             p.airline.name if p.airline else (p.flight_name or ''),
-                'airline_logo_url':         p.airline.logo.url if (p.airline and p.airline.logo) else None,
+                'airline_logo_url':         (p.airline.logo.url if (p.airline and p.airline.logo and hasattr(p.airline.logo, 'url') and bool(p.airline.logo)) else None),
                 'images':                   p.images or [],
-                'cover_photo':              p.cover_photo.url if p.cover_photo else '',
+                'cover_photo':              (p.cover_photo.url if (p.cover_photo and hasattr(p.cover_photo, 'url') and bool(p.cover_photo)) else ''),
                 'cover_photo_url':          p.cover_photo_url,
                 'is_active':                p.is_active,
-                'created_at':               p.created_at.strftime('%Y-%m-%d %H:%M'),
+                'created_at':               p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '',
             })
         return JsonResponse({'success': True, 'packages': data})
 
@@ -2779,51 +2780,57 @@ def admin_ticket_orders_api(request):
         from ..bookings.models import Booking
         pkg_bookings = Booking.objects.select_related('user', 'package').all()
         for b in pkg_bookings:
-            pkg_type = getattr(b.package, 'package_type', 'umrah') if b.package else 'umrah'
-            pkg_title = b.package.title if b.package else 'Custom Package'
-            pnr_val = getattr(b, 'pnr', '') or ''
-            user_phone = getattr(b.user, 'phone', '') or 'N/A'
-            p_count = (b.adults_count or 1) + (b.children_count or 0) + (b.infants_count or 0)
+            try:
+                pkg_type = getattr(b.package, 'package_type', 'umrah') if b.package else 'umrah'
+                pkg_title = b.package.title if b.package else 'Custom Package'
+                pnr_val = getattr(b, 'pnr', '') or ''
+                user_phone = (getattr(b.user, 'phone', '') or 'N/A') if b.user else 'N/A'
+                p_count = (b.adults_count or 1) + (b.children_count or 0) + (b.infants_count or 0)
+                user_name = b.user.username if b.user else 'Customer'
+                user_email = b.user.email if b.user else ''
+                user_full_name = (b.user.get_full_name() or b.user.username) if b.user else 'Lead Passenger'
 
-            data.append({
-                'id': f"bkg_{b.id}",
-                'reference_number': f"INV-PKG-{b.id:04d}",
-                'agent_id': b.user.id if b.user else None,
-                'agent_name': b.user.username if b.user else 'Customer',
-                'agent_email': b.user.email if b.user else '',
-                'agent_phone_number': user_phone,
-                'order_type': pkg_type,
-                'order_type_display': pkg_type.capitalize() + ' Package',
-                'route_title': f"Package: {pkg_title} ({b.sharing_category or 'Standard'})",
-                'baggage_weight_kg': None,
-                'traveler_contact_email': b.user.email if b.user else '',
-                'agent_contact_email': b.user.email if b.user else '',
-                'total_fare': str(b.total_price),
-                'original_fare': str(b.total_price),
-                'admin_discount': '0.00',
-                'status': b.status,
-                'status_display': b.get_status_display(),
-                'hold_expires_at': None,
-                'pnr': pnr_val,
-                'passenger_count': p_count,
-                'passengers': [
-                    {
-                        'id': f"bkg_p_{b.id}",
-                        'passenger_type': 'adult',
-                        'passenger_type_display': 'Adult',
-                        'title': 'Mr/Ms',
-                        'first_name': b.user.username if b.user else 'Lead',
-                        'last_name': 'Passenger',
-                        'full_name': b.user.get_full_name() or (b.user.username if b.user else 'Lead Passenger'),
-                        'dob': '',
-                        'nationality': 'PK',
-                        'passport_number': 'N/A',
-                        'allotted_ticket_number': 'Confirmed' if b.status == 'confirmed' else 'Pending',
-                    }
-                ],
-                'created_at': b.created_at.strftime('%Y-%m-%d %H:%M'),
-                'source_model': 'Booking'
-            })
+                data.append({
+                    'id': f"bkg_{b.id}",
+                    'reference_number': f"INV-PKG-{b.id:04d}",
+                    'agent_id': b.user.id if b.user else None,
+                    'agent_name': user_name,
+                    'agent_email': user_email,
+                    'agent_phone_number': user_phone,
+                    'order_type': pkg_type,
+                    'order_type_display': pkg_type.capitalize() + ' Package',
+                    'route_title': f"Package: {pkg_title} ({b.sharing_category or 'Standard'})",
+                    'baggage_weight_kg': None,
+                    'traveler_contact_email': user_email,
+                    'agent_contact_email': user_email,
+                    'total_fare': str(b.total_price),
+                    'original_fare': str(b.total_price),
+                    'admin_discount': '0.00',
+                    'status': b.status,
+                    'status_display': b.get_status_display(),
+                    'hold_expires_at': None,
+                    'pnr': pnr_val,
+                    'passenger_count': p_count,
+                    'passengers': [
+                        {
+                            'id': f"bkg_p_{b.id}",
+                            'passenger_type': 'adult',
+                            'passenger_type_display': 'Adult',
+                            'title': 'Mr/Ms',
+                            'first_name': user_name,
+                            'last_name': 'Passenger',
+                            'full_name': user_full_name,
+                            'dob': '',
+                            'nationality': 'PK',
+                            'passport_number': 'N/A',
+                            'allotted_ticket_number': 'Confirmed' if b.status == 'confirmed' else 'Pending',
+                        }
+                    ],
+                    'created_at': b.created_at.strftime('%Y-%m-%d %H:%M') if b.created_at else '',
+                    'source_model': 'Booking'
+                })
+            except Exception as bkg_err:
+                print(f"[admin_ticket_orders_api] Error serializing booking #{b.id}: {bkg_err}")
     except Exception as err:
         print(f"[admin_ticket_orders_api] Error loading Booking model records: {err}")
 
